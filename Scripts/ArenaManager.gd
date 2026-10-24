@@ -256,6 +256,9 @@ func setup_match():
         elif GameState.ai_difficulty == "HARD":
             bot.requisition_rate = 0.6
             bot.think_interval = 0.7 * interval_scale
+        elif GameState.ai_difficulty == "NIGHTMARE":
+            bot.requisition_rate = 0.75
+            bot.think_interval = 0.45 * interval_scale
         
         add_child(bot)
         print("Spawned BotAI for ", bot.my_team, " [Slot ", i, "] Archetype: ", bot.archetype, " with profile ", bot.profile)

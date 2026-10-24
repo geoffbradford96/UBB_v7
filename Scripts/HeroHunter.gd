@@ -207,6 +207,7 @@ func find_new_target():
 	var closest_dist = 99999.0
 	var hero_target: Node3D = null
 	var my_pos = global_position
+	var closest_hero_dist = 99999.0
 	var gs = _get_game_state()
 
 	for node in get_tree().get_nodes_in_group("Targetable"):
@@ -218,13 +219,18 @@ func find_new_target():
 		if gs and gs.is_unit_stealthed_from(node, self):
 			continue
 
-		# Tunnel vision on alive enemy Commander!
-		if node.is_in_group("CommanderUnit") or "Commander" in node.name or "Overlord" in node.name or "GreatBeastSpeaker" in node.name:
-			hero_target = node
-			break
+		var d = my_pos.distance_to(node.global_position)
+		if (node.is_in_group("NeutralCreature") or node.is_in_group("NeutralStructure")) and d > 12.0:
+			continue
+
+		# Tunnel vision on closest alive enemy Commander!
+		if node.is_in_group("CommanderUnit") or "Commander" in node.name or "Overlord" in node.name or "GreatBeastSpeaker" in node.name or "EyeOfHarmony" in node.name:
+			if d < closest_hero_dist:
+				closest_hero_dist = d
+				hero_target = node
+			continue
 
 		# Fallback if no Commander is found
-		var d = my_pos.distance_to(node.global_position)
 		if d < closest_dist:
 			closest_dist = d
 			current_target = node

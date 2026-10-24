@@ -99,6 +99,24 @@ func _physics_process(delta):
 			new_velocity.y = velocity.y
 			velocity = new_velocity
 			is_moving = true
+		elif dist < 9.5 and not ("Base" in current_target.name or "Tower" in current_target.name):
+			# Kite backward away from encroaching enemy while shooting!
+			var away_dir = (global_position - current_target.global_position)
+			away_dir.y = 0.0
+			if away_dir.length_squared() > 0.01:
+				away_dir = away_dir.normalized()
+			else:
+				away_dir = -global_transform.basis.z
+			var kite_vel = away_dir * speed * 0.85
+			velocity.x = kite_vel.x
+			velocity.z = kite_vel.z
+			is_moving = true
+			
+			attack_timer += delta
+			if attack_timer >= attack_rate:
+				attack_timer = 0.0
+				set_meta("stealth_revealed_timer", 2.0)
+				shoot()
 		else:
 			# Stop and Attack from afar
 			velocity.x = move_toward(velocity.x, 0, speed)
@@ -227,6 +245,8 @@ func find_new_target():
 			continue
 		var d = my_pos.distance_to(node.global_position)
 		if d >= closest_dist:
+			continue
+		if (node.is_in_group("NeutralCreature") or node.is_in_group("NeutralStructure")) and d > 12.0:
 			continue
 		var target_hc = node.get_node_or_null("HealthComponent")
 		if target_hc and target_hc.is_dead:

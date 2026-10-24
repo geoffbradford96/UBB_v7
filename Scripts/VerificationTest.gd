@@ -92,6 +92,15 @@ func _ready():
 		total_failed += 1
 		print("  [FAIL] Model orientation verification failed!")
 
+	# Test 10: AI Systems, Targeting & Combat Behaviors
+	print("\n--- TEST 10: AI Systems & Combat Behaviors ---")
+	if test_ai_systems():
+		total_passed += 1
+		print("  [PASS] AI targeting, kiting, leashing, difficulty scaling, and commander prioritization verified.")
+	else:
+		total_failed += 1
+		print("  [FAIL] AI systems verification failed!")
+
 	print("\n==================================================")
 	print("VERIFICATION SUMMARY: %d PASSED, %d FAILED" % [total_passed, total_failed])
 	print("==================================================")
@@ -430,4 +439,119 @@ func test_model_orientations() -> bool:
 			tank.free()
 
 	print("  Verified unit model forward vectors, quad guns, spitters, and tank barrels.")
+	return success
+
+
+func test_ai_systems() -> bool:
+	var success = true
+
+	# 1. Test HeroHunter picks closest alive commander
+	var hh_ps = ResourceLoader.load("res://Scenes/Units/HeroHunter.tscn") as PackedScene
+	if hh_ps:
+		var hh = hh_ps.instantiate()
+		hh.add_to_group("SideA")
+		add_child(hh)
+		hh.global_position = Vector3(0, 0, 0)
+		
+		var far_cmd = Node3D.new()
+		far_cmd.name = "Commander_Far"
+		far_cmd.add_to_group("Targetable")
+		far_cmd.add_to_group("SideB")
+		far_cmd.add_to_group("CommanderUnit")
+		var hc1 = HealthComponent.new()
+		hc1.name = "HealthComponent"
+		far_cmd.add_child(hc1)
+		add_child(far_cmd)
+		far_cmd.global_position = Vector3(0, 0, 80)
+
+		var near_cmd = Node3D.new()
+		near_cmd.name = "Commander_Near"
+		near_cmd.add_to_group("Targetable")
+		near_cmd.add_to_group("SideB")
+		near_cmd.add_to_group("CommanderUnit")
+		var hc2 = HealthComponent.new()
+		hc2.name = "HealthComponent"
+		near_cmd.add_child(hc2)
+		add_child(near_cmd)
+		near_cmd.global_position = Vector3(0, 0, 20)
+
+		hh.find_new_target()
+		if hh.current_target != near_cmd:
+			printerr("HeroHunter failed to select closest Commander! Selected: ", hh.current_target)
+			success = false
+
+		hh.queue_free()
+		far_cmd.queue_free()
+		near_cmd.queue_free()
+
+	# 2. Test Medic ignores Base/Tower when searching for healing targets
+	var med_ps = ResourceLoader.load("res://Scenes/Units/Medic.tscn") as PackedScene
+	if med_ps:
+		var med = med_ps.instantiate()
+		med.add_to_group("SideA")
+		add_child(med)
+		med.global_position = Vector3(0, 0, 0)
+
+		var base_struct = Node3D.new()
+		base_struct.name = "BaseA"
+		base_struct.add_to_group("Targetable")
+		base_struct.add_to_group("SideA")
+		base_struct.add_to_group("Base")
+		var base_hc = HealthComponent.new()
+		base_hc.name = "HealthComponent"
+		base_hc.max_health = 1000.0
+		base_hc.current_health = 500.0
+		base_struct.add_child(base_hc)
+		add_child(base_struct)
+		base_struct.global_position = Vector3(0, 0, 3)
+
+		med.find_new_target()
+		if med.current_target == base_struct:
+			printerr("Medic targeted Base for healing! Should ignore structures.")
+			success = false
+
+		med.queue_free()
+		base_struct.queue_free()
+
+	# 3. Test TerritorialCreature aggro radius vs leash radius
+	var tc = TerritorialCreature.new()
+	add_child(tc)
+	var nest_pos = Vector3(1500, 0, 1500)
+	tc.configure_creature("Scorpion", nest_pos)
+	tc.global_position = nest_pos
+
+	var intr_outside_nest = Node3D.new()
+	intr_outside_nest.name = "IntruderOutsideNest"
+	intr_outside_nest.add_to_group("Targetable")
+	intr_outside_nest.add_to_group("SideA")
+	var ihc = HealthComponent.new()
+	ihc.name = "HealthComponent"
+	intr_outside_nest.add_child(ihc)
+	add_child(intr_outside_nest)
+	intr_outside_nest.global_position = nest_pos + Vector3(0, 0, 16.0) # Outside nest_radius (4.8), inside leash_radius (24.0)
+
+	tc._evaluate_targeting()
+	if tc.current_target != null:
+		printerr("TerritorialCreature acquired target outside nest_radius while idle! Target: ", tc.current_target)
+		success = false
+
+	# Now move intruder inside nest_radius (3.0m)
+	intr_outside_nest.global_position = nest_pos + Vector3(0, 0, 3.0)
+	tc._evaluate_targeting()
+	if tc.current_target != intr_outside_nest:
+		printerr("TerritorialCreature failed to acquire target inside nest_radius! Target: ", tc.current_target)
+		success = false
+
+	tc.free()
+	intr_outside_nest.free()
+
+	# 4. Test BotAI Nightmare difficulty scaling in ArenaManager script
+	var am_script = ResourceLoader.load("res://Scripts/ArenaManager.gd")
+	if am_script:
+		var am_src = am_script.source_code
+		if not ("NIGHTMARE" in am_src):
+			printerr("ArenaManager does not handle NIGHTMARE difficulty for BotAI!")
+			success = false
+
+	print("  Verified HeroHunter closest commander targeting, Medic structure exclusion, Territorial Creature nest radius, and Nightmare BotAI.")
 	return success

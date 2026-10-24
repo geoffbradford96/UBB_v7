@@ -115,15 +115,27 @@ func _physics_process(delta):
 				action_timer = 0.0
 				var target_health = current_target.get_node_or_null("HealthComponent")
 				if target_health:
-					# Only pop a heal if they actually need it!
-					if target_health.current_health < target_health.max_health:
-						print("Medic heals ", current_target.name, " for ", heal_amount)
-						target_health.heal(heal_amount)
+					var my_team = ""
+					for g in get_groups():
+						if g.begins_with("Side"):
+							my_team = g
+							break
+					if current_target.is_in_group(my_team):
+						# Only pop a heal if they actually need it!
+						if target_health.current_health < target_health.max_health:
+							print("Medic heals ", current_target.name, " for ", heal_amount)
+							target_health.heal(heal_amount)
+							if humanoid_rig and humanoid_rig.has_method("trigger_attack"):
+								humanoid_rig.trigger_attack(0.35)
+							var ap_action = get_node_or_null("AnimationPlayer")
+							if ap_action and ap_action.has_animation("heal"):
+								ap_action.play("heal")
+					else:
+						# Self-defense syringe attack against hostile targets when caught alone!
+						set_meta("stealth_revealed_timer", 2.0)
+						target_health.take_damage(heal_amount * 0.5, global_position)
 						if humanoid_rig and humanoid_rig.has_method("trigger_attack"):
 							humanoid_rig.trigger_attack(0.35)
-						var ap_action = get_node_or_null("AnimationPlayer")
-						if ap_action and ap_action.has_animation("heal"):
-							ap_action.play("heal")
 					
 					# If they are fully healed (or already were), re-evaluate targets next frame
 					if target_health.current_health >= target_health.max_health:
@@ -215,6 +227,9 @@ func find_new_target():
 	for node in get_tree().get_nodes_in_group("Targetable"):
 		if node == self or not is_instance_valid(node) or not node.is_in_group(my_team):
 			continue
+		# Medics heal mobile living/mechanical allies, NOT stationary buildings or towers!
+		if "Base" in node.name or "Tower" in node.name or "CommandBay" in node.name or node.is_in_group("Base") or node.is_in_group("Tower"):
+			continue
 		var health = node.get_node_or_null("HealthComponent")
 		if health and not health.is_dead:
 			var d = my_pos.distance_to(node.global_position)
@@ -231,6 +246,24 @@ func find_new_target():
 	# If no one is hurt, follow the closest healthy ally so we stay with the army!
 	if current_target == null and healthy_fallback != null:
 		current_target = healthy_fallback
+	elif current_target == null:
+		# If alone with no allies, advance toward nearest enemy or defend self
+		var closest_enemy_dist = 99999.0
+		var gs = _get_game_state()
+		for node in get_tree().get_nodes_in_group("Targetable"):
+			if node == self or not is_instance_valid(node) or node.is_in_group(my_team):
+				continue
+			var hc = node.get_node_or_null("HealthComponent")
+			if hc and hc.is_dead:
+				continue
+			if gs and gs.is_unit_stealthed_from(node, self):
+				continue
+			var d = my_pos.distance_to(node.global_position)
+			if (node.is_in_group("NeutralCreature") or node.is_in_group("NeutralStructure")) and d > 12.0:
+				continue
+			if d < closest_enemy_dist:
+				closest_enemy_dist = d
+				current_target = node
 
 # --- Reach faction synergy: faster move/attack + bigger model when clustered with other Reach units ---
 var _reach_base_speed: float = -1.0

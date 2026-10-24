@@ -317,8 +317,11 @@ func find_new_target():
 		if gs and gs.is_unit_stealthed_from(node, self):
 			continue
 		var d = my_pos.distance_to(node.global_position)
+		if (node.is_in_group("NeutralCreature") or node.is_in_group("NeutralStructure")) and d > 12.0:
+			continue
 		# Is the enemy a high-value backline target or off-lane flanker?
-		var is_priority = "Sniper" in node.name or "Ranged" in node.name or "Hunter" in node.name or "CommandBay" in node.name or abs(node.global_position.x) > 18
+		var is_off_lane = (gs.get_distance_to_nearest_lane(node.global_position) > 12.0) if gs else (abs(node.global_position.x) > 18.0)
+		var is_priority = "Sniper" in node.name or "Ranged" in node.name or "Hunter" in node.name or "Spitter" in node.name or "Medic" in node.name or "CommandBay" in node.name or is_off_lane
 		if is_priority:
 			if d < closest_off_lane_dist:
 				closest_off_lane_dist = d

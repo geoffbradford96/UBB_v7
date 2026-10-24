@@ -37,6 +37,8 @@ func _ready():
 	hc.set_max_health(max_health)
 	if not hc.died.is_connected(_on_died):
 		hc.died.connect(_on_died)
+	if not hc.health_changed.is_connected(_on_health_changed):
+		hc.health_changed.connect(_on_health_changed)
 		
 	if home_position == Vector3.ZERO:
 		home_position = global_position
@@ -423,7 +425,7 @@ func _evaluate_targeting():
 			current_target = null
 				
 	if current_target == null:
-		var closest_dist = leash_radius
+		var closest_dist = nest_radius # Only aggro new targets entering nest territory
 		var best_target = null
 		var gs = _get_game_state()
 		
@@ -441,11 +443,32 @@ func _evaluate_targeting():
 					continue
 					
 				var dist_from_nest = home_position.distance_to(node.global_position)
-				if dist_from_nest <= leash_radius and dist_from_nest < closest_dist:
+				if dist_from_nest <= nest_radius and dist_from_nest < closest_dist:
 					closest_dist = dist_from_nest
 					best_target = node
 				
 		current_target = best_target
+
+func _on_health_changed(new_h: float, max_h: float):
+	if current_target == null and new_h < max_h:
+		_evaluate_retaliation()
+
+func _evaluate_retaliation():
+	var closest_d: float = leash_radius
+	var best: Node3D = null
+	var my_group = "Scorpion" if creature_type == "Scorpion" else "SwarmAnt"
+	if not is_inside_tree() or not get_tree(): return
+	for node in get_tree().get_nodes_in_group("Targetable"):
+		if node == self or not is_instance_valid(node): continue
+		if node.is_in_group(my_group) or node.is_in_group("NeutralCreature") or node.is_in_group("NeutralStructure"): continue
+		var hc = node.get_node_or_null("HealthComponent")
+		if hc and hc.is_dead: continue
+		var d = global_position.distance_to(node.global_position)
+		if d < closest_d:
+			closest_d = d
+			best = node
+	if best != null:
+		current_target = best
 
 func _on_died():
 	set_physics_process(false)

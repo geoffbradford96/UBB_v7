@@ -153,8 +153,14 @@ func _physics_process(delta):
 			velocity = new_velocity
 			is_moving = true
 		else:
-			velocity.x = move_toward(velocity.x, 0, speed)
-			velocity.z = move_toward(velocity.z, 0, speed)
+			# Aircraft strafe/circle around target while in attack range!
+			var to_target = current_target.global_position - global_position
+			to_target.y = 0.0
+			var tangent = Vector3(-to_target.z, 0, to_target.x).normalized() if to_target.length_squared() > 0.01 else Vector3.RIGHT
+			var orbit_vel = tangent * speed * 0.72
+			velocity.x = orbit_vel.x
+			velocity.z = orbit_vel.z
+			is_moving = true
 			
 			attack_timer += delta
 			if attack_timer >= attack_rate:
@@ -247,6 +253,8 @@ func find_new_target():
 			continue
 		var d = my_pos.distance_to(node.global_position)
 		if d >= closest_dist:
+			continue
+		if (node.is_in_group("NeutralCreature") or node.is_in_group("NeutralStructure")) and d > 12.0:
 			continue
 		var target_hc = node.get_node_or_null("HealthComponent")
 		if target_hc and target_hc.is_dead:

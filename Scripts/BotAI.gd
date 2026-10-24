@@ -63,6 +63,9 @@ func _process(delta):
 	var bot_towers = 0
 	for z in get_tree().get_nodes_in_group(my_team):
 		if "Tower" in z.name:
+			var zhc = z.get_node_or_null("HealthComponent")
+			if zhc and zhc.is_dead:
+				continue
 			bot_towers += 1
 	var am = (get_tree().current_scene if (get_tree() and get_tree().current_scene) else get_parent())
 	var initial = 2
@@ -75,6 +78,7 @@ func _process(delta):
 		dynamic_rate *= gs.get_team_energy_multiplier(my_team)
 	if am and am.get("sudden_death_active"):
 		dynamic_rate *= 0.5
+	dynamic_rate = max(0.2, dynamic_rate)
 	if current_requisition < max_requisition:
 		current_requisition += dynamic_rate * delta
 		if current_requisition > max_requisition:
@@ -273,7 +277,9 @@ func evaluate_moves():
 	for u in my_units:
 		if not is_instance_valid(u): continue
 		if u.is_in_group("CommanderUnit") or "Commander" in u.name or "Overlord" in u.name or "GreatBeastSpeaker" in u.name or "EyeOfHarmony" in u.name or "GildedCommander" in u.name:
-			has_commander = true
+			var uhc_cmd = u.get_node_or_null("HealthComponent")
+			if uhc_cmd == null or not uhc_cmd.is_dead:
+				has_commander = true
 		if not ("Base" in u.name or "Tower" in u.name or "CommandBay" in u.name):
 			mobile_unit_count += 1
 			var uhc = u.get_node_or_null("HealthComponent")
@@ -313,6 +319,22 @@ func evaluate_moves():
 	if gs and gs.is_koth_mode():
 		# Contest the Hill early!
 		bank_scale *= 0.85
+
+	# If Commander died, prioritize deploying Commander from hand to lead the army
+	if not has_commander:
+		var has_commander_card = false
+		for cc in valid_hand:
+			if cc.card_type == "Commander" or "Commander" in cc.card_name or "Overlord" in cc.card_name or "GreatBeastSpeaker" in cc.card_name or "EyeOfHarmony" in cc.card_name:
+				has_commander_card = true
+				break
+		if has_commander_card:
+			valid_hand.sort_custom(func(a, b):
+				var a_cmd = a.card_type == "Commander" or "Commander" in a.card_name or "Overlord" in a.card_name or "GreatBeastSpeaker" in a.card_name or "EyeOfHarmony" in a.card_name
+				var b_cmd = b.card_type == "Commander" or "Commander" in b.card_name or "Overlord" in b.card_name or "GreatBeastSpeaker" in b.card_name or "EyeOfHarmony" in b.card_name
+				if a_cmd != b_cmd:
+					return a_cmd
+				return a.cost > b.cost
+			)
 
 	# In emergency defense mode, prioritize spells, infectors (against heavy targets), and immediate affordable units!
 	if threat_info.threat_score > 20.0:
@@ -866,8 +888,25 @@ func play_card(card: CardData, target_position: Vector3):
 	var am = (get_tree().current_scene if get_tree().current_scene else get_parent())
 	if am and am.has_method("can_deploy_at"):
 		if not am.can_deploy_at(my_team, target_position, card.is_spell):
-			print(my_team, " AI cannot deploy outside friendly deployment zone at: ", target_position)
-			return
+			# Fallback: pull target_position back towards friendly anchor structure to guarantee valid deployment
+			var fallback_pos = target_position
+			var anchor_node: Node3D = null
+			for s in get_tree().get_nodes_in_group(my_team):
+				if is_instance_valid(s) and ("Base" in s.name or "Tower" in s.name or "CommandBay" in s.name):
+					var shc = s.get_node_or_null("HealthComponent")
+					if shc == null or not shc.is_dead:
+						anchor_node = s
+						break
+			if anchor_node:
+				var flat_a = Vector3(anchor_node.global_position.x, 0.0, anchor_node.global_position.z)
+				fallback_pos = flat_a + (target_position - flat_a).normalized() * 12.0
+				if am.can_deploy_at(my_team, fallback_pos, card.is_spell):
+					target_position = fallback_pos
+				else:
+					target_position = flat_a + Vector3(randf_range(-3.0, 3.0), 0, randf_range(-3.0, 3.0))
+			if not am.can_deploy_at(my_team, target_position, card.is_spell):
+				print(my_team, " AI cannot deploy outside friendly deployment zone at: ", target_position)
+				return
 
 	current_requisition -= card.cost
 	
