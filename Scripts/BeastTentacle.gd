@@ -155,11 +155,12 @@ func execute_tentacle_slam():
 			if is_instance_valid(old_tw) and old_tw.is_valid():
 				old_tw.kill()
 		var tw = create_tween()
-		set_meta("attack_tween", tw)
-		# Wind back slightly, then violently slam forward down
-		tw.tween_property(mn, "rotation_degrees:x", -18.0, 0.12)
-		tw.tween_property(mn, "rotation_degrees:x", 68.0, 0.14).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-		tw.tween_property(mn, "rotation_degrees:x", 0.0, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		if tw:
+			set_meta("attack_tween", tw)
+			# Wind back slightly, then violently slam forward down
+			tw.tween_property(mn, "rotation_degrees:x", -18.0, 0.12)
+			tw.tween_property(mn, "rotation_degrees:x", 68.0, 0.14).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+			tw.tween_property(mn, "rotation_degrees:x", 0.0, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 		
 	# Ground impact shockwave effect at target location
 	var shock = MeshInstance3D.new()
@@ -174,14 +175,17 @@ func execute_tentacle_slam():
 	s_mat.emission = Color(0.6, 0.1, 0.7)
 	s_mat.emission_energy_multiplier = 2.0
 	shock.material_override = s_mat
-	var scene_root = get_tree().current_scene if (get_tree() and get_tree().current_scene) else get_parent()
+	var scene_root = get_tree().current_scene if (is_inside_tree() and get_tree() and get_tree().current_scene) else get_parent()
 	if scene_root:
 		scene_root.add_child(shock)
 		shock.global_position = target_ref.global_position + Vector3(0, 0.1, 0)
 		var stw = shock.create_tween()
-		stw.tween_property(shock, "scale", Vector3(2.5, 1.0, 2.5), 0.3)
-		stw.parallel().tween_property(s_mat, "albedo_color:a", 0.0, 0.3)
-		stw.tween_callback(shock.queue_free)
+		if stw:
+			stw.tween_property(shock, "scale", Vector3(2.5, 1.0, 2.5), 0.3)
+			stw.parallel().tween_property(s_mat, "albedo_color:a", 0.0, 0.3)
+			stw.tween_callback(shock.queue_free)
+		else:
+			shock.queue_free()
 
 func find_new_target():
 	current_target = null

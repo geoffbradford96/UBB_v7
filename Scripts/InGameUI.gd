@@ -381,9 +381,10 @@ func show_placement_warning(msg: String):
 	if warning_tween and warning_tween.is_valid():
 		warning_tween.kill()
 	warning_tween = create_tween()
-	warning_tween.tween_interval(1.2)
-	warning_tween.tween_property(warning_label, "modulate:a", 0.0, 0.4)
-	warning_tween.tween_callback(Callable(warning_label, "hide"))
+	if warning_tween:
+		warning_tween.tween_interval(1.2)
+		warning_tween.tween_property(warning_label, "modulate:a", 0.0, 0.4)
+		warning_tween.tween_callback(Callable(warning_label, "hide"))
 
 var spectator_panel: Control = null
 var spectator_a_bar: ProgressBar = null

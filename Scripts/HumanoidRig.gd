@@ -717,7 +717,7 @@ func _build_weapon(w_root: Node3D, u_name: String, w_mat: Material, energy_mat: 
 		w_root.add_child(barrel)
 
 func animate(delta: float, is_moving: bool, is_critically_wounded: bool, move_speed: float):
-	if not is_active or not torso: return
+	if not is_active or not torso or not head or not left_arm_pivot or not right_arm_pivot or not left_leg_pivot or not right_leg_pivot: return
 	
 	if is_critically_wounded:
 		# --- CRITICALLY WOUNDED ANATOMY STATE ---

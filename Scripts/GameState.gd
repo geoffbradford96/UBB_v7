@@ -102,8 +102,11 @@ func register_corpse(corpse_node: Node3D):
 			_fade_and_free_corpse(oldest)
 	if corpse_duration > 0.0:
 		var tw = corpse_node.create_tween()
-		tw.tween_interval(corpse_duration)
-		tw.tween_callback(Callable(self, "_on_corpse_expired").bind(corpse_node))
+		if tw:
+			tw.tween_interval(corpse_duration)
+			tw.tween_callback(Callable(self, "_on_corpse_expired").bind(corpse_node))
+		else:
+			_on_corpse_expired(corpse_node)
 
 func _on_corpse_expired(corpse_node: Node3D):
 	active_corpses.erase(corpse_node)
@@ -113,8 +116,11 @@ func _on_corpse_expired(corpse_node: Node3D):
 func _fade_and_free_corpse(node: Node3D):
 	if not is_instance_valid(node): return
 	var tw = node.create_tween()
-	tw.tween_property(node, "scale", node.scale * 0.001, 1.2)
-	tw.tween_callback(node.queue_free)
+	if tw:
+		tw.tween_property(node, "scale", node.scale * 0.001, 1.2)
+		tw.tween_callback(node.queue_free)
+	else:
+		node.queue_free()
 	
 func save_decks():
 	var save_path = "user://local_decks.json"

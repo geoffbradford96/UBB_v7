@@ -210,10 +210,13 @@ static func _spawn_harmony_burst(unit: Node3D, is_gilded: bool = false) -> void:
 	scene_root.add_child(ring)
 	ring.global_position = unit.global_position + Vector3(0, 1.0, 0)
 	var tw := ring.create_tween()
-	tw.set_parallel(true)
-	tw.tween_property(ring, "scale", Vector3(3.2, 1.0, 3.2), 0.55)
-	tw.tween_property(ring, "position:y", ring.position.y + 1.8, 0.55)
-	tw.chain().tween_callback(ring.queue_free)
+	if tw:
+		tw.set_parallel(true)
+		tw.tween_property(ring, "scale", Vector3(3.2, 1.0, 3.2), 0.55)
+		tw.tween_property(ring, "position:y", ring.position.y + 1.8, 0.55)
+		tw.chain().tween_callback(ring.queue_free)
+	else:
+		ring.queue_free()
 
 # =========================================================================
 # 1. HUMANOID RIG GOLD VEINS (Moves & animates with limbs, torso, head, gun)

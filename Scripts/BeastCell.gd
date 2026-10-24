@@ -131,8 +131,9 @@ func _physics_process(delta):
 				var holder = mesh.get_meta("spike_holder")
 				if is_instance_valid(holder):
 					var tw = create_tween()
-					tw.tween_property(holder, "scale", Vector3(1.45, 1.45, 1.45), 0.08)
-					tw.tween_property(holder, "scale", Vector3(1.0, 1.0, 1.0), 0.2)
+					if tw:
+						tw.tween_property(holder, "scale", Vector3(1.45, 1.45, 1.45), 0.08)
+						tw.tween_property(holder, "scale", Vector3(1.0, 1.0, 1.0), 0.2)
 					
 	super._physics_process(delta)
 

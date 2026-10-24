@@ -119,7 +119,7 @@ func shoot_at_target():
 	if not is_instance_valid(current_target): return
 	if projectile_scene:
 		var proj = projectile_scene.instantiate()
-		var scene_root = get_tree().current_scene if (get_tree() and get_tree().current_scene) else get_parent()
+		var scene_root = get_tree().current_scene if (is_inside_tree() and get_tree() and get_tree().current_scene) else get_parent()
 		if scene_root:
 			scene_root.add_child(proj)
 			proj.global_position = global_position + Vector3(0, 6, 0) 
@@ -134,8 +134,9 @@ func shoot_at_target():
 				var turret = f_mesh.get_meta("dominion_turret")
 				if is_instance_valid(turret):
 					var tw = create_tween()
-					tw.tween_property(turret, "position:z", -0.3, 0.06)
-					tw.tween_property(turret, "position:z", 0.0, 0.15)
+					if tw:
+						tw.tween_property(turret, "position:z", -0.3, 0.06)
+						tw.tween_property(turret, "position:z", 0.0, 0.15)
 		
 		var mesh = proj.get_node_or_null("MeshInstance3D")
 		if mesh and mesh.mesh:

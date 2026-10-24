@@ -9,8 +9,9 @@ func _ready():
 	var mesh = get_node_or_null("MeshInstance3D")
 	if mesh:
 		var tween = create_tween()
-		mesh.scale = Vector3(0.1, 0.1, 0.1)
-		tween.tween_property(mesh, "scale", Vector3(1, 1, 1), 0.5).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+		if tween:
+			mesh.scale = Vector3(0.1, 0.1, 0.1)
+			tween.tween_property(mesh, "scale", Vector3(1, 1, 1), 0.5).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
 		
 	# Wait 0.5s for explosion animation to finish expanding
 	await get_tree().create_timer(0.5).timeout

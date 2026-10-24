@@ -1661,7 +1661,10 @@ func _start_beast_of_nothingness():
         beast_root.add_child(t_root)
 
     var tw = create_tween()
-    tw.tween_property(beast_root, "position:y", 0.0, 10.0)
+    if tw:
+        tw.tween_property(beast_root, "position:y", 0.0, 10.0)
+    else:
+        beast_root.position.y = 0.0
 
 
 @rpc("authority", "call_local", "reliable")
@@ -1673,7 +1676,10 @@ func sync_spawn_hazard(rx: float, rz: float, is_mouth: bool, unique_name: String
     add_child(t)
     t.global_position = Vector3(rx, -5, rz)
     var tw = t.create_tween()
-    tw.tween_property(t, "position:y", 0.0, 1.0)
+    if tw:
+        tw.tween_property(t, "position:y", 0.0, 1.0)
+    else:
+        t.position.y = 0.0
     
     # Ground eruption shockwave burst
     var burst = MeshInstance3D.new()
@@ -1690,9 +1696,12 @@ func sync_spawn_hazard(rx: float, rz: float, is_mouth: bool, unique_name: String
     add_child(burst)
     burst.global_position = Vector3(rx, 0.05, rz)
     var btw = burst.create_tween()
-    btw.tween_property(burst, "scale", Vector3(2.2, 1.0, 2.2), 0.6)
-    btw.parallel().tween_property(bmat, "albedo_color:a", 0.0, 0.6)
-    btw.tween_callback(burst.queue_free)
+    if btw:
+        btw.tween_property(burst, "scale", Vector3(2.2, 1.0, 2.2), 0.6)
+        btw.parallel().tween_property(bmat, "albedo_color:a", 0.0, 0.6)
+        btw.tween_callback(burst.queue_free)
+    else:
+        burst.queue_free()
 
 func _end_match(message: String, winning_team: String = ""):
     if multiplayer.has_multiplayer_peer() and multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED:

@@ -2343,14 +2343,18 @@ func _flash_shield_hit():
 			var mat = mesh_inst.material_override as StandardMaterial3D
 			mat.emission_energy_multiplier = 4.5
 			var tw = mesh_inst.create_tween()
-			tw.tween_property(mat, "emission_energy_multiplier", 1.5, 0.14)
+			if tw:
+				tw.tween_property(mat, "emission_energy_multiplier", 1.5, 0.14)
 
 func _break_shield():
 	emit_signal("shield_broken")
 	if shield_mesh_root and is_instance_valid(shield_mesh_root):
 		var tw = shield_mesh_root.create_tween()
-		tw.tween_property(shield_mesh_root, "scale", Vector3(0.05, 0.05, 0.05), 0.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-		tw.tween_callback(func(): shield_mesh_root.visible = false)
+		if tw:
+			tw.tween_property(shield_mesh_root, "scale", Vector3(0.05, 0.05, 0.05), 0.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+			tw.tween_callback(func(): shield_mesh_root.visible = false)
+		else:
+			shield_mesh_root.visible = false
 	var parent_u = get_parent()
 	if parent_u and is_instance_valid(parent_u):
 		for s_node_name in ["HardlightBuckler", "VoidFocusRing", "GoldShieldRing"]:
@@ -2389,7 +2393,10 @@ func _restore_shield():
 		shield_mesh_root.visible = true
 		shield_mesh_root.scale = Vector3(0.2, 0.2, 0.2)
 		var tw = shield_mesh_root.create_tween()
-		tw.tween_property(shield_mesh_root, "scale", Vector3.ONE, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		if tw:
+			tw.tween_property(shield_mesh_root, "scale", Vector3.ONE, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		else:
+			shield_mesh_root.scale = Vector3.ONE
 	var parent_u = get_parent()
 	if parent_u and is_instance_valid(parent_u):
 		for s_node_name in ["HardlightBuckler", "VoidFocusRing", "GoldShieldRing"]:
@@ -2420,8 +2427,11 @@ func _flash_armor_hit():
 			root_s.add_child(spark)
 			spark.global_position = p.global_position + Vector3(randf_range(-0.4, 0.4), 1.2, randf_range(-0.4, 0.4))
 			var tw = spark.create_tween()
-			tw.tween_property(spark, "scale", Vector3(0.01, 0.01, 0.01), 0.12)
-			tw.tween_callback(spark.queue_free)
+			if tw:
+				tw.tween_property(spark, "scale", Vector3(0.01, 0.01, 0.01), 0.12)
+				tw.tween_callback(spark.queue_free)
+			else:
+				spark.queue_free()
 
 func _break_armor():
 	if is_armor_broken: return
@@ -2453,11 +2463,14 @@ func _break_armor():
 				root_s.add_child(debris)
 				
 				var tw = debris.create_tween()
-				var fly_dir = Vector3(randf_range(-3.0, 3.0), randf_range(2.0, 4.5), randf_range(-3.0, 3.0))
-				tw.parallel().tween_property(debris, "global_position", debris.global_position + fly_dir, 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-				tw.parallel().tween_property(debris, "rotation_degrees", debris.rotation_degrees + Vector3(randf_range(-120, 120), randf_range(-180, 180), randf_range(-120, 120)), 0.5)
-				tw.parallel().tween_property(debris, "scale", Vector3(0.01, 0.01, 0.01), 0.25).set_delay(0.25)
-				tw.tween_callback(debris.queue_free)
+				if tw:
+					var fly_dir = Vector3(randf_range(-3.0, 3.0), randf_range(2.0, 4.5), randf_range(-3.0, 3.0))
+					tw.parallel().tween_property(debris, "global_position", debris.global_position + fly_dir, 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+					tw.parallel().tween_property(debris, "rotation_degrees", debris.rotation_degrees + Vector3(randf_range(-120, 120), randf_range(-180, 180), randf_range(-120, 120)), 0.5)
+					tw.parallel().tween_property(debris, "scale", Vector3(0.01, 0.01, 0.01), 0.25).set_delay(0.25)
+					tw.tween_callback(debris.queue_free)
+				else:
+					debris.queue_free()
 			plate.visible = false
 
 	# Leave jagged broken-armor remnants / scorched impact scars on the unit so it visibly looks broken-armored

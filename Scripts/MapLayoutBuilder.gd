@@ -769,6 +769,7 @@ static func _add_lane_segment(ground: Node3D, a: Vector3, b: Vector3, width: flo
 	ground.add_child(p_inst)
 
 static func _add_ring_lanes(ground: Node3D, center: Vector3, radius: float, sides: int, width: float = 18.0, start_angle: float = 0.0) -> void:
+	if sides < 3: return
 	for i in range(sides):
 		var a1: float = start_angle + (TAU / float(sides)) * float(i)
 		var a2: float = start_angle + (TAU / float(sides)) * float(i + 1)

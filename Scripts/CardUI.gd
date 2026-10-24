@@ -165,7 +165,10 @@ func set_selected(selected: bool):
 	is_selected = selected
 	var target_y = -22.0 if is_selected else 0.0
 	var tw = create_tween()
-	tw.tween_property(self, "position:y", target_y, 0.12).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	if tw:
+		tw.tween_property(self, "position:y", target_y, 0.12).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	else:
+		position.y = target_y
 	_refresh_visual_state()
 
 func _refresh_visual_state():
