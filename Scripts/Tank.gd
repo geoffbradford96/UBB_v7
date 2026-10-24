@@ -349,8 +349,8 @@ func _physics_process(delta):
 			scale = Vector3.ONE * float(get_meta("gilded_gen_scale"))
 		if anim_mesh and is_moving:
 			var t = Time.get_ticks_msec() / 1000.0 * speed * 2.0
-			anim_mesh.rotation.z = sin(t) * 0.08
-			anim_mesh.rotation.x = cos(t) * 0.08
+			anim_mesh.rotation.z = sin(t * 1.5) * 0.015
+			anim_mesh.rotation.x = cos(t * 2.5) * 0.02
 	else:
 		if anim_mesh:
 			anim_mesh.rotation.z = lerp(anim_mesh.rotation.z, 0.0, 10.0 * delta)

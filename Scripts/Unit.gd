@@ -727,7 +727,7 @@ func _animate_mesh(delta: float, moving: bool):
 			var mg = m_root.get_node_or_null("MG_" + str(i))
 			if mg:
 				var recoil: float = (0.14 * abs(sin(idle_anim_time * 12.0 + i * 1.5))) if attack_anim_timer > 0.0 else 0.0
-				var base_z: float = -0.3 if i < 2 else 0.3
+				var base_z: float = -0.35
 				mg.position.z = base_z + recoil
 	elif "SpiderTank" in u_name and m_root:
 		var leg_names = ["LeftLeg_0", "RightLeg_1", "LeftLeg_2", "RightLeg_3"]
@@ -809,15 +809,15 @@ func _animate_mesh(delta: float, moving: bool):
 		var arm_l = m_root.get_node_or_null("MonstrousArmL")
 		var arm_r = m_root.get_node_or_null("MonstrousArmR")
 		var stride_swing: float = sin(phase) * (0.55 if moving else 0.08)
-		if arm_l: arm_l.rotation.x = deg_to_rad(35.0) + stride_swing - atk_swing * 1.15
-		if arm_r: arm_r.rotation.x = deg_to_rad(35.0) - stride_swing - atk_swing * 1.15
+		if arm_l: arm_l.rotation.x = deg_to_rad(35.0) + stride_swing + atk_swing * 1.15
+		if arm_r: arm_r.rotation.x = deg_to_rad(35.0) - stride_swing + atk_swing * 1.15
 		m_root.position.z = -atk_swing * 0.4
 	elif "RimworlderMutant" in u_name and m_root:
 		var arm_r = m_root.get_node_or_null("RightArm_0")
 		var arm_l = m_root.get_node_or_null("MutantArmL")
 		var stride_swing: float = sin(phase) * (0.5 if moving else 0.08)
-		if arm_r: arm_r.rotation.x = deg_to_rad(-45.0) + stride_swing - atk_swing * 1.25
-		if arm_l: arm_l.rotation.x = deg_to_rad(30.0) - stride_swing - atk_swing * 0.85
+		if arm_r: arm_r.rotation.x = deg_to_rad(30.0) + stride_swing + atk_swing * 1.15
+		if arm_l: arm_l.rotation.x = deg_to_rad(30.0) - stride_swing + atk_swing * 1.15
 		m_root.position.z = -atk_swing * 0.35
 
 

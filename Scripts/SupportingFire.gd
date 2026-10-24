@@ -181,10 +181,13 @@ func _physics_process(delta):
 			look_at(look_target, Vector3.UP)
 			if has_meta("gilded_gen_scale"):
 				scale = Vector3.ONE * float(get_meta("gilded_gen_scale"))
-		if anim_mesh:
+		if anim_mesh and humanoid_rig == null:
 			var t = Time.get_ticks_msec() / 1000.0 * speed * 2.0
 			anim_mesh.rotation.z = sin(t) * 0.1
 			anim_mesh.rotation.x = cos(t) * 0.1
+		elif anim_mesh:
+			anim_mesh.rotation.z = 0.0
+			anim_mesh.rotation.x = 0.0
 	else:
 		if current_target != null and is_instance_valid(current_target):
 			var look_target = current_target.global_position
@@ -236,7 +239,7 @@ func _physics_process(delta):
 					var pulse: float = 1.0 + sin(t_spit) * 0.06 + atk_swing * 0.18
 					sac.scale = Vector3(pulse, 1.0 / pulse, pulse)
 				if cannon is Node3D:
-					cannon.position.z = 1.5 - atk_swing * 0.45
+					cannon.position.z = -1.5 + atk_swing * 0.45
 			for i in range(_spitter_legs.size()):
 				if is_instance_valid(_spitter_legs[i]):
 					_spitter_legs[i].rotation.x = (sin(t_spit * 2.2 + float(i) * 1.57) * 0.35) if is_moving else 0.0

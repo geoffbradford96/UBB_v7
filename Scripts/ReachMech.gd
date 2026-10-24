@@ -116,7 +116,7 @@ func _animate_mesh(delta: float, moving: bool):
         var hover = sin(t) * 0.35 + 0.35
         mesh.position.y = base_mesh_pos.y + hover
         if moving:
-            mesh.rotation.z = lerp(mesh.rotation.z, -velocity.x * 0.04, delta * 5.0)
+            mesh.rotation.z = lerp(mesh.rotation.z, sin(t * 2.2) * 0.04, delta * 5.0)
             mesh.rotation.x = lerp(mesh.rotation.x, -0.08, delta * 5.0)
         else:
             mesh.rotation.z = lerp(mesh.rotation.z, 0.0, delta * 5.0)

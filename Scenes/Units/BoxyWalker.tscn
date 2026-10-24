@@ -85,22 +85,22 @@ size = Vector3(0.2, 0.6, 0.2)
 
 [node name="MG_0" type="CSGBox3D" parent="MeshInstance3D"]
 material = SubResource("StandardMaterial3D_walker_guns")
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.55, 0.2, -0.3)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.55, 0.28, -0.35)
 size = Vector3(0.1, 0.1, 0.6)
 
 [node name="MG_1" type="CSGBox3D" parent="MeshInstance3D"]
 material = SubResource("StandardMaterial3D_walker_guns")
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.55, 0.2, -0.3)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.55, 0.28, -0.35)
 size = Vector3(0.1, 0.1, 0.6)
 
 [node name="MG_2" type="CSGBox3D" parent="MeshInstance3D"]
 material = SubResource("StandardMaterial3D_walker_guns")
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.55, 0.2, 0.3)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.55, 0.12, -0.35)
 size = Vector3(0.1, 0.1, 0.6)
 
 [node name="MG_3" type="CSGBox3D" parent="MeshInstance3D"]
 material = SubResource("StandardMaterial3D_walker_guns")
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.55, 0.2, 0.3)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.55, 0.12, -0.35)
 size = Vector3(0.1, 0.1, 0.6)
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]

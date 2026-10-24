@@ -69,7 +69,7 @@ func _ready():
 			s_cyl.height = 0.65
 			siphon.mesh = s_cyl
 			siphon.material_override = eye_mat
-			siphon.rotation_degrees.x = 75.0
+			siphon.rotation_degrees.x = -75.0
 			siphon.position = Vector3(0, 0.62, -1.05)
 			vp.add_child(siphon)
 
@@ -192,10 +192,13 @@ func _physics_process(delta):
 		var look_target = global_position + horiz_vel
 		if global_position.distance_to(look_target) > 0.1:
 			look_at(look_target, Vector3.UP)
-		if anim_mesh:
+		if anim_mesh and humanoid_rig == null:
 			var t = Time.get_ticks_msec() / 1000.0 * speed * 2.0
 			anim_mesh.rotation.z = sin(t) * 0.1
 			anim_mesh.rotation.x = cos(t) * 0.1
+		elif anim_mesh:
+			anim_mesh.rotation.z = 0.0
+			anim_mesh.rotation.x = 0.0
 	else:
 		if current_target != null and is_instance_valid(current_target):
 			var look_target = current_target.global_position

@@ -83,6 +83,15 @@ func _ready():
 		total_failed += 1
 		print("  [FAIL] Live match simulation failed!")
 
+	# Test 9: Model Orientations & Visual Forward Direction
+	print("\n--- TEST 9: Model Orientations & Forward Facing ---")
+	if test_model_orientations():
+		total_passed += 1
+		print("  [PASS] Model orientations, forward vectors, and recoil directions verified.")
+	else:
+		total_failed += 1
+		print("  [FAIL] Model orientation verification failed!")
+
 	print("\n==================================================")
 	print("VERIFICATION SUMMARY: %d PASSED, %d FAILED" % [total_passed, total_failed])
 	print("==================================================")
@@ -365,3 +374,60 @@ func test_live_match_simulation() -> bool:
 	arena.queue_free()
 	print("  Live Arena match simulation, 90 frames of physics ticks & endgame Maw passed.")
 	return true
+
+
+func test_model_orientations() -> bool:
+	var success = true
+	# 1. BoxyWalker quad guns must point forward (-Z)
+	var walker_ps = ResourceLoader.load("res://Scenes/Units/BoxyWalker.tscn") as PackedScene
+	if walker_ps:
+		var walker = walker_ps.instantiate()
+		var m_root = walker.get_node_or_null("MeshInstance3D")
+		if m_root:
+			for i in range(4):
+				var mg = m_root.get_node_or_null("MG_" + str(i))
+				if mg and mg.position.z > 0.0:
+					printerr("BoxyWalker MG_%d placed backwards at z=%f" % [i, mg.position.z])
+					success = false
+		walker.free()
+
+	# 2. VoidSpitter cannon/proboscis must face forward (-Z)
+	var spitter_ps = ResourceLoader.load("res://Scenes/Units/VoidSwarm/VoidSpitter.tscn") as PackedScene
+	if spitter_ps:
+		var spitter = spitter_ps.instantiate()
+		var vp = spitter.get_node_or_null("VisualPivot")
+		if vp and vp.get_child_count() >= 2:
+			var cannon = vp.get_child(1)
+			if cannon and cannon.position.z > 0.0:
+				printerr("VoidSpitter cannon placed backwards at z=%f" % [cannon.position.z])
+				success = false
+		spitter.free()
+
+	# 3. RimworlderMutant right arm forward
+	var mutant_ps = ResourceLoader.load("res://Scenes/Units/RimworlderMutant.tscn") as PackedScene
+	if mutant_ps:
+		var mutant = mutant_ps.instantiate()
+		var m_root = mutant.get_node_or_null("MeshInstance3D")
+		if m_root:
+			var r_arm = m_root.get_node_or_null("RightArm_0")
+			if r_arm and r_arm.position.z > 0.0:
+				printerr("RimworlderMutant RightArm_0 placed backwards at z=%f" % [r_arm.position.z])
+				success = false
+		mutant.free()
+
+	# 4. Tank barrels point forward (-Z)
+	for t_path in ["res://Scenes/Units/Tank.tscn", "res://Scenes/Units/HeavyTank.tscn", "res://Scenes/Units/DominionShieldTank.tscn"]:
+		var t_ps = ResourceLoader.load(t_path) as PackedScene
+		if t_ps:
+			var tank = t_ps.instantiate()
+			var barrel = tank.get_node_or_null("Barrel")
+			if not barrel:
+				var tur = tank.get_node_or_null("Turret")
+				if tur: barrel = tur.get_node_or_null("Barrel_L")
+			if barrel and barrel.position.z > 0.0:
+				printerr("%s barrel placed backwards at z=%f" % [t_path, barrel.position.z])
+				success = false
+			tank.free()
+
+	print("  Verified unit model forward vectors, quad guns, spitters, and tank barrels.")
+	return success

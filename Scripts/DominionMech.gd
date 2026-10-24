@@ -72,7 +72,7 @@ func _ready():
         cannon.mesh.bottom_radius = 0.25
         cannon.mesh.height = 2.4
         cannon.material_override = mat_metal
-        cannon.rotation_degrees.x = 90
+        cannon.rotation_degrees.x = -90.0
         cannon.position = Vector3(side * 1.5, 3.1, -1.2)
         mesh_node.add_child(cannon)
         _mech_cannons.append(cannon)

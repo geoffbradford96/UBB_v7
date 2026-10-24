@@ -98,8 +98,8 @@ func _ready():
 		cyl.height = 0.75
 		sp.mesh = cyl
 		sp.material_override = spike_mat
-		sp.position = Vector3(side * 0.32, -0.05, 0.45)
-		sp.rotation_degrees = Vector3(80, side * 15, 0)
+		sp.position = Vector3(side * 0.32, -0.05, -0.45)
+		sp.rotation_degrees = Vector3(-80, side * 15, 0)
 		spike_holder.add_child(sp)
 		spike_nodes.append(sp)
 		

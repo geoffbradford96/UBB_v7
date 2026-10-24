@@ -79,8 +79,8 @@ func _ready():
 	s_mat.albedo_color = Color(0.12, 0.28, 0.08)
 	s_mat.roughness = 0.7
 	siphon.material_override = s_mat
-	siphon.rotation_degrees.x = 90
-	siphon.position = Vector3(0, 0.65, 0.8)
+	siphon.rotation_degrees.x = -90.0
+	siphon.position = Vector3(0, 0.65, -0.8)
 	mesh_node.add_child(siphon)
 	
 	base_mesh_pos = mesh_node.position
