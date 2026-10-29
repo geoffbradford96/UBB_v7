@@ -191,7 +191,9 @@ func _physics_process(delta):
 	if horiz_vel.length() > 0.1:
 		var look_target = global_position + horiz_vel
 		if global_position.distance_to(look_target) > 0.1:
+			var s_before = scale
 			look_at(look_target, Vector3.UP)
+			scale = Vector3.ONE * float(get_meta('gilded_gen_scale')) if has_meta('gilded_gen_scale') else s_before
 		if anim_mesh and humanoid_rig == null:
 			var t = Time.get_ticks_msec() / 1000.0 * speed * 2.0
 			anim_mesh.rotation.z = sin(t) * 0.1
@@ -204,7 +206,9 @@ func _physics_process(delta):
 			var look_target = current_target.global_position
 			look_target.y = global_position.y
 			if global_position.distance_to(look_target) > 0.1:
+				var s_before = scale
 				look_at(look_target, Vector3.UP)
+				scale = Vector3.ONE * float(get_meta('gilded_gen_scale')) if has_meta('gilded_gen_scale') else s_before
 		if anim_mesh:
 			anim_mesh.rotation.z = lerp(anim_mesh.rotation.z, 0.0, 10.0 * delta)
 			anim_mesh.rotation.x = lerp(anim_mesh.rotation.x, 0.0, 10.0 * delta)

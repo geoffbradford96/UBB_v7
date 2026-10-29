@@ -305,7 +305,9 @@ func _physics_process(delta):
 			
 			var look_pos = Vector3(current_target.global_position.x, global_position.y, current_target.global_position.z)
 			if global_position.distance_to(look_pos) > 0.1:
+				var s_before = scale
 				look_at(look_pos, Vector3.UP)
+				scale = Vector3.ONE * float(get_meta('gilded_gen_scale')) if has_meta('gilded_gen_scale') else s_before
 		else:
 			# Attack target
 			velocity.x = move_toward(velocity.x, 0, speed)
@@ -313,7 +315,9 @@ func _physics_process(delta):
 			
 			var look_pos = Vector3(current_target.global_position.x, global_position.y, current_target.global_position.z)
 			if global_position.distance_to(look_pos) > 0.1:
+				var s_before = scale
 				look_at(look_pos, Vector3.UP)
+				scale = Vector3.ONE * float(get_meta('gilded_gen_scale')) if has_meta('gilded_gen_scale') else s_before
 				
 			attack_timer -= delta
 			if attack_timer <= 0.0:
@@ -338,7 +342,9 @@ func _physics_process(delta):
 			
 			var look_pos = global_position + Vector3(home_dir.x, 0, home_dir.z)
 			if global_position.distance_to(look_pos) > 0.1:
+				var s_before = scale
 				look_at(look_pos, Vector3.UP)
+				scale = Vector3.ONE * float(get_meta('gilded_gen_scale')) if has_meta('gilded_gen_scale') else s_before
 		else:
 			# Active territorial patrol around nest and dunes
 			idle_patrol_timer -= delta
@@ -357,7 +363,9 @@ func _physics_process(delta):
 				
 				var look_pos = global_position + Vector3(p_dir.x, 0, p_dir.z)
 				if global_position.distance_to(look_pos) > 0.1:
+					var s_before = scale
 					look_at(look_pos, Vector3.UP)
+					scale = Vector3.ONE * float(get_meta('gilded_gen_scale')) if has_meta('gilded_gen_scale') else s_before
 			else:
 				velocity.x = move_toward(velocity.x, 0, speed)
 				velocity.z = move_toward(velocity.z, 0, speed)

@@ -405,6 +405,9 @@ func _process(delta):
                 var t_cnt := 0
                 for z in get_tree().get_nodes_in_group(p.team):
                     if is_instance_valid(z) and "Tower" in z.name:
+                        var zhc = z.get_node_or_null("HealthComponent")
+                        if zhc and zhc.is_dead:
+                            continue
                         t_cnt += 1
                 _cached_tower_counts[p.team] = t_cnt
 

@@ -96,6 +96,7 @@ func build_ui():
 	tab_bar.add_tab("The Reach")
 	tab_bar.add_tab("Plague of Harmony")
 	tab_bar.add_tab("Gilded Harmony")
+	tab_bar.add_tab("Chaos (All Factions)")
 	tab_bar.connect("tab_changed", Callable(self, "_on_tab_changed"))
 	left_vbox.add_child(tab_bar)
 
@@ -239,7 +240,7 @@ func load_profile(profile_name: String):
 func _on_tab_changed(tab_idx: int):
 	current_tab = tab_idx
 	
-	var faction_names = ["Dominion of Sol", "The Void Swarm", "The Rimworlders", "Pirate Kingdoms", "The Reach", "The Plague of Harmony", "Gilded Harmony"]
+	var faction_names = ["Dominion of Sol", "The Void Swarm", "The Rimworlders", "Pirate Kingdoms", "The Reach", "The Plague of Harmony", "Gilded Harmony", "Chaos (Cross-Faction)"]
 	var faction_doctrines = [
 		"Doctrine: Combined Arms & Forward Command Bays (+Deployment Perimeter, Heavy Armor, Orbital Artillery).",
 		"Doctrine: Relentless Bio-Swarm & Void Meteors (Low-cost chitin waves, flying Gargoyles, and Stalker flanks).",
@@ -247,7 +248,8 @@ func _on_tab_changed(tab_idx: int):
 		"Doctrine: Salvage Blitz & Volatile Armor (Scrap Tanks detonate on death; Scrap Repair salvages armor).",
 		"Doctrine: Cybernetic Network Synergy (+15% Speed, Attack & Scale per nearby friendly Reach unit, up to +75%).",
 		"Doctrine: Golden Eye Conversion (Enlightened Husks & Eye Creatures screen while Infectors convert enemies in 4s).",
-		"Doctrine: Mitosis & The Saved Horde (Genetic Monsters regenerate, divide at full HP, and split twice on death)."
+		"Doctrine: Mitosis & The Saved Horde (Genetic Monsters regenerate, divide at full HP, and split twice on death).",
+		"Doctrine: Chaos Unleashed (Mix and match commanders and units freely across all factions in the galaxy)."
 	]
 	if tab_idx >= 0 and tab_idx < faction_names.size():
 		if title_label: title_label.text = faction_names[tab_idx] + " - Army Gathering"
@@ -282,6 +284,10 @@ func _on_tab_changed(tab_idx: int):
 			bg.color = Color(0.04, 0.24, 0.14)
 			trim_top.color = Color(0.56, 0.88, 1.0)
 			trim_bot.color = Color(1.0, 0.84, 0.20)
+		elif tab_idx == 7: # Chaos (All)
+			bg.color = Color(0.16, 0.04, 0.22)
+			trim_top.color = Color(0.92, 0.78, 0.22)
+			trim_bot.color = Color(0.25, 0.88, 0.95)
 			
 	for c in left_grid.get_children():
 		left_grid.remove_child(c)
@@ -301,7 +307,8 @@ func _on_tab_changed(tab_idx: int):
 		var is_gilded = "Gilded" in card_data.card_name
 		var is_dominion = not is_void and not is_rimworlder and not is_pirate and not is_reach and not is_plague and not is_gilded
 		
-		if (tab_idx == 0 and is_dominion) or (tab_idx == 1 and is_void) or (tab_idx == 2 and is_rimworlder) or (tab_idx == 3 and is_pirate) or (tab_idx == 4 and is_reach) or (tab_idx == 5 and is_plague) or (tab_idx == 6 and is_gilded):
+		var is_valid = (tab_idx == 7) or (tab_idx == 0 and is_dominion) or (tab_idx == 1 and is_void) or (tab_idx == 2 and is_rimworlder) or (tab_idx == 3 and is_pirate) or (tab_idx == 4 and is_reach) or (tab_idx == 5 and is_plague) or (tab_idx == 6 and is_gilded)
+		if is_valid:
 
 			# If this is a Guest profile, block cards that Player1 is using
 			var raw_name = _get_card_file_key(card_data)

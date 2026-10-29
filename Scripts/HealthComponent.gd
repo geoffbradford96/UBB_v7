@@ -547,6 +547,9 @@ func die():
 			if is_inside_tree() and get_tree():
 				for b in get_tree().get_nodes_in_group("Targetable"):
 					if "Base" in b.name and b != get_parent() and is_instance_valid(b):
+						var bhc = b.get_node_or_null("HealthComponent")
+						if bhc and bhc.is_dead:
+							continue
 						for g in b.get_groups():
 							if g.begins_with("Side") and not teams_alive.has(g):
 								teams_alive.append(g)

@@ -343,7 +343,9 @@ func _physics_process(delta):
 		
 	if facing_dir.length() > 0.1:
 		var look_target = global_position + facing_dir.normalized() * 5.0
+		var s_before = scale
 		look_at(look_target, Vector3.UP)
+		scale = Vector3.ONE * float(get_meta('gilded_gen_scale')) if has_meta('gilded_gen_scale') else s_before
 		if has_meta("gilded_gen_scale"):
 			scale = Vector3.ONE * float(get_meta("gilded_gen_scale"))
 		if anim_mesh and is_moving:

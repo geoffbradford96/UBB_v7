@@ -30,7 +30,7 @@ func _ready():
 
 	if cc:
 		_subtitle_lbl = Label.new()
-		_subtitle_lbl.text = "UNAVURE BATTLE BONANZA  •  7 FACTIONS  •  UP TO 25 COMMANDERS"
+		_subtitle_lbl.text = "UNAVURE BATTLE BONANZA  •  7 FACTIONS + CHAOS  •  UP TO 25 COMMANDERS"
 		_subtitle_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		_subtitle_lbl.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
 		_subtitle_lbl.offset_top = -90.0

@@ -235,23 +235,25 @@ func test_maps_and_biomes() -> bool:
 	dummy_arena.add_child(ground)
 
 	var tested_count = 0
+	var tested_comps = 0
 	for entry in MapLayoutBuilder.MAP_CATALOG:
 		var map_id = entry.id
-		var def_p = entry.get("default_players", 2)
-		var comp = "2_TEAMS"
-		if entry.has("comps") and not entry.comps.is_empty():
-			comp = entry.comps[0].get("comp", "2_TEAMS")
-		var layout = MapLayoutBuilder.build_map_layout(dummy_arena, map_id, def_p, comp)
-		if not layout or not layout.has("slot_defs"):
-			printerr("Failed to build map layout: ", map_id)
-			dummy_arena.queue_free()
-			return false
+		var comps = entry.get("comps", [])
+		for c_info in comps:
+			var p_cnt = int(c_info.get("players", entry.get("default_players", 2)))
+			var c_mode = String(c_info.get("comp", "2_TEAMS"))
+			var layout = MapLayoutBuilder.build_map_layout(dummy_arena, map_id, p_cnt, c_mode)
+			if not layout or not layout.has("slot_defs"):
+				printerr("Failed to build map layout: ", map_id, " comp: ", c_mode)
+				dummy_arena.queue_free()
+				return false
+			tested_comps += 1
 		tested_count += 1
 
 	dummy_arena.queue_free()
 
 	var biomes = ["SUNNY_PLAINS", "SCORCHING_DUNES", "REALM_OF_HARMONY"]
-	print("  Verified %d map catalog layouts and %d biomes." % [tested_count, biomes.size()])
+	print("  Verified %d map catalog layouts across %d total team comps and %d biomes." % [tested_count, tested_comps, biomes.size()])
 	return true
 
 func test_shield_and_armor() -> bool:

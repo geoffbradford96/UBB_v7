@@ -167,7 +167,9 @@ func _physics_process(delta):
 			# Rotate to face direction
 			var look_target = global_position + direction
 			if global_position.distance_to(look_target) > 0.1:
+				var s_before = scale
 				look_at(look_target, Vector3.UP)
+				scale = s_before
 		else:
 			velocity.x = move_toward(velocity.x, 0, speed)
 			velocity.z = move_toward(velocity.z, 0, speed)
@@ -221,9 +223,9 @@ func _physics_process(delta):
 				# Rotate to face direction
 				var look_target = Vector3(next_path_pos.x, global_position.y, next_path_pos.z)
 				if global_position.distance_to(look_target) > 0.1:
+					var s_before = scale
 					look_at(look_target, Vector3.UP)
-					if has_meta("gilded_gen_scale"):
-						scale = Vector3.ONE * float(get_meta("gilded_gen_scale"))
+					scale = Vector3.ONE * float(get_meta("gilded_gen_scale")) if has_meta("gilded_gen_scale") else s_before
 			else:
 				velocity.x = move_toward(velocity.x, 0, speed)
 				velocity.z = move_toward(velocity.z, 0, speed)
@@ -231,9 +233,9 @@ func _physics_process(delta):
 				# Face target while attacking
 				var look_target = Vector3(current_target.global_position.x, global_position.y, current_target.global_position.z)
 				if global_position.distance_to(look_target) > 0.1:
+					var s_before = scale
 					look_at(look_target, Vector3.UP)
-					if has_meta("gilded_gen_scale"):
-						scale = Vector3.ONE * float(get_meta("gilded_gen_scale"))
+					scale = Vector3.ONE * float(get_meta("gilded_gen_scale")) if has_meta("gilded_gen_scale") else s_before
 		else:
 			current_target = null
 			velocity.x = move_toward(velocity.x, 0, speed)
