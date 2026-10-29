@@ -26,7 +26,6 @@ extends CharacterBody3D
 
 var current_target: Node3D = null
 var attack_timer: float = 0.0
-var _recoil_timer: float = 0.0
 
 var base_speed: float
 var base_attack_speed: float

@@ -1492,7 +1492,7 @@ func _build_broken_tank(corpse: Node3D, parent: Node3D):
 			var rbm = CylinderMesh.new(); rbm.top_radius = 0.05; rbm.bottom_radius = 0.12; rbm.height = 1.25
 			rib.mesh = rbm; rib.material_override = accent_mat
 			var side = -1.0 if i % 2 == 0 else 1.0
-			rib.position = hull.position + Vector3(side * 1.0, 0.45, -0.6 + (i / 2) * 1.1)
+			rib.position = hull.position + Vector3(side * 1.0, 0.45, -0.6 + (float(i) / 2.0) * 1.1)
 			rib.rotation_degrees = Vector3(15, 0, side * -38)
 			corpse.add_child(rib)
 		var dead_eye = MeshInstance3D.new()
@@ -1668,7 +1668,7 @@ func _build_broken_mech(corpse: Node3D, parent: Node3D):
 		corpse.add_child(leg)
 
 func _build_broken_aircraft(corpse: Node3D, parent: Node3D):
-	var p_name = parent.name if parent else ""
+	var p_name: String = str(parent.name) if parent else ""
 	var is_reach = "Reach" in p_name
 	var is_scrap = "Scrap" in p_name
 	
@@ -1878,7 +1878,7 @@ func _build_broken_beast(corpse: Node3D, parent: Node3D):
 			var lgm = CylinderMesh.new(); lgm.top_radius = 0.04; lgm.bottom_radius = 0.09; lgm.height = 1.15
 			leg.mesh = lgm; leg.material_override = void_obs_mat
 			var side = -1.0 if i % 2 == 0 else 1.0
-			var row = int(i / 2)
+			var row: int = int(float(i) / 2.0)
 			leg.position = Vector3(side * 0.78, 0.38, -0.55 + row * 0.38)
 			leg.rotation_degrees = Vector3(randf_range(-25, 25), row * 12.0 * side, side * randf_range(35, 65))
 			corpse.add_child(leg)
@@ -2073,7 +2073,7 @@ func _build_broken_beast(corpse: Node3D, parent: Node3D):
 			var blm = CylinderMesh.new(); blm.top_radius = 0.04; blm.bottom_radius = 0.08; blm.height = 0.85
 			b_leg.mesh = blm; b_leg.material_override = chitin_armor_mat
 			var side = -1.0 if i % 2 == 0 else 1.0
-			var row = int(i / 2)
+			var row: int = int(float(i) / 2.0)
 			b_leg.position = Vector3(side * 0.68, 0.45, -0.45 + row * 0.45)
 			b_leg.rotation_degrees = Vector3(randf_range(-20, 20), 0, side * 38)
 			corpse.add_child(b_leg)
@@ -2491,7 +2491,7 @@ func _break_armor():
 				stub.mesh = sbm
 				stub.material_override = scar_mat
 				var side = -1.0 if i % 2 == 0 else 1.0
-				stub.position = Vector3(side * 0.45, 1.15 + (i / 2) * 0.35, -0.25 + (i % 2) * 0.35)
+				stub.position = Vector3(side * 0.45, 1.15 + (float(i) / 2.0) * 0.35, -0.25 + (i % 2) * 0.35)
 				stub.rotation_degrees = Vector3(25 * side, i * 45.0, side * -32)
 				rem_root.add_child(stub)
 			attach_t.add_child(rem_root)
@@ -2598,7 +2598,7 @@ func _setup_shield_and_armor_visuals():
 		attach_target.add_child(armor_plates_root)
 		_populate_armor_plates(armor_plates_root, parent)
 
-func _populate_armor_plates(root_node: Node3D, parent: Node):
+func _populate_armor_plates(root_node: Node3D, _parent: Node):
 	if armor_style == "SCRAP":
 		var scrap_mat = StandardMaterial3D.new()
 		scrap_mat.albedo_color = Color(0.48, 0.35, 0.24)

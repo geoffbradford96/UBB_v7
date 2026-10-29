@@ -761,7 +761,7 @@ func animate(delta: float, is_moving: bool, is_critically_wounded: bool, move_sp
 		torso.rotation.y = lerp(torso.rotation.y, 0.0, 10.0 * delta)
 		torso.position.z = lerp(torso.position.z, base_torso_pos.z, 10.0 * delta)
 		head.rotation.x = lerp(head.rotation.x, 0.0, 10.0 * delta)
-		var u_name_stance: String = unit.name if unit else ""
+		var u_name_stance: String = str(unit.name) if unit else ""
 		var has_buckler: bool = "ShieldInfantry" in u_name_stance or ("Commander" in u_name_stance and "Reach" in u_name_stance)
 		
 		if is_moving:
@@ -828,7 +828,7 @@ func animate(delta: float, is_moving: bool, is_critically_wounded: bool, move_sp
 		attack_anim_timer = max(0.0, attack_anim_timer - delta)
 		var p: float = 1.0 - (attack_anim_timer / max(0.01, attack_anim_duration))
 		var swing: float = sin(p * PI)
-		var u_name: String = unit.name if unit else ""
+		var u_name: String = str(unit.name) if unit else ""
 		if "Melee" in u_name or "Commander" in u_name or "Hero" in u_name or "Assassin" in u_name or "GreatBeastSpeaker" in u_name or "Grunt" in u_name or "Runner" in u_name or "ShieldInfantry" in u_name or "ArmoredInfantry" in u_name:
 			# Dynamic melee weapon slash / staff slam
 			var slash_angle: float = lerpf(-1.55, 0.65, p)

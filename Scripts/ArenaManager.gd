@@ -332,16 +332,17 @@ func _process(delta):
         var t_anim = Time.get_ticks_msec() / 1000.0
         for child in b_root.get_children():
             if child.has_meta("is_lower_jaw"):
-                var base_ly = float(child.get_meta("base_y", 0.0))
-                child.position.y = base_ly + sin(t_anim * 1.1) * 2.5
-                var jaw_pulse = 1.0 + sin(t_anim * 1.1) * 0.025
+                var base_ly = float(child.get_meta("base_y", -4.0))
+                child.position.y = base_ly + sin(t_anim * 1.1) * 1.2
+                var jaw_pulse = 1.0 + sin(t_anim * 1.1) * 0.02
                 child.scale = Vector3(jaw_pulse, 1.0, jaw_pulse)
             elif child.has_meta("is_upper_jaw"):
-                var base_uy = float(child.get_meta("base_y", 62.0))
-                child.position.y = base_uy - sin(t_anim * 1.1) * 4.5
+                var base_uy = float(child.get_meta("base_y", 85.0))
+                child.position.y = base_uy - sin(t_anim * 1.1) * 3.5
                 child.rotation.y = -b_root.rotation.y * 1.6 + sin(t_anim * 0.4) * 0.12
             elif child.has_meta("is_uvula"):
                 var pulse = 1.0 + abs(sin(t_anim * 2.4)) * 0.22
+                child.position.y = -72.0 + sin(t_anim * 1.8) * 2.5
                 child.scale = Vector3(pulse, 1.0 + cos(t_anim * 2.4) * 0.15, pulse)
             elif child.has_meta("seg_phase"):
                 var phase = float(child.get_meta("seg_phase", 0.0))
@@ -1383,45 +1384,47 @@ func _start_beast_of_nothingness():
     var lower_jaw = Node3D.new()
     lower_jaw.name = "LowerJawRoot"
     lower_jaw.set_meta("is_lower_jaw", true)
-    lower_jaw.set_meta("base_y", 0.0)
+    lower_jaw.set_meta("base_y", -4.0)
     beast_root.add_child(lower_jaw)
 
-    # Deep Esophageal Throat Funnel descending beneath the entire arena rim
+    # Deep Hollow Esophageal Throat Funnel (open hollow tube - NO solid cap blocking battlefield)
     var gullet_funnel = MeshInstance3D.new()
     gullet_funnel.name = "AbyssalGulletFunnel"
     var g_cyl = CylinderMesh.new()
-    g_cyl.top_radius = arena_rad * 1.16
-    g_cyl.bottom_radius = arena_rad * 0.42
-    g_cyl.height = 80.0
+    g_cyl.cap_top = false
+    g_cyl.cap_bottom = false
+    g_cyl.top_radius = arena_rad * 1.30
+    g_cyl.bottom_radius = arena_rad * 0.68
+    g_cyl.height = 95.0
     gullet_funnel.mesh = g_cyl
     gullet_funnel.material_override = gullet_mat
-    gullet_funnel.position.y = -36.0
+    gullet_funnel.position.y = -58.0
     lower_jaw.add_child(gullet_funnel)
 
-    # Colossal Fleshy Lower Jaw Gum Rim encircling the battlefield
+    # Colossal Fleshy Lower Jaw Gum Rim encircling outside the battlefield perimeter
     var gum_rim = MeshInstance3D.new()
     gum_rim.name = "LowerMawGumRim"
     var gum_torus = TorusMesh.new()
-    gum_torus.inner_radius = arena_rad * 0.90
-    gum_torus.outer_radius = arena_rad * 1.18
+    gum_torus.inner_radius = arena_rad * 1.12
+    gum_torus.outer_radius = arena_rad * 1.38
     gum_rim.mesh = gum_torus
     gum_rim.material_override = maw_flesh_mat
-    gum_rim.position.y = -1.5
+    gum_rim.position.y = -6.0
     lower_jaw.add_child(gum_rim)
 
-    # Pulsing Abyssal Uvula / Esophageal Heart deep in the throat
+    # Pulsing Abyssal Uvula / Esophageal Heart deep in the abyss (never clips through floor)
     var uvula_core = MeshInstance3D.new()
     uvula_core.name = "AbyssalUvulaCore"
     var uv_sph = SphereMesh.new()
-    uv_sph.radius = arena_rad * 0.28
-    uv_sph.height = 28.0
+    uv_sph.radius = arena_rad * 0.16
+    uv_sph.height = arena_rad * 0.32
     uvula_core.mesh = uv_sph
     uvula_core.material_override = maw_flesh_mat
-    uvula_core.position = Vector3(0.0, -24.0, 0.0)
+    uvula_core.position = Vector3(0.0, -72.0, 0.0)
     uvula_core.set_meta("is_uvula", true)
     beast_root.add_child(uvula_core)
 
-    # GPU Batch 1: 96 Titanic Outer Lower Jaw Fangs surrounding the entire arena
+    # GPU Batch 1: 96 Titanic Outer Lower Jaw Fangs surrounding the outer perimeter
     var outer_fang_count: int = 96
     var outer_fang_mm := MultiMesh.new()
     outer_fang_mm.transform_format = MultiMesh.TRANSFORM_3D
@@ -1434,9 +1437,9 @@ func _start_beast_of_nothingness():
 
     for fi in range(outer_fang_count):
         var ang: float = (float(fi) / float(outer_fang_count)) * TAU
-        var r_f: float = arena_rad * 1.04 + sin(ang * 6.0) * 3.5
+        var r_f: float = arena_rad * 1.16 + sin(ang * 6.0) * 3.5
         var h_scale: float = 0.85 + 0.35 * abs(sin(ang * 4.0 + float(fi) * 0.7))
-        var pos := Vector3(cos(ang) * r_f, 11.0 * h_scale, sin(ang) * r_f)
+        var pos := Vector3(cos(ang) * r_f, 9.0 * h_scale, sin(ang) * r_f)
         # Orient fang so it curves/tilts inward toward the center of the maw
         var inward_dir := Vector3(-cos(ang), 0.0, -sin(ang))
         var tilt_axis := inward_dir.cross(Vector3.UP).normalized()
@@ -1462,9 +1465,9 @@ func _start_beast_of_nothingness():
 
     for ti in range(inner_tooth_count):
         var ang: float = (float(ti) + 0.5) / float(inner_tooth_count) * TAU
-        var r_t: float = arena_rad * 0.94
+        var r_t: float = arena_rad * 1.08
         var h_sc: float = 0.8 + 0.3 * abs(cos(ang * 5.0))
-        var pos := Vector3(cos(ang) * r_t, 5.5 * h_sc, sin(ang) * r_t)
+        var pos := Vector3(cos(ang) * r_t, 4.0 * h_sc, sin(ang) * r_t)
         var inward_dir := Vector3(-cos(ang), 0.0, -sin(ang))
         var tilt_axis := inward_dir.cross(Vector3.UP).normalized()
         var b := Basis(tilt_axis, -0.58).scaled(Vector3(1.0, h_sc, 1.0))
@@ -1481,21 +1484,21 @@ func _start_beast_of_nothingness():
     # =========================================================================
     var upper_jaw = Node3D.new()
     upper_jaw.name = "UpperPalateRoot"
-    upper_jaw.position.y = 64.0
+    upper_jaw.position.y = 85.0
     upper_jaw.set_meta("is_upper_jaw", true)
-    upper_jaw.set_meta("base_y", 64.0)
+    upper_jaw.set_meta("base_y", 85.0)
     beast_root.add_child(upper_jaw)
 
     var upper_rim = MeshInstance3D.new()
     upper_rim.name = "UpperMawArchRim"
     var u_torus = TorusMesh.new()
-    u_torus.inner_radius = arena_rad * 0.88
-    u_torus.outer_radius = arena_rad * 1.12
+    u_torus.inner_radius = arena_rad * 1.10
+    u_torus.outer_radius = arena_rad * 1.36
     upper_rim.mesh = u_torus
     upper_rim.material_override = maw_flesh_mat
     upper_jaw.add_child(upper_rim)
 
-    # GPU Batch 3: 64 Hanging Upper Palate Fangs pointing down at the battlefield
+    # GPU Batch 3: 64 Hanging Upper Palate Fangs pointing down from high above
     var upper_fang_count: int = 64
     var upper_fang_mm := MultiMesh.new()
     upper_fang_mm.transform_format = MultiMesh.TRANSFORM_3D
@@ -1508,9 +1511,9 @@ func _start_beast_of_nothingness():
 
     for ufi in range(upper_fang_count):
         var ang: float = (float(ufi) / float(upper_fang_count)) * TAU
-        var r_u: float = arena_rad * 0.98 + cos(ang * 4.0) * 3.0
+        var r_u: float = arena_rad * 1.16 + cos(ang * 4.0) * 3.0
         var h_sc: float = 0.82 + 0.35 * abs(sin(ang * 3.0))
-        var pos := Vector3(cos(ang) * r_u, -13.0 * h_sc, sin(ang) * r_u)
+        var pos := Vector3(cos(ang) * r_u, -10.0 * h_sc, sin(ang) * r_u)
         var inward_dir := Vector3(-cos(ang), 0.0, -sin(ang))
         var tilt_axis := inward_dir.cross(Vector3.UP).normalized()
         var b := Basis(tilt_axis, 0.28).scaled(Vector3(1.0, h_sc, 1.0))
@@ -1522,17 +1525,17 @@ func _start_beast_of_nothingness():
     upper_fangs_mmi.material_override = fang_mat
     upper_jaw.add_child(upper_fangs_mmi)
 
-    # GPU Batch 4: 16 Overarching Cranial Palate Ribs curving high around the upper maw
+    # GPU Batch 4: 16 Overarching Cranial Palate Ribs curving high above the outer rim
     var rib_count: int = 16
     var rib_mm := MultiMesh.new()
     rib_mm.transform_format = MultiMesh.TRANSFORM_3D
     var rib_box := BoxMesh.new()
-    rib_box.size = Vector3(5.5, 8.0, arena_rad * 0.55)
+    rib_box.size = Vector3(5.5, 8.0, arena_rad * 0.45)
     rib_mm.mesh = rib_box
     rib_mm.instance_count = rib_count
     for ri in range(rib_count):
         var ang: float = (float(ri) / float(rib_count)) * TAU
-        var r_mid: float = arena_rad * 0.92
+        var r_mid: float = arena_rad * 1.20
         var pos := Vector3(cos(ang) * r_mid, 14.0, sin(ang) * r_mid)
         var b := Basis(Vector3.UP, -ang + PI * 0.5) * Basis(Vector3.RIGHT, 0.42)
         rib_mm.set_instance_transform(ri, Transform3D(b, pos))
@@ -1616,7 +1619,7 @@ func _start_beast_of_nothingness():
         var ang: float = (float(t_i) / float(tentacle_count)) * TAU
         var t_root := Node3D.new()
         t_root.name = "MawTentacle_" + str(t_i)
-        var r_base: float = arena_rad * 1.08
+        var r_base: float = arena_rad * 1.22
         var base_ty: float = 6.0
         t_root.position = Vector3(cos(ang) * r_base, base_ty, sin(ang) * r_base)
         var base_rx: float = -sin(ang) * 0.42
