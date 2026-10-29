@@ -528,15 +528,15 @@ func test_ai_systems() -> bool:
 	ihc.name = "HealthComponent"
 	intr_outside_nest.add_child(ihc)
 	add_child(intr_outside_nest)
-	intr_outside_nest.global_position = nest_pos + Vector3(0, 0, 16.0) # Outside nest_radius (4.8), inside leash_radius (24.0)
+	intr_outside_nest.global_position = nest_pos + Vector3(0, 0, 26.0) # Outside nest_radius (16.5), inside leash_radius (36.0)
 
 	tc._evaluate_targeting()
 	if tc.current_target != null:
 		printerr("TerritorialCreature acquired target outside nest_radius while idle! Target: ", tc.current_target)
 		success = false
 
-	# Now move intruder inside nest_radius (3.0m)
-	intr_outside_nest.global_position = nest_pos + Vector3(0, 0, 3.0)
+	# Now move intruder inside expanded nest_radius (8.0m)
+	intr_outside_nest.global_position = nest_pos + Vector3(0, 0, 8.0)
 	tc._evaluate_targeting()
 	if tc.current_target != intr_outside_nest:
 		printerr("TerritorialCreature failed to acquire target inside nest_radius! Target: ", tc.current_target)
@@ -553,5 +553,17 @@ func test_ai_systems() -> bool:
 			printerr("ArenaManager does not handle NIGHTMARE difficulty for BotAI!")
 			success = false
 
-	print("  Verified HeroHunter closest commander targeting, Medic structure exclusion, Territorial Creature nest radius, and Nightmare BotAI.")
+	# 5. Test BotAI Faction Dice Roll & Chaos Deck Generation
+	var test_bot = BotAI.new()
+	var chaos_deck = test_bot.generate_chaos_deck()
+	if chaos_deck.is_empty() or chaos_deck.size() < 6:
+		printerr("BotAI generate_chaos_deck failed to produce a valid 6-card cross-faction deck! Size: ", chaos_deck.size())
+		success = false
+	test_bot.free()
+
+	if GameState.ai_faction_override == "":
+		printerr("GameState ai_faction_override is uninitialized!")
+		success = false
+
+	print("  Verified HeroHunter closest commander targeting, Medic structure exclusion, Territorial Creature nest radius, Nightmare BotAI, and Chaos dice roll.")
 	return success

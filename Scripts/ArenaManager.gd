@@ -234,9 +234,14 @@ func setup_match():
         bot.profile = profiles_for_slots[i] if i < profiles_for_slots.size() else ("BotSlot_" + str(i))
         bot.slot_index = i
         
-        # Unified AI Pool: Dice roll per bot slot
-        var chosen_archetype = ai_pool[randi() % ai_pool.size()]
+        # Unified AI Pool: Dice roll per bot slot (or user override from MatchSetup)
+        var chosen_archetype = ""
+        if GameState.ai_faction_override != "RANDOM" and GameState.ai_faction_override != "":
+            chosen_archetype = GameState.ai_faction_override
+        else:
+            chosen_archetype = ai_pool[randi() % ai_pool.size()]
         bot.archetype = chosen_archetype
+        print("🎲 AI Slot %d rolled faction dice: %s (Chaos included in pool)" % [i, chosen_archetype])
         
         # Pick primary enemy team (different from bot.my_team)
         bot.enemy_team = "SideB" if bot.my_team == "SideA" else "SideA"

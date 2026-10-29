@@ -10,6 +10,7 @@ const MapLayoutBuilderScript = preload("res://Scripts/MapLayoutBuilder.gd")
 @onready var diff_option = $CenterContainer/VBoxContainer/HBoxDiff/DiffDropdown
 @onready var timer_option = $CenterContainer/VBoxContainer/HBoxTimer/TimerDropdown
 
+var ai_faction_option: OptionButton = null
 var current_map_comps: Array = []
 
 func _ready():
@@ -44,6 +45,36 @@ func _ready():
 	diff_option.add_item("Hard")
 	diff_option.select(1) # Default to Medium
 	
+	# AI Factions Selection (Random Dice Roll including Chaos by default)
+	var v_box = $CenterContainer/VBoxContainer
+	var diff_box = v_box.get_node_or_null("HBoxDiff")
+	if diff_box:
+		var faction_box = HBoxContainer.new()
+		faction_box.name = "HBoxAIFaction"
+		var faction_lbl = Label.new()
+		faction_lbl.custom_minimum_size = Vector2(250, 0)
+		faction_lbl.add_theme_font_size_override("font_size", 24)
+		faction_lbl.text = "AI Factions"
+		faction_box.add_child(faction_lbl)
+
+		ai_faction_option = OptionButton.new()
+		ai_faction_option.custom_minimum_size = Vector2(250, 0)
+		ai_faction_option.add_theme_font_size_override("font_size", 24)
+		ai_faction_option.add_item("🎲 Random Dice Roll (All 7 + Chaos)") # 0
+		ai_faction_option.add_item("Dominion of Sol")                    # 1
+		ai_faction_option.add_item("The Reach")                          # 2
+		ai_faction_option.add_item("Pirates")                            # 3
+		ai_faction_option.add_item("Rimworlders")                        # 4
+		ai_faction_option.add_item("The Void")                           # 5
+		ai_faction_option.add_item("Plague of Harmony")                  # 6
+		ai_faction_option.add_item("Gilded Harmony")                     # 7
+		ai_faction_option.add_item("Chaos (Completely Random Deck)")     # 8
+		ai_faction_option.select(0) # Default to Random Dice Roll
+		faction_box.add_child(ai_faction_option)
+
+		v_box.add_child(faction_box)
+		v_box.move_child(faction_box, diff_box.get_index() + 1)
+
 	timer_option.add_item("2.5 Minutes") # 0
 	timer_option.add_item("5 Minutes")   # 1
 	timer_option.add_item("10 Minutes")  # 2
@@ -69,6 +100,7 @@ func _ready():
 	_update_roster_preview()
 	
 	GameState.ai_difficulty = "MEDIUM"
+	GameState.ai_faction_override = "RANDOM"
 	GameState.game_mode = "DOMINATION"
 	GameState.map_selected = "Arena.tscn"
 	GameState.map_layout_id = "CLASSIC_1V1"
@@ -266,6 +298,20 @@ func _on_start_pressed():
 	if diff == 0: GameState.ai_difficulty = "EASY"
 	elif diff == 2: GameState.ai_difficulty = "HARD"
 	else: GameState.ai_difficulty = "MEDIUM"
+	
+	if ai_faction_option:
+		var sel_f = ai_faction_option.selected
+		if sel_f == 0: GameState.ai_faction_override = "RANDOM"
+		elif sel_f == 1: GameState.ai_faction_override = "Dominion"
+		elif sel_f == 2: GameState.ai_faction_override = "The Reach"
+		elif sel_f == 3: GameState.ai_faction_override = "Pirates"
+		elif sel_f == 4: GameState.ai_faction_override = "Rimworlders"
+		elif sel_f == 5: GameState.ai_faction_override = "Void"
+		elif sel_f == 6: GameState.ai_faction_override = "Plague of Harmony"
+		elif sel_f == 7: GameState.ai_faction_override = "Gilded Harmony"
+		elif sel_f == 8: GameState.ai_faction_override = "Chaos"
+	else:
+		GameState.ai_faction_override = "RANDOM"
 	
 	var time_map = {0: 150.0, 1: 300.0, 2: 600.0, 3: 900.0, 4: 1200.0, 5: 1500.0, 6: 1800.0, 7: 2100.0, 8: 2400.0, 9: 2700.0, 10: 3000.0, 11: 3300.0, 12: 3600.0}
 	GameState.sudden_death_timer = time_map.get(timer_option.selected, 600.0)

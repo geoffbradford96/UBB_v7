@@ -57,6 +57,7 @@ const TEAM_NAMES: Dictionary = {
 }
 
 var ai_difficulty: String = "MEDIUM"
+var ai_faction_override: String = "RANDOM" # "RANDOM" (Dice Roll with Chaos included), or specific faction
 var game_mode: String = "DOMINATION" # "DOMINATION", "DESTROY_BASE", "KOTH", "FFA_DOMINATION", "FFA_KOTH"
 var map_selected: String = "Arena.tscn"
 var map_layout_id: String = "CLASSIC_1V1"

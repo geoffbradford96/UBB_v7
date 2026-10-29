@@ -2,12 +2,12 @@ extends CharacterBody3D
 class_name TerritorialCreature
 
 @export var creature_type: String = "Scorpion" # "Scorpion" or "SwarmAnt"
-@export var nest_radius: float = 8.5
-@export var leash_radius: float = 11.5
+@export var nest_radius: float = 16.5
+@export var leash_radius: float = 36.0
 @export var home_position: Vector3 = Vector3.ZERO
 
 @export var max_health: float = 120.0
-@export var speed: float = 4.8
+@export var speed: float = 5.0
 @export var attack_damage: float = 14.0
 @export var attack_range: float = 1.8
 @export var attack_speed: float = 1.2
@@ -54,20 +54,20 @@ func configure_creature(type: String, home: Vector3):
 	home_position = home
 	if creature_type == "Scorpion":
 		max_health = 130.0
-		speed = 4.4
+		speed = 5.0
 		attack_damage = 15.0
 		attack_range = 2.0
 		attack_speed = 1.1
-		nest_radius = 4.8
-		leash_radius = 24.0
+		nest_radius = 16.5
+		leash_radius = 36.0
 	else: # SwarmAnt - smaller, less health, ranged
 		max_health = 28.0
-		speed = 5.2
+		speed = 5.6
 		attack_damage = 4.5
 		attack_range = 10.0
 		attack_speed = 1.4
-		nest_radius = 4.2
-		leash_radius = 24.0
+		nest_radius = 18.5
+		leash_radius = 38.0
 		
 	var hc = get_node_or_null("HealthComponent")
 	if hc:
@@ -330,29 +330,29 @@ func _physics_process(delta):
 	else:
 		# Return to home nest or idle wander
 		var dist_to_home = global_position.distance_to(home_position)
-		if dist_to_home > 2.2:
+		if dist_to_home > nest_radius * 0.7:
 			var home_dir = (home_position + idle_patrol_offset - global_position).normalized()
-			velocity.x = home_dir.x * (speed * 0.7)
-			velocity.z = home_dir.z * (speed * 0.7)
+			velocity.x = home_dir.x * (speed * 0.75)
+			velocity.z = home_dir.z * (speed * 0.75)
 			is_moving = true
 			
 			var look_pos = global_position + Vector3(home_dir.x, 0, home_dir.z)
 			if global_position.distance_to(look_pos) > 0.1:
 				look_at(look_pos, Vector3.UP)
 		else:
-			# Idle patrol near nest
+			# Active territorial patrol around nest and dunes
 			idle_patrol_timer -= delta
 			if idle_patrol_timer <= 0.0:
-				idle_patrol_timer = randf_range(2.0, 5.0)
+				idle_patrol_timer = randf_range(2.5, 5.5)
 				var angle = randf() * TAU
-				var r = randf_range(0.5, nest_radius * 0.8)
+				var r = randf_range(2.0, nest_radius * 0.65)
 				idle_patrol_offset = Vector3(cos(angle) * r, 0, sin(angle) * r)
 				
 			var patrol_target = home_position + idle_patrol_offset
-			if global_position.distance_to(patrol_target) > 0.5:
+			if global_position.distance_to(patrol_target) > 0.6:
 				var p_dir = (patrol_target - global_position).normalized()
-				velocity.x = p_dir.x * (speed * 0.35)
-				velocity.z = p_dir.z * (speed * 0.35)
+				velocity.x = p_dir.x * (speed * 0.45)
+				velocity.z = p_dir.z * (speed * 0.45)
 				is_moving = true
 				
 				var look_pos = global_position + Vector3(p_dir.x, 0, p_dir.z)
@@ -443,7 +443,9 @@ func _evaluate_targeting():
 					continue
 					
 				var dist_from_nest = home_position.distance_to(node.global_position)
-				if dist_from_nest <= nest_radius and dist_from_nest < closest_dist:
+				var dist_from_creature = global_position.distance_to(node.global_position)
+				var in_territory = (dist_from_nest <= nest_radius) or (dist_from_creature <= (nest_radius * 0.75) and dist_from_nest <= leash_radius * 0.85)
+				if in_territory and dist_from_nest < closest_dist:
 					closest_dist = dist_from_nest
 					best_target = node
 				
