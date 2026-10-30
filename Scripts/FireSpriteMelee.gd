@@ -29,6 +29,7 @@ func _ready():
 	add_to_group("Targetable")
 	add_to_group("NeutralCreature")
 	add_to_group("FireEntity")
+	add_to_group("FireMonster")
 
 	var hc = get_node_or_null("HealthComponent")
 	if not hc:
@@ -206,7 +207,7 @@ func _evaluate_targeting():
 		var best: Node3D = null
 		for node in get_tree().get_nodes_in_group("Targetable"):
 			if node == self or not is_instance_valid(node): continue
-			if node.is_in_group("FireEntity") or node.is_in_group("NeutralStructure"): continue
+			if node.is_in_group("FireEntity") or node.is_in_group("FireMonster") or node.is_in_group("NeutralStructure") or node.is_in_group("NeutralCreature"): continue
 			var hc = node.get_node_or_null("HealthComponent")
 			if hc and hc.is_dead: continue
 
@@ -218,3 +219,8 @@ func _evaluate_targeting():
 
 func _on_died():
 	set_physics_process(false)
+
+func take_damage(amount: float, source_pos: Vector3 = Vector3.ZERO):
+	var hc = get_node_or_null("HealthComponent")
+	if hc and hc.has_method("take_damage"):
+		hc.take_damage(amount, source_pos)

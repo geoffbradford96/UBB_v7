@@ -292,6 +292,13 @@ func test_maps_and_biomes() -> bool:
 	test_base.name = "SideA_Base"
 	test_base.add_to_group("Structure")
 
+	var test_sky_beetle = CharacterBody3D.new()
+	test_sky_beetle.name = "SkyBeetle"
+	test_sky_beetle.set("unit_attribute", "Flying")
+	var beetle_hc = HealthComponent.new()
+	beetle_hc.name = "HealthComponent"
+	test_sky_beetle.add_child(beetle_hc)
+
 	if not sea_lion.is_valid_organic_target(test_grunt):
 		printerr("Sea lion failed to identify organic grunt as valid target!")
 		return false
@@ -301,13 +308,30 @@ func test_maps_and_biomes() -> bool:
 	if sea_lion.is_valid_organic_target(test_plane):
 		printerr("Sea lion targeted plane! Must ignore planes.")
 		return false
+	if sea_lion.is_valid_organic_target(test_sky_beetle):
+		printerr("Sea lion targeted SkyBeetle! Must ignore flying units.")
+		return false
 	if sea_lion.is_valid_organic_target(test_base):
 		printerr("Sea lion targeted base! Must ignore buildings.")
 		return false
 
+	if not small_patch._is_unit_flying(test_plane) or not small_patch._is_unit_flying(test_sky_beetle):
+		printerr("BreakableIcePatch failed to recognize flying units!")
+		return false
+
+	# Verify Sea Lion take_damage
+	var sl_hc = sea_lion.get_node_or_null("HealthComponent")
+	if sl_hc:
+		var prev_h = sl_hc.current_health
+		sea_lion.take_damage(20.0)
+		if sl_hc.current_health >= prev_h:
+			printerr("Sea Lion take_damage failed to reduce health!")
+			return false
+
 	test_grunt.queue_free()
 	test_tank.queue_free()
 	test_plane.queue_free()
+	test_sky_beetle.queue_free()
 	test_base.queue_free()
 	small_patch.queue_free()
 	large_patch.queue_free()
@@ -332,6 +356,28 @@ func test_maps_and_biomes() -> bool:
 
 	if gfm.max_health < 400.0 or gfm.ranged_attack_range <= 0.0 or gfm.melee_attack_range <= 0.0:
 		printerr("GreaterFireMonster stats or hybrid attack ranges invalid!")
+		return false
+
+	# Test take_damage on fire entities
+	var fs_hc = fs_melee.get_node_or_null("HealthComponent")
+	if fs_hc:
+		var p_hp = fs_hc.current_health
+		fs_melee.take_damage(15.0)
+		if fs_hc.current_health >= p_hp:
+			printerr("FireSpriteMelee take_damage failed!")
+			return false
+
+	var gfm_hc = gfm.get_node_or_null("HealthComponent")
+	if gfm_hc:
+		var g_hp = gfm_hc.current_health
+		gfm.take_damage(30.0)
+		if gfm_hc.current_health >= g_hp:
+			printerr("GreaterFireMonster take_damage failed!")
+			return false
+
+	# Verify fire monster groups for hazard immunity
+	if not fs_melee.is_in_group("FireMonster") or not fs_ranged.is_in_group("FireMonster") or not gfm.is_in_group("FireMonster"):
+		printerr("Fire entities missing FireMonster group for hazard immunity!")
 		return false
 
 	fire_hazard.queue_free()

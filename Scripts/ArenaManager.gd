@@ -3046,7 +3046,7 @@ func _generate_volcanic_brimstone(parent: Node3D):
 func on_unit_died_biome_event(dead_unit: Node3D):
     if active_biome != "VOLCANIC_BRIMSTONE" or not is_instance_valid(dead_unit):
         return
-    if dead_unit.is_in_group("FireMonster") or dead_unit.is_in_group("NeutralCreature"):
+    if dead_unit.is_in_group("FireMonster") or dead_unit.is_in_group("FireEntity") or dead_unit.is_in_group("NeutralCreature"):
         return
     if "Base" in dead_unit.name or "Tower" in dead_unit.name or "CommandBay" in dead_unit.name or "Structure" in dead_unit.name:
         return

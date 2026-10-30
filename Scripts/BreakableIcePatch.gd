@@ -100,9 +100,13 @@ func _setup_visuals():
 	add_child(broken_floes_root)
 
 func _is_unit_flying(unit: Node) -> bool:
-	if "Plane" in unit.name or "Flyer" in unit.name or "Gargoyle" in unit.name or "Jellyfish" in unit.name:
-		return true
-	if unit.get("unit_attribute") == "Ethereal":
+	if not is_instance_valid(unit): return false
+	if unit.get("is_flying") == true: return true
+	if unit.get("unit_attribute") == "Flying" or unit.get("unit_attribute") == "Ethereal": return true
+	if unit.is_in_group("Flyer"): return true
+	if unit.get("flight_height") != null: return true
+	var n = unit.name
+	if "Plane" in n or "Flyer" in n or "Gargoyle" in n or "Jellyfish" in n or "Beetle" in n:
 		return true
 	return false
 

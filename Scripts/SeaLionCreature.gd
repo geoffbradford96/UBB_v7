@@ -239,13 +239,15 @@ func is_valid_organic_target(node: Node) -> bool:
 		return false
 	var n_name = node.name
 	# Strictly ignores tanks, planes, mechs, mechanical units, and buildings!
-	if "Base" in n_name or "Tower" in n_name or "CommandBay" in n_name:
+	if "Base" in n_name or "Tower" in n_name or "CommandBay" in n_name or "Structure" in n_name:
 		return false
-	if "Plane" in n_name or "Flyer" in n_name or "Gargoyle" in n_name:
+	if "Plane" in n_name or "Flyer" in n_name or "Gargoyle" in n_name or "Jellyfish" in n_name or "Beetle" in n_name:
+		return false
+	if node.get("is_flying") == true or node.get("unit_attribute") == "Flying" or node.is_in_group("Flyer") or node.get("flight_height") != null:
 		return false
 	if "Tank" in n_name or "Mech" in n_name or "Walker" in n_name or "Spiker" in n_name:
 		return false
-	if node.get("unit_attribute") == "Mechanical":
+	if node.get("unit_attribute") == "Mechanical" or node.get("unit_attribute") == "Ethereal":
 		return false
 
 	var hc = node.get_node_or_null("HealthComponent")
@@ -417,3 +419,8 @@ func _evaluate_retaliation():
 
 func _on_died():
 	set_physics_process(false)
+
+func take_damage(amount: float, source_pos: Vector3 = Vector3.ZERO):
+	var hc = get_node_or_null("HealthComponent")
+	if hc and hc.has_method("take_damage"):
+		hc.take_damage(amount, source_pos)

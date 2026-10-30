@@ -164,15 +164,15 @@ func _end_eruption():
 	var tw = create_tween()
 	tw.tween_property(flame_column, "scale", Vector3(0.01, 0.01, 0.01), 0.22)
 	tw.finished.connect(func():
-		flame_column.visible = false
-		ember_ring.visible = false
+		if is_instance_valid(flame_column): flame_column.visible = false
+		if is_instance_valid(ember_ring): ember_ring.visible = false
 	)
 
 func _damage_overlapping_units():
 	for body in get_overlapping_bodies():
 		if not is_instance_valid(body) or body == self:
 			continue
-		if body.is_in_group("FireMonster"):
+		if body.is_in_group("FireMonster") or body.is_in_group("FireEntity"):
 			continue # Fire entities are immune to fire hazards
 		var hc = body.get_node_or_null("HealthComponent")
 		if hc and hc.has_method("take_damage"):
@@ -181,7 +181,7 @@ func _damage_overlapping_units():
 			body.take_damage(burn_damage)
 
 func _on_body_entered(body: Node3D):
-	if state == "ERUPTING" and is_instance_valid(body) and not body.is_in_group("FireMonster"):
+	if state == "ERUPTING" and is_instance_valid(body) and not (body.is_in_group("FireMonster") or body.is_in_group("FireEntity")):
 		var hc = body.get_node_or_null("HealthComponent")
 		if hc and hc.has_method("take_damage"):
 			hc.take_damage(burn_damage)

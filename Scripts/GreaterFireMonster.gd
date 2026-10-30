@@ -29,6 +29,7 @@ func _ready():
 	add_to_group("Targetable")
 	add_to_group("NeutralCreature")
 	add_to_group("FireMonster")
+	add_to_group("FireEntity")
 	current_health = max_health
 	
 	_setup_collision()
@@ -49,9 +50,8 @@ func _setup_health_component():
 	if health_script:
 		var hc = health_script.new()
 		hc.name = "HealthComponent"
-		hc.max_health = max_health
-		hc.current_health = current_health
 		add_child(hc)
+		hc.set_max_health(max_health)
 
 func _build_3d_model():
 	visual_pivot = Node3D.new()
@@ -303,7 +303,7 @@ func _find_closest_target() -> Node3D:
 	for node in get_tree().get_nodes_in_group("Targetable"):
 		if node == self or not is_instance_valid(node):
 			continue
-		if node.is_in_group("FireMonster") or node.is_in_group("NeutralCreature"):
+		if node.is_in_group("FireMonster") or node.is_in_group("FireEntity") or node.is_in_group("NeutralCreature") or node.is_in_group("NeutralStructure"):
 			continue
 		var d = global_position.distance_to(node.global_position)
 		if d < best_dist:
@@ -365,7 +365,8 @@ func _spawn_magma_boulder(target: Node3D):
 
 	var spawn_pos = global_position + Vector3(0, 2.5, 0) + (-global_transform.basis.z * 1.5)
 	boulder.position = spawn_pos
-	get_parent().add_child(boulder)
+	var parent_node = get_parent() if get_parent() else self
+	parent_node.add_child(boulder)
 
 	# Animate projectile arc towards target
 	var target_pos = target.global_position + Vector3(0, 1.0, 0)
@@ -401,7 +402,8 @@ func _spawn_boulder_explosion_fx(pos: Vector3):
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	fx.material_override = mat
 	fx.position = pos
-	get_parent().add_child(fx)
+	var parent_node = get_parent() if get_parent() else self
+	parent_node.add_child(fx)
 
 	var tw = fx.create_tween()
 	tw.set_parallel(true)
@@ -423,7 +425,8 @@ func _spawn_slam_shockwave():
 	r_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	ring.material_override = r_mat
 	ring.position = global_position + Vector3(0, 0.1, 0)
-	get_parent().add_child(ring)
+	var parent_node = get_parent() if get_parent() else self
+	parent_node.add_child(ring)
 
 	var tw = ring.create_tween()
 	tw.set_parallel(true)
@@ -480,12 +483,12 @@ func _reset_slam_pose():
 		torso_node.position.y = 2.2
 		torso_node.rotation_degrees.x = 0.0
 
-func take_damage(amount: float):
-	current_health -= amount
+func take_damage(amount: float, source_pos: Vector3 = Vector3.ZERO):
 	var hc = get_node_or_null("HealthComponent")
-	if hc:
-		hc.current_health = current_health
+	if hc and hc.has_method("take_damage"):
+		hc.take_damage(amount, source_pos)
+		current_health = hc.current_health
+	else:
+		current_health -= amount
 		if current_health <= 0:
-			hc.take_damage(amount)
-	elif current_health <= 0:
-		queue_free()
+			queue_free()
