@@ -32,8 +32,10 @@ func _ready():
 	biome_option.add_item("Sunny Plains")
 	biome_option.add_item("Scorching Sand Dunes")
 	biome_option.add_item("The Realm of Harmony")
+	biome_option.add_item("Glacial Frozen Tundra")
+	biome_option.add_item("Volcanic Brimstone")
 	biome_option.add_item("Random Biome")
-	biome_option.select(3) # Default to Random Biome
+	biome_option.select(5) # Default to Random Biome
 	
 	mode_option.add_item("Domination (Destroy Every Base)")
 	mode_option.add_item("King of the Hill")
@@ -274,6 +276,10 @@ func _on_start_pressed():
 		GameState.map_biome = "SCORCHING_DUNES"
 	elif biome_option.selected == 2:
 		GameState.map_biome = "REALM_OF_HARMONY"
+	elif biome_option.selected == 3:
+		GameState.map_biome = "FROZEN_TUNDRA"
+	elif biome_option.selected == 4:
+		GameState.map_biome = "VOLCANIC_BRIMSTONE"
 	else:
 		GameState.map_biome = "RANDOM"
 		

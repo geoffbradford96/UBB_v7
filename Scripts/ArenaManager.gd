@@ -50,6 +50,7 @@ class LocalPlayerState:
 var players: Array = []
 
 func _ready():
+    add_to_group("ArenaManager")
     print("Initializing Arena in Mode: ", GameState.current_mode)
 
     if "sudden_death_timer" in GameState:
@@ -289,7 +290,7 @@ func setup_match():
         
     var chosen_biome = GameState.map_biome if ("map_biome" in GameState and GameState.map_biome != "") else "SUNNY_PLAINS"
     if chosen_biome == "RANDOM":
-        var biome_pool = ["SUNNY_PLAINS", "SCORCHING_DUNES", "REALM_OF_HARMONY"]
+        var biome_pool = ["SUNNY_PLAINS", "SCORCHING_DUNES", "REALM_OF_HARMONY", "FROZEN_TUNDRA", "VOLCANIC_BRIMSTONE"]
         chosen_biome = biome_pool[randi() % biome_pool.size()]
     var map_seed = randi()
     if multiplayer.has_multiplayer_peer() and multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED:
@@ -1856,6 +1857,10 @@ func _apply_map_environment(biome_name: String, seed_val: int):
         _generate_scorching_dunes(env_root)
     elif active_biome == "REALM_OF_HARMONY":
         _generate_realm_of_harmony(env_root)
+    elif active_biome == "FROZEN_TUNDRA":
+        _generate_frozen_tundra(env_root)
+    elif active_biome == "VOLCANIC_BRIMSTONE":
+        _generate_volcanic_brimstone(env_root)
 
 func _apply_biome_visuals(biome_name: String):
     var ground = get_node_or_null("Ground")
@@ -1945,6 +1950,76 @@ func _apply_biome_visuals(biome_name: String):
                 sky_mat.sky_horizon_color = Color(1.0, 0.82, 0.32)
                 sky_mat.ground_bottom_color = Color(0.08, 0.05, 0.14)
                 sky_mat.ground_horizon_color = Color(0.92, 0.72, 0.28)
+
+    elif biome_name == "FROZEN_TUNDRA":
+        if ground:
+            var g_mesh = ground.get_node_or_null("MeshInstance3D")
+            if g_mesh:
+                var g_mat = StandardMaterial3D.new()
+                g_mat.albedo_color = Color(0.88, 0.94, 0.99) # Sub-zero snow terrain
+                g_mat.roughness = 0.88
+                g_mesh.material_override = g_mat
+            for child in ground.get_children():
+                if child is MeshInstance3D and child.name.begins_with("Path"):
+                    var p_mat = StandardMaterial3D.new()
+                    p_mat.albedo_color = Color(0.95, 0.98, 1.0) # Snow path
+                    p_mat.roughness = 0.50
+                    p_mat.metallic = 0.10
+                    child.material_override = p_mat
+        if dir_light:
+            dir_light.light_color = Color(0.86, 0.93, 1.0)
+            dir_light.light_energy = 1.25
+            dir_light.shadow_enabled = true
+        if world_env and world_env.environment and world_env.environment.sky:
+            var sky_mat = world_env.environment.sky.sky_material
+            if sky_mat is ProceduralSkyMaterial:
+                sky_mat.sky_top_color = Color(0.18, 0.42, 0.72)
+                sky_mat.sky_horizon_color = Color(0.78, 0.90, 0.98)
+                sky_mat.ground_bottom_color = Color(0.18, 0.22, 0.28)
+                sky_mat.ground_horizon_color = Color(0.72, 0.84, 0.92)
+
+    elif biome_name == "VOLCANIC_BRIMSTONE":
+        if ground:
+            var g_mesh = ground.get_node_or_null("MeshInstance3D")
+            if g_mesh:
+                var g_mat = StandardMaterial3D.new()
+                g_mat.albedo_color = Color(0.35, 0.08, 0.06) # Dark red volcanic sand / ash
+                g_mat.roughness = 0.92
+                g_mesh.material_override = g_mat
+            
+            # Procedural Orange/Obsidian Chequered Stone Path Texture
+            var chk_img = Image.create(16, 16, false, Image.FORMAT_RGBA8)
+            for py in range(16):
+                for px in range(16):
+                    var is_orange = ((px / 4) + (py / 4)) % 2 == 0
+                    if is_orange:
+                        chk_img.set_pixel(px, py, Color(1.0, 0.48, 0.05)) # Bright glowing orange stone
+                    else:
+                        chk_img.set_pixel(px, py, Color(0.14, 0.08, 0.08)) # Dark volcanic basalt stone
+            var chk_tex = ImageTexture.create_from_image(chk_img)
+
+            for child in ground.get_children():
+                if child is MeshInstance3D and child.name.begins_with("Path"):
+                    var p_mat = StandardMaterial3D.new()
+                    p_mat.albedo_texture = chk_tex
+                    p_mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+                    p_mat.roughness = 0.55
+                    p_mat.emission_enabled = true
+                    p_mat.emission_texture = chk_tex
+                    p_mat.emission_energy_multiplier = 0.45
+                    p_mat.uv1_scale = Vector3(12.0, 12.0, 12.0)
+                    child.material_override = p_mat
+        if dir_light:
+            dir_light.light_color = Color(1.0, 0.68, 0.38)
+            dir_light.light_energy = 1.35
+            dir_light.shadow_enabled = true
+        if world_env and world_env.environment and world_env.environment.sky:
+            var sky_mat = world_env.environment.sky.sky_material
+            if sky_mat is ProceduralSkyMaterial:
+                sky_mat.sky_top_color = Color(0.25, 0.05, 0.04)
+                sky_mat.sky_horizon_color = Color(0.95, 0.38, 0.12)
+                sky_mat.ground_bottom_color = Color(0.18, 0.04, 0.03)
+                sky_mat.ground_horizon_color = Color(0.85, 0.30, 0.08)
 
 func _get_clear_hazard_pos(map_size: float) -> Vector3:
     var attempts = 0
@@ -2871,3 +2946,140 @@ func transform_unit_to_beast_of_harmony(unit: Node3D, forced_variant: String = "
     return beast
 
 
+
+
+# --- Frozen Tundra Generation (Breakable Ice Patches & Sea Lions) ---
+func _generate_frozen_tundra(parent: Node3D):
+    placed_feature_records.clear()
+    var bip_script = load("res://Scripts/BreakableIcePatch.gd")
+    var span = maxf(72.0, GameState.current_map_radius * 0.65)
+    
+    # 1. Large Breakable Ice Patches (collapses under heavy units or multiple units)
+    var large_count = randi_range(6, 8)
+    var attempts = 0
+    var placed_large = 0
+    while placed_large < large_count and attempts < 180:
+        attempts += 1
+        var candidate = Vector3(randf_range(-span, span), 0.0, randf_range(-span, span))
+        if _is_pos_clear(candidate, 5.0, 14.0, 8.8):
+            var patch = bip_script.new()
+            patch.patch_size = "LARGE"
+            patch.position = candidate
+            parent.add_child(patch)
+            placed_feature_records.append({"pos": candidate, "radius": 8.8, "type": "ice_patch_large"})
+            placed_large += 1
+
+    # 2. Small Breakable Ice Patches (collapses under normal smaller units)
+    var small_count = randi_range(10, 14)
+    attempts = 0
+    var placed_small = 0
+    while placed_small < small_count and attempts < 240:
+        attempts += 1
+        var candidate = Vector3(randf_range(-span, span), 0.0, randf_range(-span, span))
+        if _is_pos_clear(candidate, 4.0, 12.0, 4.2):
+            var patch = bip_script.new()
+            patch.patch_size = "SMALL"
+            patch.position = candidate
+            parent.add_child(patch)
+            placed_feature_records.append({"pos": candidate, "radius": 4.2, "type": "ice_patch_small"})
+            placed_small += 1
+
+    # 3. Arctic Frost Crystals
+    for s in range(12):
+        var c_pos = Vector3(randf_range(-span, span), 0.0, randf_range(-span, span))
+        if _is_pos_clear(c_pos, 3.0, 8.0, 2.0):
+            var spire = MeshInstance3D.new()
+            var p_mesh = PrismMesh.new()
+            p_mesh.size = Vector3(1.2, randf_range(3.0, 5.5), 1.2)
+            spire.mesh = p_mesh
+            var s_mat = StandardMaterial3D.new()
+            s_mat.albedo_color = Color(0.72, 0.90, 1.0, 0.85)
+            s_mat.roughness = 0.15
+            s_mat.metallic = 0.25
+            s_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+            spire.material_override = s_mat
+            spire.position = c_pos + Vector3(0, p_mesh.size.y * 0.5, 0)
+            spire.rotation_degrees = Vector3(randf_range(-8.0, 8.0), randf() * 360.0, randf_range(-8.0, 8.0))
+            parent.add_child(spire)
+            placed_feature_records.append({"pos": c_pos, "radius": 2.0, "type": "ice_spire"})
+
+
+# --- Volcanic Brimstone Generation (Chequered Stone, Off-path Fire Geysers) ---
+func _generate_volcanic_brimstone(parent: Node3D):
+    placed_feature_records.clear()
+    var vfh_script = load("res://Scripts/VolcanicFireHazard.gd")
+    var span = maxf(72.0, GameState.current_map_radius * 0.65)
+    
+    # 1. Volcanic Fire Hazards popping up off-path
+    var hazard_count = randi_range(16, 22)
+    var attempts = 0
+    var placed_hazards = 0
+    while placed_hazards < hazard_count and attempts < 250:
+        attempts += 1
+        var candidate = Vector3(randf_range(-span, span), 0.0, randf_range(-span, span))
+        if _is_pos_clear(candidate, 4.0, 11.0, 3.0):
+            var hazard = vfh_script.new()
+            hazard.position = candidate
+            parent.add_child(hazard)
+            placed_feature_records.append({"pos": candidate, "radius": 3.0, "type": "fire_hazard"})
+            placed_hazards += 1
+
+    # 2. Obsidian Basalt Rock Spires
+    for r in range(14):
+        var r_pos = Vector3(randf_range(-span, span), 0.0, randf_range(-span, span))
+        if _is_pos_clear(r_pos, 3.0, 9.0, 2.5):
+            var spire = MeshInstance3D.new()
+            var p_mesh = PrismMesh.new()
+            p_mesh.size = Vector3(randf_range(1.6, 2.8), randf_range(3.5, 6.5), randf_range(1.6, 2.8))
+            spire.mesh = p_mesh
+            var b_mat = StandardMaterial3D.new()
+            b_mat.albedo_color = Color(0.12, 0.08, 0.08)
+            b_mat.roughness = 0.92
+            spire.material_override = b_mat
+            spire.position = r_pos + Vector3(0, p_mesh.size.y * 0.5, 0)
+            spire.rotation_degrees = Vector3(randf_range(-10.0, 10.0), randf() * 360.0, randf_range(-10.0, 10.0))
+            parent.add_child(spire)
+            placed_feature_records.append({"pos": r_pos, "radius": 2.5, "type": "obsidian_spire"})
+
+
+# --- Biome Death Event (Volcanic Reincarnation) ---
+func on_unit_died_biome_event(dead_unit: Node3D):
+    if active_biome != "VOLCANIC_BRIMSTONE" or not is_instance_valid(dead_unit):
+        return
+    if dead_unit.is_in_group("FireMonster") or dead_unit.is_in_group("NeutralCreature"):
+        return
+    if "Base" in dead_unit.name or "Tower" in dead_unit.name or "CommandBay" in dead_unit.name or "Structure" in dead_unit.name:
+        return
+
+    # 50/50 chance to become a fire creature on death in volcanic biome
+    if randf() > 0.5:
+        return
+
+    var spawn_pos = dead_unit.global_position
+    var is_big = false
+    var hc = dead_unit.get_node_or_null("HealthComponent")
+    if hc and hc.max_health >= 300.0:
+        is_big = true
+    for keyword in ["Tank", "Mech", "Leviathan", "Spiker", "Monstrous", "Octopus", "Big", "Commander"]:
+        if keyword in dead_unit.name:
+            is_big = true
+            break
+
+    if is_big:
+        var gfm_script = load("res://Scripts/GreaterFireMonster.gd")
+        if gfm_script:
+            var monster = gfm_script.new()
+            monster.position = spawn_pos
+            add_child(monster)
+            print("🔥 A towering Greater Fire Monster rises from the ashes of ", dead_unit.name, " at ", spawn_pos)
+    else:
+        var sprite_script = null
+        if randf() < 0.5:
+            sprite_script = load("res://Scripts/FireSpriteMelee.gd")
+        else:
+            sprite_script = load("res://Scripts/FireSpriteRanged.gd")
+        if sprite_script:
+            var sprite = sprite_script.new()
+            sprite.position = spawn_pos
+            add_child(sprite)
+            print("🔥 A Fire Sprite rises from the burning embers of ", dead_unit.name, " at ", spawn_pos)

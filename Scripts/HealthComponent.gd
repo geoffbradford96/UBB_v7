@@ -529,6 +529,15 @@ func die():
 	#print(get_parent().name, " was destroyed!")
 	emit_signal("died")
 	
+	if is_inside_tree() and get_tree():
+		var am = get_tree().get_first_node_in_group("ArenaManager")
+		if am == null:
+			var cs = get_tree().current_scene
+			if cs and cs.has_method("on_unit_died_biome_event"):
+				am = cs
+		if am and am.has_method("on_unit_died_biome_event"):
+			am.on_unit_died_biome_event(get_parent())
+	
 	if "Base" in get_parent().name:
 		var am = get_tree().current_scene if (get_tree() and get_tree().current_scene) else get_parent().get_parent()
 		if am and am.has_method("_end_match"):

@@ -252,8 +252,95 @@ func test_maps_and_biomes() -> bool:
 
 	dummy_arena.queue_free()
 
-	var biomes = ["SUNNY_PLAINS", "SCORCHING_DUNES", "REALM_OF_HARMONY"]
+	var biomes = ["SUNNY_PLAINS", "SCORCHING_DUNES", "REALM_OF_HARMONY", "FROZEN_TUNDRA", "VOLCANIC_BRIMSTONE"]
+
+	# --- Test Frozen Tundra Mechanics: Breakable Ice Patches & Sea Lions ---
+	var bip_script = load("res://Scripts/BreakableIcePatch.gd")
+	var small_patch = bip_script.new()
+	small_patch.patch_size = "SMALL"
+	add_child(small_patch)
+
+	var large_patch = bip_script.new()
+	large_patch.patch_size = "LARGE"
+	add_child(large_patch)
+
+	var sea_lion_script = load("res://Scripts/SeaLionCreature.gd")
+	var sea_lion = sea_lion_script.new()
+	add_child(sea_lion)
+
+	# Test organic targeting vs mechanical/structures
+	var test_grunt = CharacterBody3D.new()
+	test_grunt.name = "TestGrunt"
+	var grunt_hc = HealthComponent.new()
+	grunt_hc.name = "HealthComponent"
+	test_grunt.add_child(grunt_hc)
+
+	var test_tank = CharacterBody3D.new()
+	test_tank.name = "TestTank"
+	test_tank.set("unit_attribute", "Mechanical")
+	var tank_hc = HealthComponent.new()
+	tank_hc.name = "HealthComponent"
+	test_tank.add_child(tank_hc)
+
+	var test_plane = CharacterBody3D.new()
+	test_plane.name = "TestPlane"
+	var plane_hc = HealthComponent.new()
+	plane_hc.name = "HealthComponent"
+	test_plane.add_child(plane_hc)
+
+	var test_base = StaticBody3D.new()
+	test_base.name = "SideA_Base"
+	test_base.add_to_group("Structure")
+
+	if not sea_lion.is_valid_organic_target(test_grunt):
+		printerr("Sea lion failed to identify organic grunt as valid target!")
+		return false
+	if sea_lion.is_valid_organic_target(test_tank):
+		printerr("Sea lion targeted mechanical tank! Must ignore mechanical units.")
+		return false
+	if sea_lion.is_valid_organic_target(test_plane):
+		printerr("Sea lion targeted plane! Must ignore planes.")
+		return false
+	if sea_lion.is_valid_organic_target(test_base):
+		printerr("Sea lion targeted base! Must ignore buildings.")
+		return false
+
+	test_grunt.queue_free()
+	test_tank.queue_free()
+	test_plane.queue_free()
+	test_base.queue_free()
+	small_patch.queue_free()
+	large_patch.queue_free()
+	sea_lion.queue_free()
+
+	# --- Test Volcanic Brimstone Hazards & Fire Entities ---
+	var vfh_script = load("res://Scripts/VolcanicFireHazard.gd")
+	var fire_hazard = vfh_script.new()
+	add_child(fire_hazard)
+
+	var fs_melee_script = load("res://Scripts/FireSpriteMelee.gd")
+	var fs_melee = fs_melee_script.new()
+	add_child(fs_melee)
+
+	var fs_ranged_script = load("res://Scripts/FireSpriteRanged.gd")
+	var fs_ranged = fs_ranged_script.new()
+	add_child(fs_ranged)
+
+	var gfm_script = load("res://Scripts/GreaterFireMonster.gd")
+	var gfm = gfm_script.new()
+	add_child(gfm)
+
+	if gfm.max_health < 400.0 or gfm.ranged_attack_range <= 0.0 or gfm.melee_attack_range <= 0.0:
+		printerr("GreaterFireMonster stats or hybrid attack ranges invalid!")
+		return false
+
+	fire_hazard.queue_free()
+	fs_melee.queue_free()
+	fs_ranged.queue_free()
+	gfm.queue_free()
+
 	print("  Verified %d map catalog layouts across %d total team comps and %d biomes." % [tested_count, tested_comps, biomes.size()])
+	print("  [PASS] Breakable ice patches, Sea Lion organic predation, Volcanic hazards & Fire reincarnation verified.")
 	return true
 
 func test_shield_and_armor() -> bool:
