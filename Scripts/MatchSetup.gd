@@ -62,7 +62,7 @@ func _ready():
 		ai_faction_option = OptionButton.new()
 		ai_faction_option.custom_minimum_size = Vector2(250, 0)
 		ai_faction_option.add_theme_font_size_override("font_size", 24)
-		ai_faction_option.add_item("🎲 Random Dice Roll (All 7 + Chaos)") # 0
+		ai_faction_option.add_item("🎲 Random Dice Roll (All 8 + Chaos)") # 0
 		ai_faction_option.add_item("Dominion of Sol")                    # 1
 		ai_faction_option.add_item("The Reach")                          # 2
 		ai_faction_option.add_item("Pirates")                            # 3
@@ -70,7 +70,8 @@ func _ready():
 		ai_faction_option.add_item("The Void")                           # 5
 		ai_faction_option.add_item("Plague of Harmony")                  # 6
 		ai_faction_option.add_item("Gilded Harmony")                     # 7
-		ai_faction_option.add_item("Chaos (Completely Random Deck)")     # 8
+		ai_faction_option.add_item("Planetary Primitives")               # 8
+		ai_faction_option.add_item("Chaos (Completely Random Deck)")     # 9
 		ai_faction_option.select(0) # Default to Random Dice Roll
 		faction_box.add_child(ai_faction_option)
 
@@ -315,7 +316,8 @@ func _on_start_pressed():
 		elif sel_f == 5: GameState.ai_faction_override = "Void"
 		elif sel_f == 6: GameState.ai_faction_override = "Plague of Harmony"
 		elif sel_f == 7: GameState.ai_faction_override = "Gilded Harmony"
-		elif sel_f == 8: GameState.ai_faction_override = "Chaos"
+		elif sel_f == 8: GameState.ai_faction_override = "Planetary Primitives"
+		elif sel_f == 9: GameState.ai_faction_override = "Chaos"
 	else:
 		GameState.ai_faction_override = "RANDOM"
 	

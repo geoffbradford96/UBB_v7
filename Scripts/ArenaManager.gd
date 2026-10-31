@@ -79,8 +79,9 @@ func _ready():
         left_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
         h_box.add_child(left_vbox)
         
-        var right_vbox = VBoxContainer.new() if (is_4p or is_6p) else null
+        var right_vbox: VBoxContainer = null
         if is_4p or is_6p:
+            right_vbox = VBoxContainer.new()
             right_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
             h_box.add_child(right_vbox)
             
@@ -492,7 +493,9 @@ func _unhandled_input(event):
             match_timer = 2.0
 
     if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
-        var p0 = players[0] if players.size() > 0 else null
+        var p0: LocalPlayerState = null
+        if players.size() > 0:
+            p0 = players[0]
         if p0 and p0.selected_card_ui:
             p0.selected_card_ui.set_selected(false)
             p0.selected_card_ui = null
@@ -1015,11 +1018,11 @@ func _build_structure_mesh(node, faction: String, is_tower: bool):
             # Communications Antennae
             for i in range(4):
                 var ant = MeshInstance3D.new(); ant.mesh = CylinderMesh.new(); ant.mesh.height = 4.0; ant.mesh.bottom_radius = 0.12; ant.mesh.top_radius = 0.04
-                ant.material_override = steel_mat; ant.position = Vector3(cos(i*PI/2)*2.2, 7.5, sin(i*PI/2)*2.2); mesh_node.add_child(ant)
+                ant.material_override = steel_mat; ant.position = Vector3(cos(float(i) * PI / 2.0) * 2.2, 7.5, sin(float(i) * PI / 2.0) * 2.2); mesh_node.add_child(ant)
             # Searchlights
             for i in range(4):
                 var light = MeshInstance3D.new(); light.mesh = SphereMesh.new(); light.mesh.radius = 0.35
-                light.material_override = amber_mat; light.position = Vector3(cos(i*PI/2 + PI/4)*4.4, 4.6, sin(i*PI/2 + PI/4)*4.4); mesh_node.add_child(light)
+                light.material_override = amber_mat; light.position = Vector3(cos(float(i) * PI / 2.0 + PI / 4.0) * 4.4, 4.6, sin(float(i) * PI / 2.0 + PI / 4.0) * 4.4); mesh_node.add_child(light)
 
     # ==========================================
     # 2. THE VOID SWARM (LIVING BIO-HORROR)
@@ -1036,7 +1039,7 @@ func _build_structure_mesh(node, faction: String, is_tower: bool):
             for i in range(5):
                 var pustule = MeshInstance3D.new(); pustule.mesh = SphereMesh.new(); pustule.mesh.radius = 0.6
                 pustule.material_override = eye_mat
-                var a = i * (2*PI/5)
+                var a = i * (2.0 * PI / 5.0)
                 pustule.position = Vector3(cos(a)*1.6, 1.8, sin(a)*1.6); mesh_node.add_child(pustule)
         elif is_tower:
             # Flesh Spire with Giant Pulsing Eye
@@ -1045,8 +1048,8 @@ func _build_structure_mesh(node, faction: String, is_tower: bool):
             # Talons surrounding the top cradling the eye
             for i in range(4):
                 var talon = MeshInstance3D.new(); talon.mesh = CylinderMesh.new(); talon.mesh.height = 2.5; talon.mesh.bottom_radius = 0.28; talon.mesh.top_radius = 0.05
-                talon.material_override = chitin_mat; talon.position = Vector3(cos(i*PI/2)*0.72, 5.5, sin(i*PI/2)*0.72)
-                talon.rotation_degrees.x = 25 * cos(i*PI/2); talon.rotation_degrees.z = 25 * sin(i*PI/2); mesh_node.add_child(talon)
+                talon.material_override = chitin_mat; talon.position = Vector3(cos(float(i) * PI / 2.0) * 0.72, 5.5, sin(float(i) * PI / 2.0) * 0.72)
+                talon.rotation_degrees.x = 25.0 * cos(float(i) * PI / 2.0); talon.rotation_degrees.z = 25.0 * sin(float(i) * PI / 2.0); mesh_node.add_child(talon)
             var eye = MeshInstance3D.new(); eye.mesh = SphereMesh.new(); eye.mesh.radius = 1.3
             eye.material_override = eye_mat; eye.position.y = 5.8; mesh_node.add_child(eye)
             mesh_node.set_meta("void_eye", eye)
@@ -1061,7 +1064,7 @@ func _build_structure_mesh(node, faction: String, is_tower: bool):
             for i in range(8):
                 var fang = MeshInstance3D.new(); fang.mesh = CylinderMesh.new(); fang.mesh.height = 5.0; fang.mesh.bottom_radius = 0.6; fang.mesh.top_radius = 0.05
                 fang.material_override = chitin_mat
-                var a = i * (2*PI/8)
+                var a = i * (2.0 * PI / 8.0)
                 fang.position = Vector3(cos(a)*3.5, 2.5, sin(a)*3.5)
                 fang.rotation_degrees.x = 35 * cos(a); fang.rotation_degrees.z = 35 * sin(a); mesh_node.add_child(fang)
 
@@ -1086,14 +1089,14 @@ func _build_structure_mesh(node, faction: String, is_tower: bool):
             # Primitive Timber Watchtower with Cross-Braces & Spiked Skull Crest
             for i in range(4):
                 var post = MeshInstance3D.new(); post.mesh = CylinderMesh.new(); post.mesh.height = 5.5; post.mesh.bottom_radius = 0.35; post.mesh.top_radius = 0.3
-                post.material_override = wood_mat; post.position = Vector3(cos(i*PI/2 + PI/4)*1.3, 2.75, sin(i*PI/2 + PI/4)*1.3)
+                post.material_override = wood_mat; post.position = Vector3(cos(float(i) * PI / 2.0 + PI / 4.0) * 1.3, 2.75, sin(float(i) * PI / 2.0 + PI / 4.0) * 1.3)
                 mesh_node.add_child(post)
             var platform = MeshInstance3D.new(); platform.mesh = CylinderMesh.new(); platform.mesh.height = 0.6; platform.mesh.bottom_radius = 2.0; platform.mesh.top_radius = 2.0
             platform.material_override = wood_mat; platform.position.y = 5.3; mesh_node.add_child(platform)
             # Bone Spikes anchored into platform rim
             for i in range(6):
                 var tusk = MeshInstance3D.new(); tusk.mesh = CylinderMesh.new(); tusk.mesh.height = 1.8; tusk.mesh.bottom_radius = 0.2; tusk.mesh.top_radius = 0.02
-                tusk.material_override = bone_mat; var a = i * (2*PI/6)
+                tusk.material_override = bone_mat; var a = i * (2.0 * PI / 6.0)
                 tusk.position = Vector3(cos(a)*1.75, 6.0, sin(a)*1.75); mesh_node.add_child(tusk)
         else:
             # Megalithic Beast Totem Fortress & Sacrificial Fire
@@ -1105,7 +1108,7 @@ func _build_structure_mesh(node, faction: String, is_tower: bool):
             # Gigantic Beast Tusks
             for i in range(4):
                 var mammoth_tusk = MeshInstance3D.new(); mammoth_tusk.mesh = CylinderMesh.new(); mammoth_tusk.mesh.height = 6.0; mammoth_tusk.mesh.bottom_radius = 0.55; mammoth_tusk.mesh.top_radius = 0.05
-                mammoth_tusk.material_override = bone_mat; var a = i * (PI/2) + PI/4
+                mammoth_tusk.material_override = bone_mat; var a = float(i) * (PI / 2.0) + PI / 4.0
                 mammoth_tusk.position = Vector3(cos(a)*3.6, 3.5, sin(a)*3.6)
                 mammoth_tusk.rotation_degrees.x = -25 * cos(a); mammoth_tusk.rotation_degrees.z = -25 * sin(a)
                 mesh_node.add_child(mammoth_tusk)
@@ -1864,7 +1867,7 @@ func sync_end_match(message: String, winning_team: String = ""):
 func _animate_faction_structures(delta):
     var t = Time.get_ticks_msec() * 0.001
     for s in get_tree().get_nodes_in_group("FactionStructures"):
-        var f_mesh = s.get_meta("faction_mesh") if s.has_meta("faction_mesh") else null
+        var f_mesh = s.get_meta("faction_mesh", null)
         if f_mesh and is_instance_valid(f_mesh):
             if f_mesh.has_meta("reach_hover"):
                 var node = f_mesh.get_meta("reach_hover")
@@ -2081,7 +2084,7 @@ func _apply_biome_visuals(biome_name: String):
             var chk_img = Image.create(16, 16, false, Image.FORMAT_RGBA8)
             for py in range(16):
                 for px in range(16):
-                    var is_orange = ((px / 4) + (py / 4)) % 2 == 0
+                    var is_orange = (int(float(px) / 4.0) + int(float(py) / 4.0)) % 2 == 0
                     if is_orange:
                         chk_img.set_pixel(px, py, Color(1.0, 0.48, 0.05)) # Bright glowing orange stone
                     else:

@@ -739,7 +739,9 @@ func test_ai_systems() -> bool:
 	test_tower.name = "SideA_Tower_1"
 	dummy_arena.add_child(test_tower)
 	am_inst._build_structure_mesh(test_tower, "Planetary Primitives", true)
-	var t_fmesh = test_tower.get_meta("faction_mesh") if test_tower.has_meta("faction_mesh") else null
+	var t_fmesh = null
+	if test_tower.has_meta("faction_mesh"):
+		t_fmesh = test_tower.get_meta("faction_mesh")
 	if not t_fmesh or not t_fmesh.has_meta("ballista_turret"):
 		printerr("ArenaManager failed to build ballista_turret for Planetary Primitives tower!")
 		success = false
@@ -762,5 +764,47 @@ func test_ai_systems() -> bool:
 
 	dummy_arena.queue_free()
 
-	print("  Verified HeroHunter closest commander targeting, Medic structure exclusion, Territorial Creature nest radius, Nightmare BotAI, Chaos dice roll, and Planetary Primitives Empire Ages.")
+	# 7. Test MatchSetup AI Factions Rotation & Dropdown
+	var ms_scene = load("res://Scenes/MatchSetup.tscn")
+	if ms_scene:
+		var ms_inst = ms_scene.instantiate()
+		add_child(ms_inst)
+		var ai_opt = ms_inst.find_child("HBoxAIFaction", true, false)
+		if ai_opt:
+			var opt_btn = ai_opt.get_node_or_null("OptionButton")
+			if not opt_btn:
+				for c in ai_opt.get_children():
+					if c is OptionButton: opt_btn = c
+			if opt_btn:
+				if opt_btn.item_count < 10:
+					printerr("MatchSetup ai_faction_option item_count is less than 10! Got: ", opt_btn.item_count)
+					success = false
+				var item_8 = opt_btn.get_item_text(8)
+				if not ("Planetary Primitives" in item_8):
+					printerr("MatchSetup item 8 is not Planetary Primitives! Got: ", item_8)
+					success = false
+		ms_inst.queue_free()
+
+	# 8. Test Namesake Models & Rigs
+	var knight_scene = load("res://Scenes/Units/PrimitiveKnight.tscn")
+	if knight_scene:
+		var k_inst = knight_scene.instantiate()
+		add_child(k_inst)
+		var h_rig = k_inst.get_node_or_null("HumanoidRig")
+		if not h_rig:
+			printerr("PrimitiveKnight missing HumanoidRig!")
+			success = false
+		k_inst.queue_free()
+
+	var chieftain_scene = load("res://Scenes/Units/PrimitiveChieftain.tscn")
+	if chieftain_scene:
+		var ch_inst = chieftain_scene.instantiate()
+		add_child(ch_inst)
+		var ch_rig = ch_inst.get_node_or_null("HumanoidRig")
+		if not ch_rig:
+			printerr("PrimitiveChieftain missing HumanoidRig!")
+			success = false
+		ch_inst.queue_free()
+
+	print("  Verified HeroHunter closest commander targeting, Medic structure exclusion, Territorial Creature nest radius, Nightmare BotAI, Chaos dice roll, Planetary Primitives Empire Ages, and Namesake Models.")
 	return success

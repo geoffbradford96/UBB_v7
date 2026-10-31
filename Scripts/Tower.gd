@@ -101,7 +101,7 @@ func _process(delta):
 			targets_in_range.pop_front()
 			
 	if is_instance_valid(current_target):
-		var f_mesh = get_meta("faction_mesh") if has_meta("faction_mesh") else null
+		var f_mesh = get_meta("faction_mesh", null)
 		if f_mesh and is_instance_valid(f_mesh):
 			if f_mesh.has_meta("dominion_turret"):
 				var turret = f_mesh.get_meta("dominion_turret")
@@ -119,7 +119,11 @@ func shoot_at_target():
 	if not is_instance_valid(current_target): return
 	if projectile_scene:
 		var proj = projectile_scene.instantiate()
-		var scene_root = get_tree().current_scene if (is_inside_tree() and get_tree() and get_tree().current_scene) else get_parent()
+		var scene_root: Node = null
+		if is_inside_tree() and get_tree() and get_tree().current_scene:
+			scene_root = get_tree().current_scene
+		else:
+			scene_root = get_parent()
 		if scene_root:
 			scene_root.add_child(proj)
 			proj.global_position = global_position + Vector3(0, 6, 0) 
@@ -128,7 +132,7 @@ func shoot_at_target():
 			proj.set("speed", 25.0)
 		
 		# Turret firing recoil kick
-		var f_mesh = get_meta("faction_mesh") if has_meta("faction_mesh") else null
+		var f_mesh = get_meta("faction_mesh", null)
 		if f_mesh and is_instance_valid(f_mesh):
 			if f_mesh.has_meta("ballista_turret"):
 				var b_turret = f_mesh.get_meta("ballista_turret")

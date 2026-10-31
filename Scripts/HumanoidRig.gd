@@ -87,6 +87,22 @@ func _build_humanoid_anatomy(parent: Node3D):
 	var is_caveman = is_primitive and ("Chieftain" in u_name or "Caveman" in u_name or "Clubber" in u_name or "Spearman" in u_name or "ShortBow" in u_name or "RockThrower" in u_name)
 	var is_feudal = is_primitive and not is_caveman
 	
+	# Namesake Proportional Rig Scaling
+	if "Chieftain" in u_name:
+		rig_root.scale = Vector3(1.24, 1.22, 1.24) # Imposing, massive barbarian leader
+	elif "Knight" in u_name:
+		rig_root.scale = Vector3(1.12, 1.10, 1.12) # Broad, heavily armored chivalric knight
+	elif "Commander" in u_name and ("Primitive" in u_name or "Sol" in u_name):
+		rig_root.scale = Vector3(1.15, 1.14, 1.15) # Regal feudal lord
+	elif "CavemanBuilder" in u_name:
+		rig_root.scale = Vector3(1.08, 1.06, 1.08) # Sturdy stone crafter
+	elif "Clubber" in u_name:
+		rig_root.scale = Vector3(0.92, 0.88, 0.92) # Low-slung, agile swarm cavemen
+	elif "Squire" in u_name or ("Builder" in u_name and "Primitive" in u_name):
+		rig_root.scale = Vector3(0.95, 0.95, 0.95) # Agile foot squires and craftsmen
+	elif "ShortBow" in u_name or "RockThrower" in u_name:
+		rig_root.scale = Vector3(0.95, 0.95, 0.95) # Quick hunters
+	
 	# Materials
 	var body_mat = StandardMaterial3D.new()
 	var armor_mat = StandardMaterial3D.new()
@@ -318,7 +334,14 @@ func _build_humanoid_anatomy(parent: Node3D):
 			quiver.rotation_degrees = Vector3(15.0, 0.0, -25.0)
 			torso.add_child(quiver)
 		elif "Builder" in u_name:
-			# Craftsman Leather Tool Pouch
+			# Craftsman Leather Apron & Tool Pouch
+			var apron = MeshInstance3D.new()
+			var a_box = BoxMesh.new()
+			a_box.size = Vector3(0.44, 0.62, 0.04)
+			apron.mesh = a_box
+			apron.material_override = armor_mat
+			apron.position = Vector3(0, -0.22, 0.18)
+			torso.add_child(apron)
 			var pouch = MeshInstance3D.new()
 			var p_box = BoxMesh.new()
 			p_box.size = Vector3(0.24, 0.20, 0.14)
@@ -671,6 +694,15 @@ func _build_humanoid_anatomy(parent: Node3D):
 		tribal_shield.position = Vector3(-0.06, -0.32, 0.16)
 		tribal_shield.rotation_degrees = Vector3(75.0, 20.0, 0.0)
 		left_arm_pivot.add_child(tribal_shield)
+	elif "RockThrower" in u_name:
+		# Secondary throwing stone gripped in left hand
+		var left_rock = MeshInstance3D.new()
+		var lr_sph = SphereMesh.new()
+		lr_sph.radius = 0.12; lr_sph.height = 0.20; lr_sph.radial_segments = 6; lr_sph.rings = 4
+		left_rock.mesh = lr_sph
+		left_rock.material_override = weapon_mat
+		left_rock.position = Vector3(0, -0.32, 0.08)
+		left_arm_pivot.add_child(left_rock)
 	elif "ShieldInfantry" in u_name or ("Commander" in u_name and is_reach):
 		# Forearm clamp bracket + Left-arm mounted hardlight buckler emitter
 		var buckler_brace = MeshInstance3D.new()
@@ -736,6 +768,17 @@ func _build_humanoid_anatomy(parent: Node3D):
 	right_pad.material_override = armor_mat
 	right_pad.position = Vector3(0, 0.04, 0)
 	right_arm_pivot.add_child(right_pad)
+	
+	if "Knight" in u_name:
+		# Flared Chivalric Steel Spaulders
+		var l_spaulder = MeshInstance3D.new()
+		var ls_box = BoxMesh.new(); ls_box.size = Vector3(0.24, 0.16, 0.28)
+		l_spaulder.mesh = ls_box; l_spaulder.material_override = armor_mat; l_spaulder.position = Vector3(0.02, 0.08, 0.0)
+		left_arm_pivot.add_child(l_spaulder)
+		var r_spaulder = MeshInstance3D.new()
+		var rs_box = BoxMesh.new(); rs_box.size = Vector3(0.24, 0.16, 0.28)
+		r_spaulder.mesh = rs_box; r_spaulder.material_override = armor_mat; r_spaulder.position = Vector3(-0.02, 0.08, 0.0)
+		right_arm_pivot.add_child(r_spaulder)
 	
 	# --- WEAPON IN HAND ---
 	weapon_node = Node3D.new()
@@ -808,6 +851,17 @@ func _build_humanoid_anatomy(parent: Node3D):
 	right_boot.material_override = weapon_mat
 	right_boot.position = Vector3(0, -0.52, 0.05)
 	right_leg_pivot.add_child(right_boot)
+	
+	if "Knight" in u_name:
+		# Steel Plate Greaves on shins
+		var l_greave = MeshInstance3D.new()
+		var lg_box = BoxMesh.new(); lg_box.size = Vector3(0.22, 0.38, 0.22)
+		l_greave.mesh = lg_box; l_greave.material_override = armor_mat; l_greave.position = Vector3(0, -0.32, 0.02)
+		left_leg_pivot.add_child(l_greave)
+		var r_greave = MeshInstance3D.new()
+		var rg_box = BoxMesh.new(); rg_box.size = Vector3(0.22, 0.38, 0.22)
+		r_greave.mesh = rg_box; r_greave.material_override = armor_mat; r_greave.position = Vector3(0, -0.32, 0.02)
+		right_leg_pivot.add_child(r_greave)
 
 func _build_weapon(w_root: Node3D, u_name: String, w_mat: Material, energy_mat: Material):
 	var w_mesh = MeshInstance3D.new()
@@ -955,22 +1009,51 @@ func _build_weapon(w_root: Node3D, u_name: String, w_mat: Material, energy_mat: 
 		stone_head.position = Vector3(0, 0.65, 0.45)
 		w_root.add_child(stone_head)
 	elif "Builder" in u_name and "Primitive" in u_name:
-		# Medieval Mason's Hammer & Utility Knife
-		var hammer_handle = CylinderMesh.new()
-		hammer_handle.top_radius = 0.025; hammer_handle.bottom_radius = 0.025; hammer_handle.height = 0.65
-		w_mesh.mesh = hammer_handle
-		w_mesh.material_override = w_mat
-		w_mesh.rotation_degrees.x = 35.0
-		w_mesh.position = Vector3(0, 0.08, 0.22)
+		# Medieval Construction Worker Utility Knife in hand & Framing Hammer
+		var knife_blade = BoxMesh.new()
+		knife_blade.size = Vector3(0.03, 0.08, 0.52)
+		w_mesh.mesh = knife_blade
+		w_mesh.material_override = energy_mat
+		w_mesh.position = Vector3(0, 0.02, 0.26)
 		w_root.add_child(w_mesh)
-		var hammer_head = MeshInstance3D.new()
-		var hh_box = BoxMesh.new()
-		hh_box.size = Vector3(0.12, 0.10, 0.22)
-		hammer_head.mesh = hh_box
-		hammer_head.material_override = energy_mat
-		hammer_head.rotation_degrees.x = 35.0
-		hammer_head.position = Vector3(0, 0.30, 0.38)
-		w_root.add_child(hammer_head)
+		var knife_guard = MeshInstance3D.new()
+		var kg_box = BoxMesh.new()
+		kg_box.size = Vector3(0.14, 0.03, 0.05)
+		knife_guard.mesh = kg_box
+		knife_guard.material_override = energy_mat
+		knife_guard.position = Vector3(0, 0.02, 0.04)
+		w_root.add_child(knife_guard)
+		# Framing Hammer at hip
+		var hammer = MeshInstance3D.new()
+		var h_cyl = CylinderMesh.new()
+		h_cyl.top_radius = 0.02; h_cyl.bottom_radius = 0.02; h_cyl.height = 0.45
+		hammer.mesh = h_cyl
+		hammer.material_override = w_mat
+		hammer.rotation_degrees.z = 45.0
+		hammer.position = Vector3(0.12, -0.10, 0.05)
+		w_root.add_child(hammer)
+	elif "Commander" in u_name and "Primitive" in u_name:
+		# Regal Royal Broadsword with Gilded Crossguard and Pommel
+		var royal_blade = BoxMesh.new()
+		royal_blade.size = Vector3(0.045, 0.14, 1.25)
+		w_mesh.mesh = royal_blade
+		w_mesh.material_override = energy_mat
+		w_mesh.position = Vector3(0, 0.02, 0.62)
+		w_root.add_child(w_mesh)
+		var royal_guard = MeshInstance3D.new()
+		var rg_box = BoxMesh.new()
+		rg_box.size = Vector3(0.42, 0.06, 0.07)
+		royal_guard.mesh = rg_box
+		royal_guard.material_override = energy_mat
+		royal_guard.position = Vector3(0, 0.02, 0.06)
+		w_root.add_child(royal_guard)
+		var royal_pommel = MeshInstance3D.new()
+		var rp_sph = SphereMesh.new()
+		rp_sph.radius = 0.06; rp_sph.height = 0.08
+		royal_pommel.mesh = rp_sph
+		royal_pommel.material_override = energy_mat
+		royal_pommel.position = Vector3(0, 0.02, -0.14)
+		w_root.add_child(royal_pommel)
 	elif "Knight" in u_name:
 		# Medieval Chivalric Arming Sword with Wide Steel Crossguard
 		var blade = BoxMesh.new()

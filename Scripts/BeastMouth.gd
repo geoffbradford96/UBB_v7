@@ -110,7 +110,7 @@ func _ready():
 		mesh_node.add_child(pustule)
 
 func _physics_process(delta):
-	var mn = get_meta("mesh_node") if has_meta("mesh_node") else null
+	var mn = get_meta("mesh_node", null)
 	if mn and is_instance_valid(mn):
 		var t = Time.get_ticks_msec() * 0.004
 		var s = sin(t) * 0.08
@@ -157,14 +157,18 @@ func sync_spawn_cell(cell_type: int = 0):
 	var scn = digestive_cell_scene if cell_type == 1 else cell_scene
 	if scn:
 		var c = scn.instantiate()
-		var scene_root = get_tree().current_scene if (is_inside_tree() and get_tree() and get_tree().current_scene) else get_parent()
+		var scene_root: Node = null
+		if is_inside_tree() and get_tree() and get_tree().current_scene:
+			scene_root = get_tree().current_scene
+		else:
+			scene_root = get_parent()
 		if scene_root:
 			scene_root.add_child(c)
 			c.global_position = global_position + Vector3(0, 0.8, 0)
 			c.add_to_group("Beast")
 		
 		# Regurgitation convulsive gulp animation
-		var mn = get_meta("mesh_node") if has_meta("mesh_node") else null
+		var mn = get_meta("mesh_node", null)
 		if mn and is_instance_valid(mn):
 			var tw = create_tween()
 			if tw:

@@ -34,7 +34,9 @@ func _ready():
 			humanoid_rig.setup(self)
 	elif "Corruptor" in name:
 		var vp = get_node_or_null("VisualPivot")
-		var m_inst = vp.get_node_or_null("MeshInstance3D") if vp else null
+		var m_inst: MeshInstance3D = null
+		if vp:
+			m_inst = vp.get_node_or_null("MeshInstance3D")
 		if vp and m_inst and vp.get_node_or_null("CorruptorSiphon") == null:
 			var chitin_mat = StandardMaterial3D.new()
 			chitin_mat.albedo_color = Color(0.12, 0.02, 0.18)

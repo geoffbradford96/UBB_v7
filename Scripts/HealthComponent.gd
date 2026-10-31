@@ -582,7 +582,11 @@ func die():
 	# Destruction burst effect
 	var parent_node = get_parent()
 	var parent_pos = parent_node.global_position if parent_node.is_inside_tree() else parent_node.position
-	var scene_root = get_tree().current_scene if (get_tree() and get_tree().current_scene) else (parent_node.get_parent() if parent_node.get_parent() else null)
+	var scene_root: Node = null
+	if is_inside_tree() and get_tree() and get_tree().current_scene:
+		scene_root = get_tree().current_scene
+	elif parent_node and parent_node.get_parent():
+		scene_root = parent_node.get_parent()
 	if scene_root:
 		var puff = MeshInstance3D.new()
 		var sm = SphereMesh.new()
@@ -636,7 +640,7 @@ func _apply_destroyed_building(parent: Node3D):
 	
 	var sampled_color = Color(0.24, 0.22, 0.20)
 	var sampled_accent = Color(0.14, 0.13, 0.12)
-	var faction_mesh = parent.get_meta("faction_mesh") if parent.has_meta("faction_mesh") else null
+	var faction_mesh = parent.get_meta("faction_mesh", null)
 	if faction_mesh and is_instance_valid(faction_mesh):
 		var fm_name = faction_mesh.name
 		if "Reach" in fm_name: is_reach = true
@@ -960,8 +964,14 @@ func _spawn_unit_corpse(parent: Node3D):
 	if parent.has_meta("gilded_gen_scale"):
 		corpse.scale = Vector3.ONE * float(parent.get_meta("gilded_gen_scale"))
 
-	var tree = get_tree() if is_inside_tree() else null
-	var scene_root = tree.current_scene if (tree and tree.current_scene) else (parent.get_parent() if parent and parent.get_parent() else null)
+	var tree: SceneTree = null
+	if is_inside_tree():
+		tree = get_tree()
+	var scene_root: Node = null
+	if tree and tree.current_scene:
+		scene_root = tree.current_scene
+	elif parent and parent.get_parent():
+		scene_root = parent.get_parent()
 	if scene_root:
 		scene_root.add_child(corpse)
 		if corpse.is_inside_tree():
@@ -2464,7 +2474,9 @@ func _break_armor():
 				plates_to_shatter.append(found)
 
 	if plates_to_shatter.size() > 0:
-		var tree = get_tree() if is_inside_tree() else null
+		var tree: SceneTree = null
+		if is_inside_tree():
+			tree = get_tree()
 		var root_s = tree.current_scene if (tree and tree.current_scene) else parent_u
 		for plate in plates_to_shatter:
 			if root_s and is_inside_tree():

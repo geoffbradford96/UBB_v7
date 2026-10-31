@@ -92,10 +92,18 @@ func _on_parent_died() -> void:
 func _spawn_clone(template_unit: Node3D, target_gen: int, world_pos: Vector3, tag_suffix: String = "") -> Node3D:
 	if not is_instance_valid(template_unit):
 		return null
-	var tree := template_unit.get_tree() if template_unit.is_inside_tree() else (get_tree() if is_inside_tree() else null)
+	var tree: SceneTree = null
+	if template_unit.is_inside_tree():
+		tree = template_unit.get_tree()
+	elif is_inside_tree():
+		tree = get_tree()
 	if tree == null:
 		return null
-	var scene_root: Node = tree.current_scene if tree.current_scene else template_unit.get_parent()
+	var scene_root: Node = null
+	if tree.current_scene:
+		scene_root = tree.current_scene
+	else:
+		scene_root = template_unit.get_parent()
 	if scene_root == null:
 		return null
 
