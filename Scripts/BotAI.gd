@@ -33,7 +33,7 @@ func _get_game_state():
 
 func _ready():
 	var gs = _get_game_state()
-	var ai_pool = ["Dominion", "The Reach", "Pirates", "Rimworlders", "Void", "Plague of Harmony", "Gilded Harmony", "Planetary Primitives", "Chaos"]
+	var ai_pool = ["Dominion", "The Reach", "Pirates", "Rimworlders", "Void", "Plague of Harmony", "Gilded Harmony", "Planetary Primitives", "Galactic Wildlife", "Chaos"]
 	if archetype != "":
 		deck = generate_themed_deck(archetype)
 		print(my_team + " BotAI generated deck for archetype: " + archetype + " -> " + str(deck))
@@ -113,7 +113,9 @@ func _get_card_faction(card: CardData) -> String:
 	if card == null:
 		return "Dominion"
 	var cname: String = card.card_name
-	if "Primitive" in cname:
+	if "Wildlife" in cname:
+		return "Galactic Wildlife"
+	elif "Primitive" in cname:
 		return "Planetary Primitives"
 	elif "Plague" in cname:
 		return "Plague of Harmony"
@@ -952,9 +954,10 @@ func play_card(card: CardData, target_position: Vector3):
 
 
 func _detect_faction_from_deck(deck_list: Array) -> String:
-	var v = 0; var r = 0; var d = 0; var pi = 0; var reach = 0; var plague = 0; var gilded = 0; var prim = 0
+	var v = 0; var r = 0; var d = 0; var pi = 0; var reach = 0; var plague = 0; var gilded = 0; var prim = 0; var wild = 0
 	for c in deck_list:
-		if "Primitive" in c: prim += 1
+		if "Wildlife" in c: wild += 1
+		elif "Primitive" in c: prim += 1
 		elif "Plague" in c: plague += 1
 		elif "Gilded" in c: gilded += 1
 		elif "Void" in c: v += 1
@@ -962,8 +965,9 @@ func _detect_faction_from_deck(deck_list: Array) -> String:
 		elif "Scrap" in c: pi += 1
 		elif "Reach" in c: reach += 1
 		else: d += 1
-	var mx = max(d, max(v, max(r, max(pi, max(reach, max(plague, max(gilded, prim)))))))
+	var mx = max(d, max(v, max(r, max(pi, max(reach, max(plague, max(gilded, max(prim, wild))))))))
 	if mx < 3 and deck_list.size() >= 5: return "Chaos"
+	if mx == wild and wild > 0: return "Galactic Wildlife"
 	if mx == prim and prim > 0: return "Planetary Primitives"
 	if mx == plague and plague > 0: return "Plague of Harmony"
 	if mx == gilded and gilded > 0: return "Gilded Harmony"
@@ -976,7 +980,7 @@ func _detect_faction_from_deck(deck_list: Array) -> String:
 func generate_chaos_deck() -> Array:
 	var dir = DirAccess.open("res://Data/Cards/")
 	var all_commanders = []
-	var all_units = []
+	var units_by_faction: Dictionary = {}
 	
 	if dir:
 		dir.list_dir_begin()
@@ -990,16 +994,22 @@ func generate_chaos_deck() -> Array:
 					if "card_type" in res and res.card_type == "Commander":
 						all_commanders.append(raw_name)
 					else:
-						all_units.append(raw_name)
+						var f_bucket = _detect_faction_from_deck([raw_name])
+						if not units_by_faction.has(f_bucket):
+							units_by_faction[f_bucket] = []
+						units_by_faction[f_bucket].append(raw_name)
 			file_name = dir.get_next()
 			
 	var chaos_deck = []
 	if all_commanders.size() > 0:
 		chaos_deck.append(all_commanders.pick_random())
 		
-	all_units.shuffle()
-	for i in range(min(5, all_units.size())):
-		chaos_deck.append(all_units[i])
+	var f_keys = units_by_faction.keys()
+	f_keys.shuffle()
+	for i in range(min(5, f_keys.size())):
+		var bucket: Array = units_by_faction[f_keys[i]]
+		if bucket.size() > 0:
+			chaos_deck.append(bucket.pick_random())
 		
 	return chaos_deck
 
@@ -1017,14 +1027,15 @@ func generate_themed_deck(theme: String) -> Array:
 		while file_name != "":
 			if not dir.current_is_dir() and (file_name.ends_with(".tres") or file_name.ends_with(".tres.remap")):
 				var clean_name = file_name.trim_suffix(".remap")
-				var is_void = "Void" in clean_name
-				var is_rimworlder = "Rimworlder" in clean_name or "Sky" in clean_name or "Stone" in clean_name or "Giant" in clean_name or "Great" in clean_name or "Monstrous" in clean_name
-				var is_pirate = "Scrap" in clean_name
-				var is_reach = "Reach" in clean_name
-				var is_plague = "Plague" in clean_name
-				var is_gilded = "Gilded" in clean_name
-				var is_primitive = "Primitive" in clean_name
-				var is_dominion = not is_void and not is_rimworlder and not is_pirate and not is_reach and not is_plague and not is_gilded and not is_primitive
+				var is_wildlife = "Wildlife" in clean_name
+				var is_void = not is_wildlife and ("Void" in clean_name)
+				var is_rimworlder = not is_wildlife and ("Rimworlder" in clean_name or "Sky" in clean_name or "Stone" in clean_name or "Giant" in clean_name or "Great" in clean_name or "Monstrous" in clean_name)
+				var is_pirate = not is_wildlife and ("Scrap" in clean_name)
+				var is_reach = not is_wildlife and ("Reach" in clean_name)
+				var is_plague = not is_wildlife and ("Plague" in clean_name)
+				var is_gilded = not is_wildlife and ("Gilded" in clean_name)
+				var is_primitive = not is_wildlife and ("Primitive" in clean_name)
+				var is_dominion = not is_void and not is_rimworlder and not is_pirate and not is_reach and not is_plague and not is_gilded and not is_primitive and not is_wildlife
 				
 				var valid = false
 				if theme == "Void" and is_void: valid = true
@@ -1035,6 +1046,7 @@ func generate_themed_deck(theme: String) -> Array:
 				elif (theme == "Plague of Harmony" or theme == "Plague") and is_plague: valid = true
 				elif (theme == "Gilded Harmony" or theme == "Gilded") and is_gilded: valid = true
 				elif (theme == "Planetary Primitives" or theme == "Primitives") and is_primitive: valid = true
+				elif (theme == "Galactic Wildlife" or theme == "Wildlife") and is_wildlife: valid = true
 				
 				if valid:
 					var res = load("res://Data/Cards/" + clean_name)

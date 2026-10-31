@@ -2,6 +2,7 @@ extends Node
 
 const MapLayoutBuilder = preload("res://Scripts/MapLayoutBuilder.gd")
 const BotAI = preload("res://Scripts/BotAI.gd")
+const WildlifeModelBuilder = preload("res://Scripts/WildlifeModelBuilder.gd")
 
 func _ready():
 	print("==================================================")
@@ -252,7 +253,55 @@ func test_maps_and_biomes() -> bool:
 
 	dummy_arena.queue_free()
 
-	var biomes = ["SUNNY_PLAINS", "SCORCHING_DUNES", "REALM_OF_HARMONY", "FROZEN_TUNDRA", "VOLCANIC_BRIMSTONE"]
+	var biomes = ["SUNNY_PLAINS", "SCORCHING_DUNES", "REALM_OF_HARMONY", "FROZEN_TUNDRA", "VOLCANIC_BRIMSTONE", "SPACE_VACUUM"]
+
+	# --- Test Deep Space Vacuum Biome Decompression Mechanics ---
+	var vac_arena = ArenaManager.new()
+	vac_arena.active_biome = "SPACE_VACUUM"
+	add_child(vac_arena)
+
+	var unshielded_monkey = (load("res://Scenes/Units/WildlifeMonkey.tscn") as PackedScene).instantiate()
+	add_child(unshielded_monkey)
+	var monkey_hc = unshielded_monkey.get_node_or_null("HealthComponent") as HealthComponent
+	var monkey_start_hp = monkey_hc.current_health
+
+	var shielded_org = CharacterBody3D.new()
+	shielded_org.name = "ShieldedMarine"
+	shielded_org.add_to_group("Units")
+	var sh_hc = HealthComponent.new()
+	sh_hc.name = "HealthComponent"
+	sh_hc.max_health = 100.0
+	sh_hc.current_health = 100.0
+	sh_hc.max_shield = 50.0
+	sh_hc.current_shield = 50.0
+	shielded_org.add_child(sh_hc)
+	add_child(shielded_org)
+
+	var sealed_tank = CharacterBody3D.new()
+	sealed_tank.name = "HeavyTankUnit"
+	sealed_tank.add_to_group("Units")
+	var tk_hc = HealthComponent.new()
+	tk_hc.name = "HealthComponent"
+	tk_hc.max_health = 300.0
+	tk_hc.current_health = 300.0
+	sealed_tank.add_child(tk_hc)
+	add_child(sealed_tank)
+
+	vac_arena._update_space_vacuum(1.1)
+	if monkey_hc.current_health >= monkey_start_hp:
+		printerr("SPACE_VACUUM failed to damage unshielded organic unit!")
+		return false
+	if sh_hc.current_health != 100.0 or sh_hc.current_shield != 50.0:
+		printerr("SPACE_VACUUM damaged a shielded unit!")
+		return false
+	if tk_hc.current_health != 300.0:
+		printerr("SPACE_VACUUM damaged a mechanical tank!")
+		return false
+
+	unshielded_monkey.queue_free()
+	shielded_org.queue_free()
+	sealed_tank.queue_free()
+	vac_arena.queue_free()
 
 	# --- Test Frozen Tundra Mechanics: Breakable Ice Patches & Sea Lions ---
 	var bip_script = load("res://Scripts/BreakableIcePatch.gd")
@@ -776,14 +825,63 @@ func test_ai_systems() -> bool:
 				for c in ai_opt.get_children():
 					if c is OptionButton: opt_btn = c
 			if opt_btn:
-				if opt_btn.item_count < 10:
-					printerr("MatchSetup ai_faction_option item_count is less than 10! Got: ", opt_btn.item_count)
+				if opt_btn.item_count < 11:
+					printerr("MatchSetup ai_faction_option item_count is less than 11! Got: ", opt_btn.item_count)
 					success = false
 				var item_8 = opt_btn.get_item_text(8)
 				if not ("Planetary Primitives" in item_8):
 					printerr("MatchSetup item 8 is not Planetary Primitives! Got: ", item_8)
 					success = false
+				var item_9 = opt_btn.get_item_text(9)
+				if not ("Galactic Wildlife" in item_9):
+					printerr("MatchSetup item 9 is not Galactic Wildlife! Got: ", item_9)
+					success = false
 		ms_inst.queue_free()
+
+	# 7b. Test Galactic Wildlife Faction (>100 Animals, Poison Snake, Rock-Dropping Crow, Pecking Bird, Bug Swarms)
+	var wildlife_count = WildlifeModelBuilder.SPECIES_CATALOG.size()
+	if wildlife_count < 100:
+		printerr("Galactic Wildlife species count is less than 100! Got: ", wildlife_count)
+		success = false
+	print("  Verified %d distinct Galactic Wildlife species in SPECIES_CATALOG." % wildlife_count)
+
+	var wild_bot = BotAI.new()
+	var wild_deck = wild_bot.generate_themed_deck("Galactic Wildlife")
+	if wild_deck.size() != 6:
+		printerr("BotAI Galactic Wildlife deck size is not 6! Got: ", wild_deck.size())
+		success = false
+	for wc in wild_deck:
+		if not wc.begins_with("Wildlife"):
+			printerr("BotAI Galactic Wildlife deck contains non-wildlife card: ", wc)
+			success = false
+	wild_bot.free()
+
+	var snake_inst = (load("res://Scenes/Units/WildlifePoisonSnake.tscn") as PackedScene).instantiate()
+	var crow_inst = (load("res://Scenes/Units/WildlifeCrow.tscn") as PackedScene).instantiate()
+	var dummy_victim = CharacterBody3D.new()
+	dummy_victim.name = "VictimUnit"
+	var vic_hc = HealthComponent.new()
+	vic_hc.name = "HealthComponent"
+	vic_hc.max_health = 200.0
+	vic_hc.current_health = 200.0
+	dummy_victim.add_child(vic_hc)
+	add_child(snake_inst)
+	add_child(crow_inst)
+	add_child(dummy_victim)
+
+	snake_inst.target = dummy_victim
+	snake_inst._perform_attack()
+	if vic_hc.poison_ticks <= 0 or vic_hc.poison_dps <= 0.0:
+		printerr("WildlifePoisonSnake failed to apply poison DoT on attack!")
+		success = false
+
+	if not crow_inst.is_flying or not crow_inst.drops_rocks or crow_inst._held_rock == null:
+		printerr("WildlifeCrow missing flying/rock-dropping attributes or HeldRock model node!")
+		success = false
+
+	snake_inst.queue_free()
+	crow_inst.queue_free()
+	dummy_victim.queue_free()
 
 	# 8. Test Namesake Models & Rigs
 	var knight_scene = load("res://Scenes/Units/PrimitiveKnight.tscn")

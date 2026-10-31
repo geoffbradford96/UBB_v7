@@ -29,7 +29,7 @@ func _ready():
 
 		var sub = Label.new()
 		sub.name = "SubtitleBanner"
-		sub.text = "TACTICAL COMMAND  •  8 FACTIONS + CHAOS  •  2 TO 25 PLAYERS"
+		sub.text = "TACTICAL COMMAND  •  9 FACTIONS + CHAOS  •  2 TO 25 PLAYERS"
 		sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		sub.add_theme_font_size_override("font_size", 14)
 		sub.add_theme_color_override("font_color", Color(0.55, 0.88, 1.0, 0.95))

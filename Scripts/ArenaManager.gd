@@ -228,7 +228,7 @@ func setup_match():
         return # Do not spawn AIs in online PvP matches!
         
     var profiles_for_slots = ["Player1", "Guest1", "Guest2", "Guest3", "Guest4", "Guest5"]
-    var ai_pool = ["Dominion", "The Reach", "Pirates", "Rimworlders", "Void", "Plague of Harmony", "Gilded Harmony", "Planetary Primitives", "Chaos"]
+    var ai_pool = ["Dominion", "The Reach", "Pirates", "Rimworlders", "Void", "Plague of Harmony", "Gilded Harmony", "Planetary Primitives", "Galactic Wildlife", "Chaos"]
     var interval_scale: float = 1.0 + maxf(0.0, float(total_slots - 6) * 0.055)
     for i in range(start_bot_idx, total_slots):
         var bot = BotAI.new()
@@ -291,7 +291,7 @@ func setup_match():
         
     var chosen_biome = GameState.map_biome if ("map_biome" in GameState and GameState.map_biome != "") else "SUNNY_PLAINS"
     if chosen_biome == "RANDOM":
-        var biome_pool = ["SUNNY_PLAINS", "SCORCHING_DUNES", "REALM_OF_HARMONY", "FROZEN_TUNDRA", "VOLCANIC_BRIMSTONE"]
+        var biome_pool = ["SUNNY_PLAINS", "SCORCHING_DUNES", "REALM_OF_HARMONY", "FROZEN_TUNDRA", "VOLCANIC_BRIMSTONE", "SPACE_VACUUM"]
         chosen_biome = biome_pool[randi() % biome_pool.size()]
     var map_seed = randi()
     if multiplayer.has_multiplayer_peer() and multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED:
@@ -382,6 +382,8 @@ func _process(delta):
                         sync_spawn_solar_beam(spawn_x, spawn_z, beam_dur, beam_id)
     elif active_biome == "REALM_OF_HARMONY":
         _update_realm_of_harmony(delta)
+    elif active_biome == "SPACE_VACUUM":
+        _update_space_vacuum(delta)
 
     if GameState.current_mode == "AI_VS_AI" and players.size() > 0 and players[0].ui:
         var bot_a: BotAI = null
@@ -864,13 +866,14 @@ func _get_team_faction(team: String) -> String:
                 if p_name != null and GameState.player_decks.has(p_name):
                     return _detect_faction_from_deck(GameState.player_decks[p_name])
                     
-    var opts = ["Dominion", "Void", "Rimworlders", "Pirates", "The Reach", "Plague of Harmony", "Gilded Harmony", "Chaos"]
+    var opts = ["Dominion", "Void", "Rimworlders", "Pirates", "The Reach", "Plague of Harmony", "Gilded Harmony", "Planetary Primitives", "Galactic Wildlife", "Chaos"]
     return opts[randi() % opts.size()]
 
 func _detect_faction_from_deck(deck: Array) -> String:
-    var v = 0; var r = 0; var d = 0; var pi = 0; var reach = 0; var plague = 0; var gilded = 0; var prim = 0
+    var v = 0; var r = 0; var d = 0; var pi = 0; var reach = 0; var plague = 0; var gilded = 0; var prim = 0; var wild = 0
     for c in deck:
-        if "Primitive" in c: prim += 1
+        if "Wildlife" in c: wild += 1
+        elif "Primitive" in c: prim += 1
         elif "Plague" in c: plague += 1
         elif "Gilded" in c: gilded += 1
         elif "Void" in c: v += 1
@@ -878,8 +881,9 @@ func _detect_faction_from_deck(deck: Array) -> String:
         elif "Scrap" in c: pi += 1
         elif "Reach" in c: reach += 1
         else: d += 1
-    var mx = max(d, max(v, max(r, max(pi, max(reach, max(plague, max(gilded, prim)))))))
+    var mx = max(d, max(v, max(r, max(pi, max(reach, max(plague, max(gilded, max(prim, wild))))))))
     if mx < 3 and deck.size() >= 5: return "Chaos"
+    if mx == wild and wild > 0: return "Galactic Wildlife"
     if mx == prim and prim > 0: return "Planetary Primitives"
     if mx == plague and plague > 0: return "Plague of Harmony"
     if mx == gilded and gilded > 0: return "Gilded Harmony"
@@ -944,7 +948,9 @@ func _build_structure_mesh(node, faction: String, is_tower: bool):
     # Resolve faction type (supports substring matching, and Chaos/Random independent dice rolls per tower/base)
     var f = faction
     var f_type = "Dominion"
-    if "Primitive" in f:
+    if "Wildlife" in f:
+        f_type = "Galactic Wildlife"
+    elif "Primitive" in f:
         f_type = "Planetary Primitives"
     elif "Plague" in f:
         f_type = "Plague of Harmony"
@@ -959,7 +965,7 @@ func _build_structure_mesh(node, faction: String, is_tower: bool):
     elif "Reach" in f:
         f_type = "The Reach"
     elif f == "Chaos" or f == "Random":
-        var all_factions = ["Dominion", "Void", "Rimworlders", "Pirates", "The Reach", "Plague of Harmony", "Gilded Harmony", "Planetary Primitives"]
+        var all_factions = ["Dominion", "Void", "Rimworlders", "Pirates", "The Reach", "Plague of Harmony", "Gilded Harmony", "Planetary Primitives", "Galactic Wildlife"]
         f_type = all_factions[randi() % all_factions.size()]
     node.set_meta("resolved_faction", f_type)
     
@@ -1388,6 +1394,51 @@ func _build_structure_mesh(node, faction: String, is_tower: bool):
             # Royal Battlements
             var battlements = MeshInstance3D.new(); battlements.mesh = BoxMesh.new(); battlements.mesh.size = Vector3(5.6, 0.8, 5.6)
             battlements.material_override = stone_mat; battlements.position.y = 5.0; mesh_node.add_child(battlements)
+
+    # ==========================================
+    # 9. GALACTIC WILDLIFE (LIVING BIOSPHERE WORLD-TREE & EAGLE EYRIE)
+    # ==========================================
+    elif f_type == "Galactic Wildlife":
+        var bark_mat = StandardMaterial3D.new(); bark_mat.albedo_color = Color(0.36, 0.22, 0.12); bark_mat.roughness = 0.90
+        var canopy_mat = StandardMaterial3D.new(); canopy_mat.albedo_color = Color(0.16, 0.56, 0.22); canopy_mat.roughness = 0.78
+        var moss_rock_mat = StandardMaterial3D.new(); moss_rock_mat.albedo_color = Color(0.38, 0.44, 0.34); moss_rock_mat.roughness = 0.92
+        var bio_glow_mat = StandardMaterial3D.new(); bio_glow_mat.albedo_color = Color(0.28, 0.95, 0.52); bio_glow_mat.emission_enabled = true; bio_glow_mat.emission = Color(0.22, 0.88, 0.44); bio_glow_mat.emission_energy_multiplier = 2.0
+
+        if is_bay:
+            var stump = MeshInstance3D.new(); stump.mesh = CylinderMesh.new(); stump.mesh.height = 2.6; stump.mesh.bottom_radius = 2.8; stump.mesh.top_radius = 2.2
+            stump.material_override = bark_mat; stump.position.y = 1.3; mesh_node.add_child(stump)
+            var moss_cap = MeshInstance3D.new(); moss_cap.mesh = SphereMesh.new(); moss_cap.mesh.radius = 2.3; moss_cap.mesh.height = 1.8
+            moss_cap.material_override = canopy_mat; moss_cap.position.y = 2.6; mesh_node.add_child(moss_cap)
+            var den_glow = MeshInstance3D.new(); den_glow.mesh = SphereMesh.new(); den_glow.mesh.radius = 0.75
+            den_glow.material_override = bio_glow_mat; den_glow.position = Vector3(0, 1.1, 1.8); mesh_node.add_child(den_glow)
+        elif is_tower:
+            var trunk = MeshInstance3D.new(); trunk.mesh = CylinderMesh.new(); trunk.mesh.height = 4.6; trunk.mesh.bottom_radius = 2.1; trunk.mesh.top_radius = 1.4
+            trunk.material_override = bark_mat; trunk.position.y = 2.3; mesh_node.add_child(trunk)
+            var nest_rim = MeshInstance3D.new(); nest_rim.mesh = TorusMesh.new(); nest_rim.mesh.outer_radius = 2.0; nest_rim.mesh.inner_radius = 1.35
+            nest_rim.material_override = bark_mat; nest_rim.position.y = 4.6; mesh_node.add_child(nest_rim)
+            for b_i in range(4):
+                var ang = float(b_i) * PI * 0.5
+                var leaf = MeshInstance3D.new(); leaf.mesh = SphereMesh.new(); leaf.mesh.radius = 1.1; leaf.mesh.height = 1.4
+                leaf.material_override = canopy_mat; leaf.position = Vector3(cos(ang) * 1.6, 4.2, sin(ang) * 1.6)
+                mesh_node.add_child(leaf)
+            var turret_nest = Node3D.new(); turret_nest.position.y = 4.9; mesh_node.add_child(turret_nest)
+            var boulder = MeshInstance3D.new(); boulder.mesh = SphereMesh.new(); boulder.mesh.radius = 0.85
+            boulder.material_override = moss_rock_mat; turret_nest.add_child(boulder)
+            mesh_node.set_meta("dominion_turret", turret_nest)
+        else:
+            var world_trunk = MeshInstance3D.new(); world_trunk.mesh = CylinderMesh.new(); world_trunk.mesh.height = 5.4; world_trunk.mesh.bottom_radius = 4.6; world_trunk.mesh.top_radius = 3.1
+            world_trunk.material_override = bark_mat; world_trunk.position.y = 2.7; mesh_node.add_child(world_trunk)
+            for r_i in range(6):
+                var ang = float(r_i) * (TAU / 6.0)
+                var root_buttress = MeshInstance3D.new(); root_buttress.mesh = BoxMesh.new(); root_buttress.mesh.size = Vector3(1.2, 1.8, 2.8)
+                root_buttress.material_override = bark_mat
+                root_buttress.position = Vector3(cos(ang) * 4.2, 0.9, sin(ang) * 4.2)
+                root_buttress.rotation.y = -ang
+                mesh_node.add_child(root_buttress)
+            var crown_main = MeshInstance3D.new(); crown_main.mesh = SphereMesh.new(); crown_main.mesh.radius = 4.4; crown_main.mesh.height = 4.6
+            crown_main.material_override = canopy_mat; crown_main.position.y = 6.2; mesh_node.add_child(crown_main)
+            var heart_bloom = MeshInstance3D.new(); heart_bloom.mesh = SphereMesh.new(); heart_bloom.mesh.radius = 1.2
+            heart_bloom.material_override = bio_glow_mat; heart_bloom.position = Vector3(0, 3.2, 3.3); mesh_node.add_child(heart_bloom)
 
 func _update_timer_ui():
     for p in players:
@@ -1954,6 +2005,8 @@ func _apply_map_environment(biome_name: String, seed_val: int):
         _generate_frozen_tundra(env_root)
     elif active_biome == "VOLCANIC_BRIMSTONE":
         _generate_volcanic_brimstone(env_root)
+    elif active_biome == "SPACE_VACUUM":
+        _generate_space_vacuum(env_root)
 
 func _apply_biome_visuals(biome_name: String):
     var ground = get_node_or_null("Ground")
@@ -2113,6 +2166,37 @@ func _apply_biome_visuals(biome_name: String):
                 sky_mat.sky_horizon_color = Color(0.95, 0.38, 0.12)
                 sky_mat.ground_bottom_color = Color(0.18, 0.04, 0.03)
                 sky_mat.ground_horizon_color = Color(0.85, 0.30, 0.08)
+
+    elif biome_name == "SPACE_VACUUM":
+        if ground:
+            var g_mesh = ground.get_node_or_null("MeshInstance3D")
+            if g_mesh:
+                var g_mat = StandardMaterial3D.new()
+                g_mat.albedo_color = Color(0.12, 0.13, 0.17) # Dark airless asteroid regolith
+                g_mat.roughness = 0.88
+                g_mat.metallic = 0.22
+                g_mesh.material_override = g_mat
+            for child in ground.get_children():
+                if child is MeshInstance3D and child.name.begins_with("Path"):
+                    var p_mat = StandardMaterial3D.new()
+                    p_mat.albedo_color = Color(0.18, 0.26, 0.38) # Orbital deck plating
+                    p_mat.metallic = 0.78
+                    p_mat.roughness = 0.25
+                    p_mat.emission_enabled = true
+                    p_mat.emission = Color(0.12, 0.48, 0.85)
+                    p_mat.emission_energy_multiplier = 0.45
+                    child.material_override = p_mat
+        if dir_light:
+            dir_light.light_color = Color(0.82, 0.88, 1.0)
+            dir_light.light_energy = 1.25
+            dir_light.shadow_enabled = true
+        if world_env and world_env.environment and world_env.environment.sky:
+            var sky_mat = world_env.environment.sky.sky_material
+            if sky_mat is ProceduralSkyMaterial:
+                sky_mat.sky_top_color = Color(0.01, 0.01, 0.03)
+                sky_mat.sky_horizon_color = Color(0.06, 0.10, 0.22)
+                sky_mat.ground_bottom_color = Color(0.01, 0.01, 0.02)
+                sky_mat.ground_horizon_color = Color(0.05, 0.08, 0.18)
 
 func _get_clear_hazard_pos(map_size: float) -> Vector3:
     var attempts = 0
@@ -3176,3 +3260,124 @@ func on_unit_died_biome_event(dead_unit: Node3D):
             sprite.position = spawn_pos
             add_child(sprite)
             print("🔥 A Fire Sprite rises from the burning embers of ", dead_unit.name, " at ", spawn_pos)
+
+
+# =========================================================================
+# DEEP SPACE VACUUM BIOME: ASTEROID CRATERS, FLOATING MONOLITHS & VACUUM DOT
+# =========================================================================
+var _space_vacuum_timer: float = 0.0
+
+func _generate_space_vacuum(parent: Node3D) -> void:
+    placed_feature_records.clear()
+    var span = maxf(72.0, GameState.current_map_radius * 0.65)
+
+    var regolith_mat = StandardMaterial3D.new()
+    regolith_mat.albedo_color = Color(0.18, 0.20, 0.25)
+    regolith_mat.roughness = 0.92
+    regolith_mat.metallic = 0.20
+
+    var crystal_mat = StandardMaterial3D.new()
+    crystal_mat.albedo_color = Color(0.32, 0.78, 1.0, 0.88)
+    crystal_mat.roughness = 0.15
+    crystal_mat.metallic = 0.35
+    crystal_mat.emission_enabled = true
+    crystal_mat.emission = Color(0.20, 0.65, 1.0)
+    crystal_mat.emission_energy_multiplier = 1.6
+
+    # 1. Impact Craters & Meteorite Outcrops off-path
+    for c_i in range(14):
+        var c_pos = Vector3(randf_range(-span, span), 0.0, randf_range(-span, span))
+        if _is_pos_clear(c_pos, 4.0, 11.0, 3.8):
+            var crater_rim = MeshInstance3D.new()
+            var tm = TorusMesh.new()
+            var r_out = randf_range(2.6, 4.2)
+            tm.outer_radius = r_out
+            tm.inner_radius = r_out * 0.65
+            crater_rim.mesh = tm
+            crater_rim.material_override = regolith_mat
+            crater_rim.position = c_pos + Vector3(0, 0.15, 0)
+            parent.add_child(crater_rim)
+
+            var core_shard = MeshInstance3D.new()
+            var pm = PrismMesh.new()
+            pm.size = Vector3(1.1, randf_range(2.2, 4.0), 1.1)
+            core_shard.mesh = pm
+            core_shard.material_override = crystal_mat
+            core_shard.position = c_pos + Vector3(0, pm.size.y * 0.45, 0)
+            core_shard.rotation_degrees = Vector3(randf_range(-14.0, 14.0), randf() * 360.0, randf_range(-14.0, 14.0))
+            parent.add_child(core_shard)
+            placed_feature_records.append({"pos": c_pos, "radius": r_out, "type": "space_crater"})
+
+    # 2. Zero-G Floating Asteroid Boulders above the off-path regolith
+    for a_i in range(18):
+        var a_pos = Vector3(randf_range(-span, span), randf_range(2.8, 7.5), randf_range(-span, span))
+        if _is_pos_clear(Vector3(a_pos.x, 0.0, a_pos.z), 5.0, 12.0, 2.5):
+            var rock = MeshInstance3D.new()
+            var sm = SphereMesh.new()
+            var rad = randf_range(0.9, 2.1)
+            sm.radius = rad
+            sm.height = rad * 1.7
+            rock.mesh = sm
+            rock.scale = Vector3(1.25, 0.82, 1.08)
+            rock.material_override = regolith_mat
+            rock.position = a_pos
+            rock.rotation_degrees = Vector3(randf() * 360.0, randf() * 360.0, randf() * 360.0)
+            parent.add_child(rock)
+
+func _is_unit_organic_for_vacuum(u: Node3D) -> bool:
+    if not is_instance_valid(u):
+        return false
+    if u.is_in_group("Structures") or u.is_in_group("Structure") or u.is_in_group("Buildings"):
+        return false
+    var nm = u.name
+    for struct_kw in ["Base", "Tower", "CommandBay", "Nest", "Hill", "Mine", "Wall"]:
+        if struct_kw in nm:
+            return false
+    for mech_kw in ["Tank", "Mech", "Plane", "Walker", "Spider", "Drone", "Turret", "Bot", "Droid", "Cannon", "Ballista", "Artillery", "Catapult", "Chariot", "Golem", "StoneOctopus", "FireSprite", "FireMonster", "EyeOfHarmony"]:
+        if mech_kw in nm:
+            return false
+    if u.is_in_group("Mechanical") or u.is_in_group("FireMonster") or u.is_in_group("FireEntity"):
+        return false
+    return true
+
+func _is_unit_shielded_from_vacuum(u: Node3D, hc: HealthComponent, all_units: Array) -> bool:
+    if hc.current_shield > 0.0:
+        return true
+    if u.has_meta("vacuum_sealed") and bool(u.get_meta("vacuum_sealed")):
+        return true
+    var u_team = u.get("team")
+    var u_pos = u.global_position
+    for ally in all_units:
+        if ally == u or not is_instance_valid(ally) or not (ally is Node3D):
+            continue
+        if u_team != null and ally.get("team") != u_team:
+            continue
+        var a_hc = ally.get_node_or_null("HealthComponent") as HealthComponent
+        if a_hc and a_hc.current_shield > 0.0 and a_hc.shield_type == "360":
+            if u_pos.distance_to(ally.global_position) <= 6.5:
+                return true
+    return false
+
+func _update_space_vacuum(delta: float) -> void:
+    if multiplayer.has_multiplayer_peer() and multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED:
+        if not multiplayer.is_server():
+            return
+    _space_vacuum_timer += delta
+    if _space_vacuum_timer < 1.0:
+        return
+    _space_vacuum_timer -= 1.0
+
+    var all_units = get_tree().get_nodes_in_group("Units")
+    for node in all_units:
+        if not is_instance_valid(node) or not (node is Node3D):
+            continue
+        var u := node as Node3D
+        var hc := u.get_node_or_null("HealthComponent") as HealthComponent
+        if not hc or hc.is_dead or hc.current_health <= 0.0:
+            continue
+        if not _is_unit_organic_for_vacuum(u):
+            continue
+        if _is_unit_shielded_from_vacuum(u, hc, all_units):
+            continue
+        var vac_dmg = maxf(2.0, hc.max_health * 0.025)
+        hc.take_vacuum_damage(vac_dmg)

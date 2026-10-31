@@ -465,6 +465,27 @@ func sync_take_damage(amount: float, source_pos: Vector3 = Vector3.INF):
 	if current_health <= 0:
 		die()
 
+func take_vacuum_damage(amount: float):
+	if multiplayer and multiplayer.has_multiplayer_peer() and multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED:
+		if not multiplayer.is_server():
+			return
+		rpc("sync_take_vacuum_damage", amount)
+	else:
+		sync_take_vacuum_damage(amount)
+
+@rpc("authority", "call_local", "reliable")
+func sync_take_vacuum_damage(amount: float):
+	if is_dead or current_shield > 0.0:
+		return
+	current_health -= amount
+	if hp_bar:
+		hp_bar.value = current_health
+	emit_signal("health_changed", current_health, max_health)
+	if hp_viewport:
+		hp_viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
+	if current_health <= 0:
+		die()
+
 func heal(amount: float):
 	if multiplayer and multiplayer.has_multiplayer_peer() and multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED:
 		if not multiplayer.is_server():
@@ -2247,6 +2268,16 @@ func _build_broken_beast(corpse: Node3D, parent: Node3D):
 			flap.position = Vector3(cos(a) * 0.65, 0.16, sin(a) * 0.65)
 			corpse.add_child(flap)
 		return
+
+	if "Wildlife" in p_name or parent.is_in_group("WildlifeUnits"):
+		var vp = parent.get_node_or_null("VisualPivot")
+		var anim_root = vp.get_node_or_null("AnimalModelRoot") if vp else null
+		if anim_root:
+			var dup = anim_root.duplicate()
+			dup.position = Vector3(0, 0.14, 0)
+			dup.rotation_degrees = Vector3(0, randf_range(-25.0, 25.0), 82.0)
+			corpse.add_child(dup)
+			return
 
 	var is_ant = "Ant" in p_name
 	var is_scorpion = "Scorpion" in p_name

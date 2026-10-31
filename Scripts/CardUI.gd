@@ -1,5 +1,7 @@
 extends Control
 
+const WildlifeModelBuilder = preload("res://Scripts/WildlifeModelBuilder.gd")
+
 signal card_clicked(card_ui_node)
 
 @export var card_data: Resource
@@ -190,7 +192,25 @@ func _refresh_visual_state():
 			border.border_width = 3.5
 
 func _get_card_faction_style(c_name: String) -> Dictionary:
-	if "Plague" in c_name:
+	if "Wildlife" in c_name:
+		return {
+			"tag": "WILDLIFE",
+			"bg": Color(0.06, 0.22, 0.11, 1.0),
+			"art": Color(0.11, 0.38, 0.18, 1.0),
+			"border": Color(0.38, 0.96, 0.45, 1.0),
+			"glyph": "~ FAUNA ~",
+			"text": Color(0.72, 1.0, 0.76, 1.0)
+		}
+	elif "Primitive" in c_name:
+		return {
+			"tag": "PRIMITIVES",
+			"bg": Color(0.22, 0.15, 0.09, 1.0),
+			"art": Color(0.38, 0.26, 0.15, 1.0),
+			"border": Color(0.88, 0.72, 0.44, 1.0),
+			"glyph": "^ AGES ^",
+			"text": Color(0.96, 0.86, 0.65, 1.0)
+		}
+	elif "Plague" in c_name:
 		return {
 			"tag": "PLAGUE",
 			"bg": Color(0.18, 0.15, 0.05, 1.0),
@@ -260,7 +280,11 @@ func set_card_data(data: Resource):
 	card_data = data
 	_setup_card_chrome()
 	cost_label.text = str(data.cost)
-	name_label.text = data.card_name
+	if "Wildlife" in str(data.card_name):
+		var w_info = WildlifeModelBuilder.get_species_info(str(data.card_name))
+		name_label.text = str(w_info.get("title", data.card_name))
+	else:
+		name_label.text = data.card_name
 
 	var style = _get_card_faction_style(str(data.card_name))
 	_base_bg_color = style["bg"]
