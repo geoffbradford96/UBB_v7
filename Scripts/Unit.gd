@@ -311,6 +311,8 @@ func _physics_process(delta):
 						else:
 							target_health.take_damage(attack_damage, global_position)
 							
+						if attack_range > 3.5 and is_instance_valid(current_target):
+							_spawn_ranged_attack_fx(current_target)
 						attack_anim_timer = 0.35
 						if humanoid_rig and humanoid_rig.has_method("trigger_attack"):
 							humanoid_rig.trigger_attack(clampf(0.8 / max(0.5, attack_speed), 0.18, 0.45))
@@ -867,3 +869,62 @@ func find_new_target():
 
 
 
+
+func _spawn_ranged_attack_fx(p_target: Node3D):
+	if not is_instance_valid(p_target): return
+	var scene_root = get_tree().current_scene if (is_inside_tree() and get_tree() and get_tree().current_scene) else get_parent()
+	if not scene_root: return
+	
+	var u_name = self.name
+	var start_pos = global_position + Vector3(0, 1.2, 0)
+	var end_pos = p_target.global_position + Vector3(0, 0.9, 0)
+	var dist = start_pos.distance_to(end_pos)
+	
+	var proj_mesh = MeshInstance3D.new()
+	var mat = StandardMaterial3D.new()
+	var flight_duration = 0.25
+	
+	if "Crossbowman" in u_name:
+		var bolt_cyl = CylinderMesh.new()
+		bolt_cyl.top_radius = 0.025; bolt_cyl.bottom_radius = 0.025; bolt_cyl.height = 0.55
+		proj_mesh.mesh = bolt_cyl
+		mat.albedo_color = Color(0.75, 0.75, 0.78)
+		mat.metallic = 0.8; mat.roughness = 0.3
+		flight_duration = clampf(dist / 35.0, 0.08, 0.40)
+	elif "ShortBow" in u_name:
+		var arrow_cyl = CylinderMesh.new()
+		arrow_cyl.top_radius = 0.02; arrow_cyl.bottom_radius = 0.02; arrow_cyl.height = 0.75
+		proj_mesh.mesh = arrow_cyl
+		mat.albedo_color = Color(0.85, 0.78, 0.55)
+		mat.roughness = 0.8
+		flight_duration = clampf(dist / 26.0, 0.10, 0.50)
+	elif "RockThrower" in u_name:
+		var rock_sph = SphereMesh.new()
+		rock_sph.radius = 0.18; rock_sph.height = 0.32; rock_sph.radial_segments = 6; rock_sph.rings = 4
+		proj_mesh.mesh = rock_sph
+		mat.albedo_color = Color(0.48, 0.44, 0.40)
+		mat.roughness = 0.95
+		flight_duration = clampf(dist / 20.0, 0.12, 0.60)
+	else:
+		return # Only primitive ranged units need custom procedural projectile FX here
+		
+	proj_mesh.material_override = mat
+	scene_root.add_child(proj_mesh)
+	proj_mesh.global_position = start_pos
+	
+	var dir = (end_pos - start_pos).normalized()
+	if dir != Vector3.ZERO:
+		var up = Vector3.UP if abs(dir.dot(Vector3.UP)) < 0.9 else Vector3.FORWARD
+		proj_mesh.look_at(start_pos + dir, up)
+		if not ("RockThrower" in u_name):
+			proj_mesh.rotate_object_local(Vector3.RIGHT, deg_to_rad(90.0))
+			
+	var tw = proj_mesh.create_tween()
+	if tw:
+		tw.set_parallel(true)
+		tw.tween_property(proj_mesh, "global_position", end_pos, flight_duration)
+		if "RockThrower" in u_name:
+			tw.tween_property(proj_mesh, "rotation:x", 12.0, flight_duration)
+		tw.chain().tween_callback(proj_mesh.queue_free)
+	else:
+		proj_mesh.queue_free()

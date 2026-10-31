@@ -696,9 +696,71 @@ func test_ai_systems() -> bool:
 		success = false
 	test_bot.free()
 
-	if GameState.ai_faction_override == "":
-		printerr("GameState ai_faction_override is uninitialized!")
+	var gs_node = null
+	if Engine.get_main_loop() and (Engine.get_main_loop() as SceneTree).root.has_node("GameState"):
+		gs_node = (Engine.get_main_loop() as SceneTree).root.get_node("GameState")
+	else:
+		gs_node = load("res://Scripts/GameState.gd").new()
+	if gs_node and gs_node.get("ai_faction_override") == null:
+		printerr("GameState ai_faction_override is missing!")
+		success = false
+	if gs_node and not (Engine.get_main_loop() and (Engine.get_main_loop() as SceneTree).root.has_node("GameState")):
+		gs_node.free()
+
+	# 6. Test Planetary Primitives: Deck Generation, Structures, Ballistas, and Builders
+	var prim_bot = BotAI.new()
+	var prim_deck = prim_bot.generate_themed_deck("Planetary Primitives")
+	if prim_deck.size() != 6:
+		printerr("BotAI Planetary Primitives deck size is not 6! Got: ", prim_deck.size())
+		success = false
+	for cname in prim_deck:
+		if not cname.begins_with("Primitive"):
+			printerr("BotAI Planetary Primitives deck contains non-primitive card: ", cname)
+			success = false
+	prim_bot.free()
+
+	# Verify Primitive Wood Tower
+	var wt_scene = load("res://Scenes/Units/PrimitiveWoodTower.tscn")
+	if wt_scene:
+		var wt_inst = wt_scene.instantiate()
+		add_child(wt_inst)
+		if wt_inst.max_health != 420.0 or not wt_inst.is_in_group("Structure"):
+			printerr("PrimitiveWoodTower attributes invalid!")
+			success = false
+		wt_inst.queue_free()
+
+	# Verify Planetary Primitives Structure Meshes in ArenaManager
+	var dummy_arena = Node3D.new()
+	add_child(dummy_arena)
+	var am_inst = ArenaManager.new()
+	dummy_arena.add_child(am_inst)
+	
+	var test_tower = StaticBody3D.new()
+	test_tower.name = "SideA_Tower_1"
+	dummy_arena.add_child(test_tower)
+	am_inst._build_structure_mesh(test_tower, "Planetary Primitives", true)
+	var t_fmesh = test_tower.get_meta("faction_mesh") if test_tower.has_meta("faction_mesh") else null
+	if not t_fmesh or not t_fmesh.has_meta("ballista_turret"):
+		printerr("ArenaManager failed to build ballista_turret for Planetary Primitives tower!")
 		success = false
 
-	print("  Verified HeroHunter closest commander targeting, Medic structure exclusion, Territorial Creature nest radius, Nightmare BotAI, and Chaos dice roll.")
+	var test_bay = StaticBody3D.new()
+	test_bay.name = "SideA_CommandBay"
+	dummy_arena.add_child(test_bay)
+	am_inst._build_structure_mesh(test_bay, "Planetary Primitives", false)
+	if not test_bay.has_meta("faction_mesh"):
+		printerr("ArenaManager failed to build Command Bay pavilion for Planetary Primitives!")
+		success = false
+
+	var test_base = StaticBody3D.new()
+	test_base.name = "SideA_Base"
+	dummy_arena.add_child(test_base)
+	am_inst._build_structure_mesh(test_base, "Planetary Primitives", false)
+	if not test_base.has_meta("faction_mesh"):
+		printerr("ArenaManager failed to build Castle Keep base for Planetary Primitives!")
+		success = false
+
+	dummy_arena.queue_free()
+
+	print("  Verified HeroHunter closest commander targeting, Medic structure exclusion, Territorial Creature nest radius, Nightmare BotAI, Chaos dice roll, and Planetary Primitives Empire Ages.")
 	return success

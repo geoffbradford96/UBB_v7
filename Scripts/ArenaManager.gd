@@ -227,7 +227,7 @@ func setup_match():
         return # Do not spawn AIs in online PvP matches!
         
     var profiles_for_slots = ["Player1", "Guest1", "Guest2", "Guest3", "Guest4", "Guest5"]
-    var ai_pool = ["Dominion", "The Reach", "Pirates", "Rimworlders", "Void", "Plague of Harmony", "Gilded Harmony", "Chaos"]
+    var ai_pool = ["Dominion", "The Reach", "Pirates", "Rimworlders", "Void", "Plague of Harmony", "Gilded Harmony", "Planetary Primitives", "Chaos"]
     var interval_scale: float = 1.0 + maxf(0.0, float(total_slots - 6) * 0.055)
     for i in range(start_bot_idx, total_slots):
         var bot = BotAI.new()
@@ -865,17 +865,19 @@ func _get_team_faction(team: String) -> String:
     return opts[randi() % opts.size()]
 
 func _detect_faction_from_deck(deck: Array) -> String:
-    var v = 0; var r = 0; var d = 0; var pi = 0; var reach = 0; var plague = 0; var gilded = 0
+    var v = 0; var r = 0; var d = 0; var pi = 0; var reach = 0; var plague = 0; var gilded = 0; var prim = 0
     for c in deck:
-        if "Plague" in c: plague += 1
+        if "Primitive" in c: prim += 1
+        elif "Plague" in c: plague += 1
         elif "Gilded" in c: gilded += 1
         elif "Void" in c: v += 1
         elif "Rimworlder" in c or "Sky" in c or "Stone" in c or "Giant" in c or "Great" in c or "Monstrous" in c: r += 1
         elif "Scrap" in c: pi += 1
         elif "Reach" in c: reach += 1
         else: d += 1
-    var mx = max(d, max(v, max(r, max(pi, max(reach, max(plague, gilded))))))
+    var mx = max(d, max(v, max(r, max(pi, max(reach, max(plague, max(gilded, prim)))))))
     if mx < 3 and deck.size() >= 5: return "Chaos"
+    if mx == prim and prim > 0: return "Planetary Primitives"
     if mx == plague and plague > 0: return "Plague of Harmony"
     if mx == gilded and gilded > 0: return "Gilded Harmony"
     if mx == v and v > 0: return "Void"
@@ -939,7 +941,9 @@ func _build_structure_mesh(node, faction: String, is_tower: bool):
     # Resolve faction type (supports substring matching, and Chaos/Random independent dice rolls per tower/base)
     var f = faction
     var f_type = "Dominion"
-    if "Plague" in f:
+    if "Primitive" in f:
+        f_type = "Planetary Primitives"
+    elif "Plague" in f:
         f_type = "Plague of Harmony"
     elif "Gilded" in f:
         f_type = "Gilded Harmony"
@@ -952,7 +956,7 @@ func _build_structure_mesh(node, faction: String, is_tower: bool):
     elif "Reach" in f:
         f_type = "The Reach"
     elif f == "Chaos" or f == "Random":
-        var all_factions = ["Dominion", "Void", "Rimworlders", "Pirates", "The Reach", "Plague of Harmony", "Gilded Harmony"]
+        var all_factions = ["Dominion", "Void", "Rimworlders", "Pirates", "The Reach", "Plague of Harmony", "Gilded Harmony", "Planetary Primitives"]
         f_type = all_factions[randi() % all_factions.size()]
     node.set_meta("resolved_faction", f_type)
     
@@ -1295,6 +1299,92 @@ func _build_structure_mesh(node, faction: String, is_tower: bool):
                 g_ring.material_override = gold_mat; g_ring.rotation_degrees = Vector3(40 * (i + 1), 50 * i, 25)
                 gene_core.add_child(g_ring)
             mesh_node.set_meta("gilded_core", gene_core)
+
+    # ==========================================
+    # 8. PLANETARY PRIMITIVES: EMPIRE AGES (FEUDAL & STONE AGE)
+    # ==========================================
+    elif f_type == "Planetary Primitives":
+        var stone_mat = StandardMaterial3D.new(); stone_mat.albedo_color = Color(0.48, 0.48, 0.50); stone_mat.roughness = 0.95
+        var dark_timber_mat = StandardMaterial3D.new(); dark_timber_mat.albedo_color = Color(0.35, 0.22, 0.12); dark_timber_mat.roughness = 0.88
+        var royal_cloth_mat = StandardMaterial3D.new(); royal_cloth_mat.albedo_color = Color(0.68, 0.15, 0.18); royal_cloth_mat.roughness = 0.75
+        var gold_trim_mat = StandardMaterial3D.new(); gold_trim_mat.albedo_color = Color(0.88, 0.75, 0.25); gold_trim_mat.metallic = 0.85; gold_trim_mat.roughness = 0.3
+        var iron_mat = StandardMaterial3D.new(); iron_mat.albedo_color = Color(0.28, 0.28, 0.30); iron_mat.metallic = 0.9; iron_mat.roughness = 0.4
+        
+        if is_bay:
+            # Medieval Royal War Pavilion & Camp
+            var platform = MeshInstance3D.new(); platform.mesh = CylinderMesh.new(); platform.mesh.height = 0.4; platform.mesh.bottom_radius = 3.6; platform.mesh.top_radius = 3.4; platform.mesh.radial_segments = 8
+            platform.material_override = dark_timber_mat; platform.position.y = 0.2; mesh_node.add_child(platform)
+            # Conical War Tent
+            var tent_body = MeshInstance3D.new(); tent_body.mesh = CylinderMesh.new(); tent_body.mesh.height = 2.4; tent_body.mesh.bottom_radius = 2.8; tent_body.mesh.top_radius = 2.4; tent_body.mesh.radial_segments = 12
+            tent_body.material_override = royal_cloth_mat; tent_body.position.y = 1.6; mesh_node.add_child(tent_body)
+            var tent_roof = MeshInstance3D.new(); tent_roof.mesh = CylinderMesh.new(); tent_roof.mesh.height = 2.2; tent_roof.mesh.bottom_radius = 2.9; tent_roof.mesh.top_radius = 0.05; tent_roof.mesh.radial_segments = 12
+            tent_roof.material_override = royal_cloth_mat; tent_roof.position.y = 3.8; mesh_node.add_child(tent_roof)
+            # Center Flagstaff & Pennant
+            var mast = MeshInstance3D.new(); mast.mesh = CylinderMesh.new(); mast.mesh.height = 2.8; mast.mesh.bottom_radius = 0.08; mast.mesh.top_radius = 0.04
+            mast.material_override = dark_timber_mat; mast.position.y = 5.6; mesh_node.add_child(mast)
+            var pennant = MeshInstance3D.new(); pennant.mesh = BoxMesh.new(); pennant.mesh.size = Vector3(0.04, 0.45, 1.2)
+            pennant.material_override = gold_trim_mat; pennant.position = Vector3(0.0, 6.2, 0.6); mesh_node.add_child(pennant)
+            # Braziers with flame
+            for side in [-1.0, 1.0]:
+                var brazier = MeshInstance3D.new(); brazier.mesh = CylinderMesh.new(); brazier.mesh.height = 1.1; brazier.mesh.bottom_radius = 0.35; brazier.mesh.top_radius = 0.5
+                brazier.material_override = iron_mat; brazier.position = Vector3(side * 2.2, 0.55, 2.2); mesh_node.add_child(brazier)
+                var flame = MeshInstance3D.new(); flame.mesh = SphereMesh.new(); flame.mesh.radius = 0.28; flame.mesh.height = 0.45
+                var f_mat = StandardMaterial3D.new(); f_mat.albedo_color = Color(1.0, 0.55, 0.1); f_mat.emission_enabled = true; f_mat.emission = Color(1.0, 0.5, 0.1); f_mat.emission_energy_multiplier = 3.0
+                flame.material_override = f_mat; flame.position = Vector3(side * 2.2, 1.25, 2.2); mesh_node.add_child(flame)
+        elif is_tower:
+            # Medieval Ashlar Stone Tower with Mounted Swiveling Ballista
+            var tower_body = MeshInstance3D.new(); tower_body.mesh = CylinderMesh.new(); tower_body.mesh.height = 4.2; tower_body.mesh.bottom_radius = 2.3; tower_body.mesh.top_radius = 1.9; tower_body.mesh.radial_segments = 8
+            tower_body.material_override = stone_mat; tower_body.position.y = 2.1; mesh_node.add_child(tower_body)
+            # Crenellated Battlements
+            var platform_deck = MeshInstance3D.new(); platform_deck.mesh = CylinderMesh.new(); platform_deck.mesh.height = 0.4; platform_deck.mesh.bottom_radius = 2.1; platform_deck.mesh.top_radius = 2.2; platform_deck.mesh.radial_segments = 8
+            platform_deck.material_override = dark_timber_mat; platform_deck.position.y = 4.3; mesh_node.add_child(platform_deck)
+            for i in range(8):
+                var crenel = MeshInstance3D.new(); crenel.mesh = BoxMesh.new(); crenel.mesh.size = Vector3(0.55, 0.7, 0.3)
+                crenel.material_override = stone_mat
+                var a = i * (PI / 4.0)
+                crenel.position = Vector3(cos(a) * 2.05, 4.75, sin(a) * 2.05)
+                crenel.rotation.y = -a
+                mesh_node.add_child(crenel)
+            # Swiveling Ballista Siege Weapon
+            var swivel_mount = MeshInstance3D.new(); swivel_mount.mesh = CylinderMesh.new(); swivel_mount.mesh.height = 0.45; swivel_mount.mesh.bottom_radius = 0.75; swivel_mount.mesh.top_radius = 0.65
+            swivel_mount.material_override = iron_mat; swivel_mount.position.y = 4.65; mesh_node.add_child(swivel_mount)
+            
+            var ballista_carriage = Node3D.new()
+            ballista_carriage.name = "BallistaCarriage"
+            ballista_carriage.position.y = 5.0
+            mesh_node.add_child(ballista_carriage)
+            mesh_node.set_meta("ballista_turret", ballista_carriage)
+            mesh_node.set_meta("dominion_turret", ballista_carriage)
+            
+            # Stock & Tiller
+            var b_stock = MeshInstance3D.new(); b_stock.mesh = BoxMesh.new(); b_stock.mesh.size = Vector3(0.5, 0.45, 3.0)
+            b_stock.material_override = dark_timber_mat; b_stock.position = Vector3(0, 0.1, 0.3); ballista_carriage.add_child(b_stock)
+            # Composite Bow Limbs (Prods)
+            var b_limbs = MeshInstance3D.new(); b_limbs.mesh = BoxMesh.new(); b_limbs.mesh.size = Vector3(2.6, 0.28, 0.22)
+            b_limbs.material_override = dark_timber_mat; b_limbs.position = Vector3(0, 0.2, 1.4); ballista_carriage.add_child(b_limbs)
+            # Winch Spool at rear
+            var winch = MeshInstance3D.new(); winch.mesh = CylinderMesh.new(); winch.mesh.height = 0.6; winch.mesh.bottom_radius = 0.25; winch.mesh.top_radius = 0.25
+            winch.material_override = iron_mat; winch.rotation_degrees.z = 90; winch.position = Vector3(0, 0.2, -0.9); ballista_carriage.add_child(winch)
+            # Massive Spear Bolt loaded in flight channel ready to fire
+            var bolt = MeshInstance3D.new(); bolt.mesh = CylinderMesh.new(); bolt.mesh.height = 2.2; bolt.mesh.bottom_radius = 0.08; bolt.mesh.top_radius = 0.04
+            bolt.material_override = iron_mat; bolt.rotation_degrees.x = 90; bolt.position = Vector3(0, 0.4, 0.7); ballista_carriage.add_child(bolt)
+        else:
+            # Massive Feudal Castle Keep Stronghold
+            var keep = MeshInstance3D.new(); keep.mesh = BoxMesh.new(); keep.mesh.size = Vector3(6.4, 4.6, 6.4)
+            keep.material_override = stone_mat; keep.position.y = 2.3; mesh_node.add_child(keep)
+            # 4 Corner Bastions with Conical Roofs
+            for x_sign in [-1.0, 1.0]:
+                for z_sign in [-1.0, 1.0]:
+                    var bastion = MeshInstance3D.new(); bastion.mesh = CylinderMesh.new(); bastion.mesh.height = 6.2; bastion.mesh.bottom_radius = 1.35; bastion.mesh.top_radius = 1.25
+                    bastion.material_override = stone_mat; bastion.position = Vector3(x_sign * 3.2, 3.1, z_sign * 3.2); mesh_node.add_child(bastion)
+                    var b_roof = MeshInstance3D.new(); b_roof.mesh = CylinderMesh.new(); b_roof.mesh.height = 1.8; b_roof.mesh.bottom_radius = 1.45; b_roof.mesh.top_radius = 0.05
+                    b_roof.material_override = dark_timber_mat; b_roof.position = Vector3(x_sign * 3.2, 7.0, z_sign * 3.2); mesh_node.add_child(b_roof)
+            # Castle Gate Portcullis
+            var gate = MeshInstance3D.new(); gate.mesh = BoxMesh.new(); gate.mesh.size = Vector3(2.4, 3.0, 0.3)
+            gate.material_override = iron_mat; gate.position = Vector3(0, 1.5, 3.25); mesh_node.add_child(gate)
+            # Royal Battlements
+            var battlements = MeshInstance3D.new(); battlements.mesh = BoxMesh.new(); battlements.mesh.size = Vector3(5.6, 0.8, 5.6)
+            battlements.material_override = stone_mat; battlements.position.y = 5.0; mesh_node.add_child(battlements)
 
 func _update_timer_ui():
     for p in players:

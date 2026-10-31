@@ -83,6 +83,9 @@ func _build_humanoid_anatomy(parent: Node3D):
 	var is_medic = "Medic" in u_name or "Repair" in u_name
 	var is_commander = "Commander" in u_name or "Hero" in u_name or is_beast_speaker
 	var is_hunter = "Hunter" in u_name or "Assassin" in u_name
+	var is_primitive = "Primitive" in u_name
+	var is_caveman = is_primitive and ("Chieftain" in u_name or "Caveman" in u_name or "Clubber" in u_name or "Spearman" in u_name or "ShortBow" in u_name or "RockThrower" in u_name)
+	var is_feudal = is_primitive and not is_caveman
 	
 	# Materials
 	var body_mat = StandardMaterial3D.new()
@@ -90,7 +93,30 @@ func _build_humanoid_anatomy(parent: Node3D):
 	var visor_mat = StandardMaterial3D.new()
 	var weapon_mat = StandardMaterial3D.new()
 	
-	if is_beast_speaker:
+	if is_caveman:
+		# Primal Stone Age: Sun-baked skin, wild fur pelts, mammoth ivory, dark knapped flint
+		body_mat.albedo_color = Color(0.72, 0.50, 0.38)
+		body_mat.roughness = 0.9
+		armor_mat.albedo_color = Color(0.38, 0.24, 0.16)
+		armor_mat.roughness = 0.95
+		visor_mat.albedo_color = Color(0.92, 0.88, 0.76)
+		visor_mat.roughness = 0.65
+		weapon_mat.albedo_color = Color(0.22, 0.18, 0.14)
+		weapon_mat.roughness = 0.85
+	elif is_feudal:
+		# Medieval Feudal Empire: Heavy wool/linen gambeson, forged steel plate, brass trim
+		body_mat.albedo_color = Color(0.28, 0.34, 0.44) if "Commander" not in u_name else Color(0.55, 0.12, 0.16)
+		body_mat.roughness = 0.8
+		armor_mat.albedo_color = Color(0.68, 0.70, 0.74)
+		armor_mat.metallic = 0.75
+		armor_mat.roughness = 0.35
+		visor_mat.albedo_color = Color(0.88, 0.75, 0.25)
+		visor_mat.metallic = 0.85
+		visor_mat.roughness = 0.25
+		weapon_mat.albedo_color = Color(0.45, 0.48, 0.52)
+		weapon_mat.metallic = 0.85
+		weapon_mat.roughness = 0.3
+	elif is_beast_speaker:
 		# Primal Shaman Beast-Speaker: dark beast-hide pelts, bleached bone armor, glowing emerald totem energy
 		body_mat.albedo_color = Color(0.32, 0.22, 0.14)
 		body_mat.roughness = 0.85
@@ -240,7 +266,67 @@ func _build_humanoid_anatomy(parent: Node3D):
 	torso.add_child(neck)
 
 	# Faction & Role Back / Torso Silhouette Accessories
-	if is_beast_speaker:
+	if is_caveman:
+		# Primal Beast Fur Mantle & Bone Trophy across the shoulders
+		var fur_mantle = MeshInstance3D.new()
+		var fm_box = BoxMesh.new()
+		fm_box.size = Vector3(0.68, 0.24, 0.42)
+		fur_mantle.mesh = fm_box
+		fur_mantle.material_override = armor_mat
+		fur_mantle.position = Vector3(0, 0.28, -0.04)
+		torso.add_child(fur_mantle)
+		
+		var bone_talisman = MeshInstance3D.new()
+		var bt_box = BoxMesh.new()
+		bt_box.size = Vector3(0.46, 0.08, 0.36)
+		bone_talisman.mesh = bt_box
+		bone_talisman.material_override = visor_mat
+		bone_talisman.position = Vector3(0, 0.16, 0.02)
+		torso.add_child(bone_talisman)
+	elif is_feudal:
+		if "Commander" in u_name:
+			# Royal War Cape with gold clasp
+			var cape = MeshInstance3D.new()
+			var cape_box = BoxMesh.new()
+			cape_box.size = Vector3(0.58, 0.95, 0.04)
+			cape.mesh = cape_box
+			var cape_mat = StandardMaterial3D.new()
+			cape_mat.albedo_color = Color(0.62, 0.08, 0.12)
+			cape.material_override = cape_mat
+			cape.position = Vector3(0, -0.12, -0.18)
+			cape.rotation_degrees.x = 9.0
+			torso.add_child(cape)
+		elif "Knight" in u_name:
+			# Heavy Steel Cuirass Backplate & Gorget Rim
+			var back_cuirass = MeshInstance3D.new()
+			var bc_box = BoxMesh.new()
+			bc_box.size = Vector3(0.54, 0.48, 0.12)
+			back_cuirass.mesh = bc_box
+			back_cuirass.material_override = armor_mat
+			back_cuirass.position = Vector3(0, 0.08, -0.14)
+			torso.add_child(back_cuirass)
+		elif "Crossbowman" in u_name or "ShortBow" in u_name:
+			# Quiver of arrows / quarrels on back
+			var quiver = MeshInstance3D.new()
+			var q_cyl = CylinderMesh.new()
+			q_cyl.top_radius = 0.10
+			q_cyl.bottom_radius = 0.08
+			q_cyl.height = 0.70
+			quiver.mesh = q_cyl
+			quiver.material_override = armor_mat
+			quiver.position = Vector3(-0.16, 0.08, -0.20)
+			quiver.rotation_degrees = Vector3(15.0, 0.0, -25.0)
+			torso.add_child(quiver)
+		elif "Builder" in u_name:
+			# Craftsman Leather Tool Pouch
+			var pouch = MeshInstance3D.new()
+			var p_box = BoxMesh.new()
+			p_box.size = Vector3(0.24, 0.20, 0.14)
+			pouch.mesh = p_box
+			pouch.material_override = armor_mat
+			pouch.position = Vector3(0.24, -0.22, 0.12)
+			torso.add_child(pouch)
+	elif is_beast_speaker:
 		# Fur mantle + bone trophy spines across the back
 		var fur_mantle = MeshInstance3D.new()
 		var fm_box = BoxMesh.new()
@@ -348,7 +434,112 @@ func _build_humanoid_anatomy(parent: Node3D):
 	visor_mesh.position = Vector3(0, 0.02, 0.16)
 	head.add_child(visor_mesh)
 
-	if is_beast_speaker:
+	if is_caveman:
+		if "Chieftain" in u_name:
+			# Massive Mammoth Tusk Skull Crown with Ivory Tusks
+			for side in [-1.0, 1.0]:
+				var tusk = MeshInstance3D.new()
+				var cyl_t = CylinderMesh.new()
+				cyl_t.top_radius = 0.02
+				cyl_t.bottom_radius = 0.07
+				cyl_t.height = 0.55
+				tusk.mesh = cyl_t
+				tusk.material_override = visor_mat
+				tusk.position = Vector3(side * 0.22, 0.12, 0.18)
+				tusk.rotation_degrees = Vector3(35.0, side * 18.0, side * -32.0)
+				head.add_child(tusk)
+			var crest_bone = MeshInstance3D.new()
+			var cb_box = BoxMesh.new()
+			cb_box.size = Vector3(0.12, 0.22, 0.28)
+			crest_bone.mesh = cb_box
+			crest_bone.material_override = visor_mat
+			crest_bone.position = Vector3(0, 0.26, 0.0)
+			head.add_child(crest_bone)
+		else:
+			# Wild Shaggy Hair Mane & Browband
+			var hair = MeshInstance3D.new()
+			var hair_box = BoxMesh.new()
+			hair_box.size = Vector3(0.42, 0.36, 0.42)
+			hair.mesh = hair_box
+			hair.material_override = armor_mat
+			hair.position = Vector3(0, 0.08, -0.04)
+			head.add_child(hair)
+			var headband = MeshInstance3D.new()
+			var hb_box = BoxMesh.new()
+			hb_box.size = Vector3(0.44, 0.06, 0.44)
+			headband.mesh = hb_box
+			headband.material_override = weapon_mat
+			headband.position = Vector3(0, 0.04, 0.0)
+			head.add_child(headband)
+	elif is_feudal:
+		if "Knight" in u_name:
+			# Steel Great Helm (Bucket Helm) with Cross-Slit Visor
+			var bucket = MeshInstance3D.new()
+			var b_cyl = CylinderMesh.new()
+			b_cyl.top_radius = 0.24
+			b_cyl.bottom_radius = 0.23
+			b_cyl.height = 0.46
+			bucket.mesh = b_cyl
+			bucket.material_override = armor_mat
+			bucket.position = Vector3(0, 0.06, 0.0)
+			head.add_child(bucket)
+			# Brass Cross Visor Plate
+			var h_slit = MeshInstance3D.new()
+			var hs_box = BoxMesh.new()
+			hs_box.size = Vector3(0.32, 0.04, 0.04)
+			h_slit.mesh = hs_box
+			h_slit.material_override = visor_mat
+			h_slit.position = Vector3(0, 0.05, 0.23)
+			head.add_child(h_slit)
+			var v_slit = MeshInstance3D.new()
+			var vs_box = BoxMesh.new()
+			vs_box.size = Vector3(0.06, 0.24, 0.04)
+			v_slit.mesh = vs_box
+			v_slit.material_override = visor_mat
+			v_slit.position = Vector3(0, 0.05, 0.23)
+			head.add_child(v_slit)
+		elif "Commander" in u_name:
+			# Royal Golden Crown with Fleur-de-lis Spikes
+			var crown_ring = MeshInstance3D.new()
+			var cr_tor = TorusMesh.new()
+			cr_tor.inner_radius = 0.20
+			cr_tor.outer_radius = 0.26
+			crown_ring.mesh = cr_tor
+			crown_ring.material_override = visor_mat
+			crown_ring.position = Vector3(0, 0.20, 0.0)
+			head.add_child(crown_ring)
+			for i in range(4):
+				var spike = MeshInstance3D.new()
+				var sp_cyl = CylinderMesh.new()
+				sp_cyl.top_radius = 0.01
+				sp_cyl.bottom_radius = 0.04
+				sp_cyl.height = 0.16
+				spike.mesh = sp_cyl
+				spike.material_override = visor_mat
+				var a = i * PI / 2.0
+				spike.position = Vector3(cos(a) * 0.22, 0.30, sin(a) * 0.22)
+				head.add_child(spike)
+		elif "Squire" in u_name:
+			# Iron Kettle Hat with Flared Brim
+			var kettle_brim = MeshInstance3D.new()
+			var kb_cyl = CylinderMesh.new()
+			kb_cyl.top_radius = 0.32
+			kb_cyl.bottom_radius = 0.34
+			kb_cyl.height = 0.04
+			kettle_brim.mesh = kb_cyl
+			kettle_brim.material_override = armor_mat
+			kettle_brim.position = Vector3(0, 0.12, 0.0)
+			head.add_child(kettle_brim)
+		elif "Builder" in u_name:
+			# Peasant Working Cowl / Cap
+			var cowl = MeshInstance3D.new()
+			var c_box = BoxMesh.new()
+			c_box.size = Vector3(0.38, 0.22, 0.40)
+			cowl.mesh = c_box
+			cowl.material_override = body_mat
+			cowl.position = Vector3(0, 0.10, -0.04)
+			head.add_child(cowl)
+	elif is_beast_speaker:
 		# Curved Primal Beast Horns on the Skull Helm
 		for side in [-1.0, 1.0]:
 			var horn = MeshInstance3D.new()
@@ -426,7 +617,61 @@ func _build_humanoid_anatomy(parent: Node3D):
 	left_pad.position = Vector3(0, 0.04, 0)
 	left_arm_pivot.add_child(left_pad)
 
-	if "ShieldInfantry" in u_name or ("Commander" in u_name and is_reach):
+	if "Knight" in u_name:
+		# Medieval Feudal Heater Shield strapped to Left Arm
+		var shield = MeshInstance3D.new()
+		shield.name = "LeftHeaterShield"
+		var s_box = BoxMesh.new()
+		s_box.size = Vector3(0.48, 0.72, 0.06)
+		shield.mesh = s_box
+		shield.material_override = armor_mat
+		shield.position = Vector3(-0.08, -0.32, 0.18)
+		shield.rotation_degrees = Vector3(80.0, 18.0, 0.0)
+		left_arm_pivot.add_child(shield)
+
+		# Golden Heraldic Cross on front of shield
+		var s_cross_v = MeshInstance3D.new()
+		var scv_box = BoxMesh.new()
+		scv_box.size = Vector3(0.10, 0.56, 0.02)
+		s_cross_v.mesh = scv_box
+		s_cross_v.material_override = visor_mat
+		s_cross_v.position = Vector3(-0.08, -0.32, 0.22)
+		s_cross_v.rotation_degrees = Vector3(80.0, 18.0, 0.0)
+		left_arm_pivot.add_child(s_cross_v)
+	elif "Squire" in u_name or ("Commander" in u_name and is_feudal):
+		# Round Iron Buckler Shield
+		var buckler = MeshInstance3D.new()
+		buckler.name = "LeftBuckler"
+		var b_cyl = CylinderMesh.new()
+		b_cyl.top_radius = 0.24
+		b_cyl.bottom_radius = 0.22
+		b_cyl.height = 0.05
+		buckler.mesh = b_cyl
+		buckler.material_override = armor_mat
+		buckler.position = Vector3(-0.06, -0.32, 0.16)
+		buckler.rotation_degrees = Vector3(75.0, 20.0, 0.0)
+		left_arm_pivot.add_child(buckler)
+		var boss = MeshInstance3D.new()
+		var b_sph = SphereMesh.new()
+		b_sph.radius = 0.07; b_sph.height = 0.08
+		boss.mesh = b_sph
+		boss.material_override = visor_mat
+		boss.position = Vector3(-0.06, -0.32, 0.20)
+		left_arm_pivot.add_child(boss)
+	elif "Spearman" in u_name:
+		# Primal Round Rawhide Shield
+		var tribal_shield = MeshInstance3D.new()
+		tribal_shield.name = "LeftTribalShield"
+		var ts_cyl = CylinderMesh.new()
+		ts_cyl.top_radius = 0.28
+		ts_cyl.bottom_radius = 0.26
+		ts_cyl.height = 0.05
+		tribal_shield.mesh = ts_cyl
+		tribal_shield.material_override = armor_mat
+		tribal_shield.position = Vector3(-0.06, -0.32, 0.16)
+		tribal_shield.rotation_degrees = Vector3(75.0, 20.0, 0.0)
+		left_arm_pivot.add_child(tribal_shield)
+	elif "ShieldInfantry" in u_name or ("Commander" in u_name and is_reach):
 		# Forearm clamp bracket + Left-arm mounted hardlight buckler emitter
 		var buckler_brace = MeshInstance3D.new()
 		var bb_box = BoxMesh.new()
@@ -577,7 +822,193 @@ func _build_weapon(w_root: Node3D, u_name: String, w_mat: Material, energy_mat: 
 	grip_mount.rotation_degrees.x = 15.0
 	w_root.add_child(grip_mount)
 	
-	if "GreatBeastSpeaker" in u_name:
+	if "Crossbowman" in u_name:
+		# Medieval Crossbow: Wooden tiller stock, transverse bow prod, iron stirrup & quarrel bolt
+		var stock = BoxMesh.new()
+		stock.size = Vector3(0.08, 0.10, 0.76)
+		w_mesh.mesh = stock
+		w_mesh.material_override = w_mat
+		w_mesh.position = Vector3(0, 0.04, 0.28)
+		w_root.add_child(w_mesh)
+		# Bow Prod (Transverse Limb)
+		var prod = MeshInstance3D.new()
+		var p_box = BoxMesh.new()
+		p_box.size = Vector3(0.68, 0.04, 0.06)
+		prod.mesh = p_box
+		prod.material_override = energy_mat
+		prod.position = Vector3(0, 0.05, 0.60)
+		w_root.add_child(prod)
+		# Iron Stirrup
+		var stirrup = MeshInstance3D.new()
+		var st_tor = TorusMesh.new()
+		st_tor.inner_radius = 0.06; st_tor.outer_radius = 0.09
+		stirrup.mesh = st_tor
+		stirrup.material_override = energy_mat
+		stirrup.position = Vector3(0, 0.05, 0.68)
+		stirrup.rotation_degrees.x = 90.0
+		w_root.add_child(stirrup)
+		# Loaded Crossbow Bolt
+		var bolt = MeshInstance3D.new()
+		var bl_cyl = CylinderMesh.new()
+		bl_cyl.top_radius = 0.015; bl_cyl.bottom_radius = 0.015; bl_cyl.height = 0.45
+		bolt.mesh = bl_cyl
+		bolt.material_override = energy_mat
+		bolt.rotation_degrees.x = 90.0
+		bolt.position = Vector3(0, 0.09, 0.42)
+		w_root.add_child(bolt)
+	elif "ShortBow" in u_name:
+		# Primal Curved Short Bow & Notched Arrow
+		var bow_stave = MeshInstance3D.new()
+		var b_tor = TorusMesh.new()
+		b_tor.inner_radius = 0.38; b_tor.outer_radius = 0.42
+		bow_stave.mesh = b_tor
+		bow_stave.material_override = w_mat
+		bow_stave.position = Vector3(0, 0.06, 0.32)
+		bow_stave.rotation_degrees = Vector3(0.0, 90.0, 0.0)
+		w_root.add_child(bow_stave)
+		# Notched Flint Arrow
+		var arrow = MeshInstance3D.new()
+		var a_cyl = CylinderMesh.new()
+		a_cyl.top_radius = 0.012; a_cyl.bottom_radius = 0.012; a_cyl.height = 0.65
+		arrow.mesh = a_cyl
+		arrow.material_override = energy_mat
+		arrow.rotation_degrees.x = 90.0
+		arrow.position = Vector3(0, 0.06, 0.32)
+		w_root.add_child(arrow)
+	elif "RockThrower" in u_name:
+		# Primal Heavy Throwing Boulder gripped in hand
+		var rock = SphereMesh.new()
+		rock.radius = 0.16; rock.height = 0.28; rock.radial_segments = 6; rock.rings = 4
+		w_mesh.mesh = rock
+		w_mesh.material_override = w_mat
+		w_mesh.position = Vector3(0, 0.06, 0.18)
+		w_root.add_child(w_mesh)
+	elif "Spearman" in u_name:
+		# Primal Long Flint Spear
+		var shaft = CylinderMesh.new()
+		shaft.top_radius = 0.024; shaft.bottom_radius = 0.024; shaft.height = 1.85
+		w_mesh.mesh = shaft
+		w_mesh.material_override = w_mat
+		w_mesh.rotation_degrees.x = 24.0
+		w_mesh.position = Vector3(0, 0.32, 0.24)
+		w_root.add_child(w_mesh)
+		# Flint Spearhead
+		var spearhead = MeshInstance3D.new()
+		var sh_cyl = CylinderMesh.new()
+		sh_cyl.top_radius = 0.005; sh_cyl.bottom_radius = 0.055; sh_cyl.height = 0.32
+		spearhead.mesh = sh_cyl
+		spearhead.material_override = energy_mat
+		spearhead.rotation_degrees.x = 24.0
+		spearhead.position = Vector3(0, 1.15, 0.60)
+		w_root.add_child(spearhead)
+	elif "Clubber" in u_name:
+		# Knotty Spiked Primal Club
+		var club = CylinderMesh.new()
+		club.top_radius = 0.09; club.bottom_radius = 0.035; club.height = 0.95
+		w_mesh.mesh = club
+		w_mesh.material_override = w_mat
+		w_mesh.rotation_degrees.x = 30.0
+		w_mesh.position = Vector3(0, 0.18, 0.35)
+		w_root.add_child(w_mesh)
+		# Stone Spikes
+		for side in [-1.0, 1.0]:
+			var spike = MeshInstance3D.new()
+			var spk_box = BoxMesh.new()
+			spk_box.size = Vector3(0.04, 0.04, 0.18)
+			spike.mesh = spk_box
+			spike.material_override = energy_mat
+			spike.position = Vector3(side * 0.08, 0.35, 0.50)
+			w_root.add_child(spike)
+	elif "Chieftain" in u_name:
+		# Colossal Primal Bone Cleaver / Great Stone Axe
+		var handle = CylinderMesh.new()
+		handle.top_radius = 0.04; handle.bottom_radius = 0.04; handle.height = 1.55
+		w_mesh.mesh = handle
+		w_mesh.material_override = w_mat
+		w_mesh.rotation_degrees.x = 20.0
+		w_mesh.position = Vector3(0, 0.28, 0.20)
+		w_root.add_child(w_mesh)
+		# Giant Flint Blade
+		var blade = MeshInstance3D.new()
+		var b_box = BoxMesh.new()
+		b_box.size = Vector3(0.08, 0.48, 0.36)
+		blade.mesh = b_box
+		blade.material_override = energy_mat
+		blade.rotation_degrees.x = 20.0
+		blade.position = Vector3(0, 0.88, 0.42)
+		w_root.add_child(blade)
+	elif "CavemanBuilder" in u_name:
+		# Heavy Stone Mallet
+		var haft = CylinderMesh.new()
+		haft.top_radius = 0.035; haft.bottom_radius = 0.035; haft.height = 1.10
+		w_mesh.mesh = haft
+		w_mesh.material_override = w_mat
+		w_mesh.rotation_degrees.x = 25.0
+		w_mesh.position = Vector3(0, 0.20, 0.25)
+		w_root.add_child(w_mesh)
+		var stone_head = MeshInstance3D.new()
+		var sh_box = BoxMesh.new()
+		sh_box.size = Vector3(0.24, 0.22, 0.35)
+		stone_head.mesh = sh_box
+		stone_head.material_override = energy_mat
+		stone_head.rotation_degrees.x = 25.0
+		stone_head.position = Vector3(0, 0.65, 0.45)
+		w_root.add_child(stone_head)
+	elif "Builder" in u_name and "Primitive" in u_name:
+		# Medieval Mason's Hammer & Utility Knife
+		var hammer_handle = CylinderMesh.new()
+		hammer_handle.top_radius = 0.025; hammer_handle.bottom_radius = 0.025; hammer_handle.height = 0.65
+		w_mesh.mesh = hammer_handle
+		w_mesh.material_override = w_mat
+		w_mesh.rotation_degrees.x = 35.0
+		w_mesh.position = Vector3(0, 0.08, 0.22)
+		w_root.add_child(w_mesh)
+		var hammer_head = MeshInstance3D.new()
+		var hh_box = BoxMesh.new()
+		hh_box.size = Vector3(0.12, 0.10, 0.22)
+		hammer_head.mesh = hh_box
+		hammer_head.material_override = energy_mat
+		hammer_head.rotation_degrees.x = 35.0
+		hammer_head.position = Vector3(0, 0.30, 0.38)
+		w_root.add_child(hammer_head)
+	elif "Knight" in u_name:
+		# Medieval Chivalric Arming Sword with Wide Steel Crossguard
+		var blade = BoxMesh.new()
+		blade.size = Vector3(0.04, 0.12, 1.15)
+		w_mesh.mesh = blade
+		w_mesh.material_override = energy_mat
+		w_mesh.position = Vector3(0, 0.02, 0.58)
+		w_root.add_child(w_mesh)
+		var crossguard = MeshInstance3D.new()
+		var cg_box = BoxMesh.new()
+		cg_box.size = Vector3(0.38, 0.05, 0.06)
+		crossguard.mesh = cg_box
+		crossguard.material_override = energy_mat
+		crossguard.position = Vector3(0, 0.02, 0.06)
+		w_root.add_child(crossguard)
+		var pommel = MeshInstance3D.new()
+		var p_sph = SphereMesh.new()
+		p_sph.radius = 0.05; p_sph.height = 0.06
+		pommel.mesh = p_sph
+		pommel.material_override = energy_mat
+		pommel.position = Vector3(0, 0.02, -0.12)
+		w_root.add_child(pommel)
+	elif "Squire" in u_name:
+		# Feudal Short Sword / Arming Blade
+		var blade = BoxMesh.new()
+		blade.size = Vector3(0.035, 0.10, 0.85)
+		w_mesh.mesh = blade
+		w_mesh.material_override = energy_mat
+		w_mesh.position = Vector3(0, 0.02, 0.44)
+		w_root.add_child(w_mesh)
+		var crossguard = MeshInstance3D.new()
+		var cg_box = BoxMesh.new()
+		cg_box.size = Vector3(0.26, 0.04, 0.05)
+		crossguard.mesh = cg_box
+		crossguard.material_override = energy_mat
+		crossguard.position = Vector3(0, 0.02, 0.05)
+		w_root.add_child(crossguard)
+	elif "GreatBeastSpeaker" in u_name:
 		# Tall Shamanic Bone-Totem Staff with bone cradle & glowing emerald beast crystal
 		var staff = CylinderMesh.new()
 		staff.top_radius = 0.048

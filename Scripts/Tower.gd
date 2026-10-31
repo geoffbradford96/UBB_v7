@@ -130,7 +130,14 @@ func shoot_at_target():
 		# Turret firing recoil kick
 		var f_mesh = get_meta("faction_mesh") if has_meta("faction_mesh") else null
 		if f_mesh and is_instance_valid(f_mesh):
-			if f_mesh.has_meta("dominion_turret"):
+			if f_mesh.has_meta("ballista_turret"):
+				var b_turret = f_mesh.get_meta("ballista_turret")
+				if is_instance_valid(b_turret):
+					var tw = create_tween()
+					if tw:
+						tw.tween_property(b_turret, "position:z", -0.45, 0.05)
+						tw.tween_property(b_turret, "position:z", 0.0, 0.22)
+			elif f_mesh.has_meta("dominion_turret"):
 				var turret = f_mesh.get_meta("dominion_turret")
 				if is_instance_valid(turret):
 					var tw = create_tween()
@@ -149,6 +156,17 @@ func shoot_at_target():
 			elif faction == "Rimworlders": laser_color = Color(1.0, 0.35, 0.05)
 			elif faction == "Plague of Harmony": laser_color = Color(1.0, 0.88, 0.22)
 			elif faction == "Gilded Harmony": laser_color = Color(0.56, 0.88, 1.0)
+			elif faction == "Planetary Primitives":
+				# Heavy Ballista Bolt
+				proj.set("damage", 45.0)
+				proj.set("speed", 28.0)
+				var bolt_cyl = CylinderMesh.new()
+				bolt_cyl.top_radius = 0.045
+				bolt_cyl.bottom_radius = 0.065
+				bolt_cyl.height = 1.6
+				mesh.mesh = bolt_cyl
+				mesh.rotation_degrees.x = 90.0
+				laser_color = Color(0.85, 0.70, 0.35)
 			mat.albedo_color = laser_color
 			mat.emission_enabled = true
 			mat.emission = laser_color
