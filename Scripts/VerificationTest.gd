@@ -858,6 +858,7 @@ func test_ai_systems() -> bool:
 
 	var snake_inst = (load("res://Scenes/Units/WildlifePoisonSnake.tscn") as PackedScene).instantiate()
 	var crow_inst = (load("res://Scenes/Units/WildlifeCrow.tscn") as PackedScene).instantiate()
+	var croc_cmdr = (load("res://Scenes/Units/WildlifeApexCrocCommander.tscn") as PackedScene).instantiate()
 	var dummy_victim = CharacterBody3D.new()
 	dummy_victim.name = "VictimUnit"
 	var vic_hc = HealthComponent.new()
@@ -867,9 +868,26 @@ func test_ai_systems() -> bool:
 	dummy_victim.add_child(vic_hc)
 	add_child(snake_inst)
 	add_child(crow_inst)
+	add_child(croc_cmdr)
 	add_child(dummy_victim)
 
-	snake_inst.target = dummy_victim
+	snake_inst.add_to_group("SideA")
+	crow_inst.add_to_group("SideA")
+	croc_cmdr.add_to_group("SideA")
+	dummy_victim.add_to_group("SideB")
+	dummy_victim.add_to_group("Targetable")
+	snake_inst.global_position = Vector3.ZERO
+	dummy_victim.global_position = Vector3(0, 0, -1.5)
+
+	if not snake_inst.is_in_group("Targetable") or not crow_inst.is_in_group("Targetable") or not crow_inst.is_in_group("Flyer"):
+		printerr("WildlifeCreature missing Targetable or Flyer group registration!")
+		success = false
+
+	snake_inst._find_target()
+	if snake_inst.target != dummy_victim:
+		printerr("WildlifePoisonSnake _find_target() failed to acquire SideB enemy in Targetable group!")
+		success = false
+
 	snake_inst._perform_attack()
 	if vic_hc.poison_ticks <= 0 or vic_hc.poison_dps <= 0.0:
 		printerr("WildlifePoisonSnake failed to apply poison DoT on attack!")
@@ -879,8 +897,27 @@ func test_ai_systems() -> bool:
 		printerr("WildlifeCrow missing flying/rock-dropping attributes or HeldRock model node!")
 		success = false
 
+	if not croc_cmdr.is_in_group("CommanderUnit") or croc_cmdr._head_pivot == null or croc_cmdr._head_pivot.get_node_or_null("CommanderCrown") == null:
+		printerr("WildlifeApexCrocCommander missing CommanderUnit group or CommanderCrown on HeadPivot!")
+		success = false
+
+	# Audit all 108 wildlife 3D models to ensure every species builds a valid HeadPivot and meshes
+	var audit_dummy = Node3D.new()
+	var audit_pivot = Node3D.new()
+	audit_pivot.name = "VisualPivot"
+	audit_dummy.add_child(audit_pivot)
+	add_child(audit_dummy)
+	for sp_key in WildlifeModelBuilder.SPECIES_CATALOG.keys():
+		var built_root = WildlifeModelBuilder.build_animal_model(audit_dummy, sp_key)
+		if built_root == null or built_root.get_node_or_null("HeadPivot") == null or built_root.get_child_count() < 2:
+			printerr("WildlifeModelBuilder 3D model audit failed for species: ", sp_key)
+			success = false
+			break
+	audit_dummy.queue_free()
+
 	snake_inst.queue_free()
 	crow_inst.queue_free()
+	croc_cmdr.queue_free()
 	dummy_victim.queue_free()
 
 	# 8. Test Namesake Models & Rigs

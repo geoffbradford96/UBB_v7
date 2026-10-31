@@ -17,8 +17,13 @@ const WildlifeModelBuilder = preload("res://Scripts/WildlifeModelBuilder.gd")
 @export var poison_ticks: int = 0
 @export var projectile_type: String = "NONE"
 @export var is_commander: bool = false
+@export var unit_attribute: String = "Beast"
 
-var team: String = "Player"
+var team: String = "SideA":
+	set(val):
+		team = val
+		if val != "":
+			add_to_group(val)
 var target: Node3D = null
 var attack_timer: float = 0.0
 var is_selected: bool = false
@@ -57,9 +62,44 @@ var _held_rock: Node3D = null
 func is_humanoid() -> bool:
 	return false
 
+func _get_game_state():
+	if Engine.has_singleton("GameState"):
+		return Engine.get_singleton("GameState")
+	var loop = Engine.get_main_loop()
+	if loop and loop is SceneTree:
+		var r = (loop as SceneTree).root
+		if r and r.has_node("GameState"):
+			return r.get_node("GameState")
+	return null
+
+func _get_my_team() -> String:
+	for g in get_groups():
+		var gs_str = String(g)
+		if gs_str.begins_with("Side"):
+			return gs_str
+	return team
+
+func _is_same_team(other: Node) -> bool:
+	if not is_instance_valid(other):
+		return false
+	var my_t = _get_my_team()
+	if my_t != "" and other.is_in_group(my_t):
+		return true
+	for g in other.get_groups():
+		var gs_str = String(g)
+		if gs_str.begins_with("Side"):
+			return gs_str == my_t
+	var ot = other.get("team")
+	if ot != null and String(ot) != "":
+		return String(ot) == my_t or String(ot) == team
+	return false
+
 func _ready():
+	add_to_group("Targetable")
 	add_to_group("Units")
 	add_to_group("WildlifeUnits")
+	if team != "":
+		add_to_group(team)
 	_anim_phase = randf() * TAU
 	_retarget_timer = randf() * 0.25
 
@@ -78,9 +118,13 @@ func _ready():
 	poison_ticks = int(info.get("poison_ticks", poison_ticks))
 	projectile_type = String(info.get("proj", projectile_type))
 	is_commander = bool(info.get("cmdr", is_commander))
+	unit_attribute = "Flying" if is_flying else "Beast"
 
+	if is_flying:
+		add_to_group("Flyer")
 	if is_commander:
 		add_to_group("Commander")
+		add_to_group("CommanderUnit")
 
 	if health_comp:
 		var base_hp = float(info.get("hp", 60.0))
@@ -89,8 +133,14 @@ func _ready():
 		var nat_armor = float(info.get("armor", 0.0))
 		health_comp.max_armor = nat_armor
 		health_comp.current_armor = nat_armor
+		if nat_armor > 0.0:
+			health_comp.armor_style = "CHITIN"
 		health_comp.max_shield = 0.0
 		health_comp.current_shield = 0.0
+		if health_comp.has_method("_setup_shield_and_armor_visuals"):
+			health_comp._setup_shield_and_armor_visuals()
+		if health_comp.has_method("_refresh_hp_visuals"):
+			health_comp._refresh_hp_visuals()
 
 	_model_root = WildlifeModelBuilder.build_animal_model(self, species_id)
 	if _model_root:
@@ -112,25 +162,12 @@ func _ready():
 		global_position.y = flight_height
 
 func update_team_visuals():
-	if not is_inside_tree() or not visual_pivot:
-		return
-	var ring = visual_pivot.get_node_or_null("WildlifeTeamMarker") as MeshInstance3D
-	if not ring:
-		ring = MeshInstance3D.new()
-		ring.name = "WildlifeTeamMarker"
-		var tm = TorusMesh.new()
-		tm.inner_radius = 0.42
-		tm.outer_radius = 0.52
-		ring.mesh = tm
-		ring.position = Vector3(0, 0.06, 0)
-		visual_pivot.add_child(ring)
-	var mat = StandardMaterial3D.new()
-	var col = Color(0.18, 0.85, 0.42) if team == "Player" else Color(0.95, 0.25, 0.20)
-	mat.albedo_color = col
-	mat.emission_enabled = true
-	mat.emission = col
-	mat.emission_energy_multiplier = 0.85
-	ring.material_override = mat
+	if visual_pivot:
+		var old_ring = visual_pivot.get_node_or_null("WildlifeTeamMarker")
+		if old_ring:
+			old_ring.queue_free()
+	if health_comp and health_comp.has_method("update_health_bar_colors"):
+		health_comp.update_health_bar_colors()
 
 func set_selected(val: bool):
 	is_selected = val
@@ -227,8 +264,9 @@ func _physics_process(delta: float):
 			_move_towards(manual_target_pos, cur_speed, delta)
 			moving = true
 	else:
-		var forward_z = -1.0 if team == "Player" else 1.0
-		var goal_z = -55.0 if team == "Player" else 55.0
+		var my_t = _get_my_team()
+		var forward_z = -1.0 if (my_t == "SideA" or my_t == "Player") else 1.0
+		var goal_z = -55.0 if (my_t == "SideA" or my_t == "Player") else 55.0
 		var lane_x = _get_lane_x()
 		var next_pos = Vector3(lane_x, global_position.y, clampf(global_position.z + forward_z * 12.0, -56.0, 56.0))
 		if absf(global_position.z - goal_z) < 10.0:
@@ -293,45 +331,74 @@ func _move_towards(dest: Vector3, cur_speed: float, delta: float):
 					dir = slide
 
 	var final_dir = (dir + sep * 0.75).normalized()
+	if not is_flying and is_following_lane and not has_manual_order:
+		var gs = _get_game_state()
+		if gs and gs.has_method("get_nearest_lane_point"):
+			var nearest_lp = gs.get_nearest_lane_point(global_position)
+			var to_lane = Vector3(nearest_lp.x - global_position.x, 0.0, nearest_lp.z - global_position.z)
+			var lane_dist = to_lane.length()
+			var max_w = gs.lane_half_width if "lane_half_width" in gs else 3.2
+			if lane_dist > max_w * 0.75 and (not is_instance_valid(target) or global_position.distance_to(target.global_position) > attack_range + 4.5):
+				var pull_weight = clampf((lane_dist - max_w * 0.75) / maxf(0.5, max_w * 0.5), 0.0, 0.85)
+				final_dir = final_dir.lerp(to_lane.normalized(), pull_weight).normalized()
 	velocity.x = final_dir.x * cur_speed
 	velocity.z = final_dir.z * cur_speed
 	_face_position(global_position + final_dir, delta)
 
 func _find_target():
-	var best: Node3D = null
-	var best_score: float = 999999.0
-	var candidates: Array = []
-	candidates.append_array(get_tree().get_nodes_in_group("Units"))
-	candidates.append_array(get_tree().get_nodes_in_group("Structures"))
+	var best_unit: Node3D = null
+	var best_unit_dist: float = aggro_range
+	var best_struct: Node3D = null
+	var best_struct_dist: float = 999999.0
+
+	var candidates: Array = get_tree().get_nodes_in_group("Targetable").duplicate()
+	for u in get_tree().get_nodes_in_group("Units"):
+		if not candidates.has(u):
+			candidates.append(u)
+	for st in get_tree().get_nodes_in_group("Structures"):
+		if not candidates.has(st):
+			candidates.append(st)
 
 	var can_hit_air = is_flying or drops_rocks or projectile_type != "NONE" or attack_range >= 4.0
+	var gs = _get_game_state()
 
 	for node in candidates:
-		if not is_instance_valid(node) or node == self or not (node is Node3D):
+		if not is_instance_valid(node) or node.is_queued_for_deletion() or node == self or not (node is Node3D):
 			continue
-		var n_team = node.get("team")
-		if n_team == null or n_team == team:
+		if _is_same_team(node):
+			continue
+		if (node.is_in_group("ExplosiveBarrel") or node.is_in_group("DestructibleRock") or node.is_in_group("NeutralStructure")) and node != manual_attack_target:
 			continue
 		var n_hc = node.get_node_or_null("HealthComponent") as HealthComponent
-		if not n_hc or n_hc.current_health <= 0.0:
+		if not n_hc or n_hc.is_dead or n_hc.current_health <= 0.0:
 			continue
-		var target_fly = bool(node.get("is_flying")) if "is_flying" in node else false
+		if gs and gs.has_method("is_unit_stealthed_from") and gs.is_unit_stealthed_from(node, self):
+			continue
+		var target_fly = false
+		if "is_flying" in node:
+			target_fly = bool(node.get("is_flying"))
+		elif node.get("unit_attribute") == "Flying" or node.is_in_group("Flyer") or node.get("flight_height") != null:
+			target_fly = true
 		if target_fly and not can_hit_air:
 			continue
 
 		var d = Vector2(global_position.x - node.global_position.x, global_position.z - node.global_position.z).length()
-		var is_struct = node.is_in_group("Structures")
-		if not is_struct and d > aggro_range:
-			continue
+		var is_struct = node.is_in_group("Structures") or node.is_in_group("Structure") or "Base" in node.name or "Tower" in node.name or "CommandBay" in node.name
+		if is_struct:
+			if d < best_struct_dist:
+				best_struct_dist = d
+				best_struct = node
+		else:
+			if d <= best_unit_dist:
+				best_unit_dist = d
+				best_unit = node
 
-		var score = d
-		if is_struct and d > aggro_range:
-			score += 25.0
-		if score < best_score:
-			best_score = score
-			best = node
-
-	target = best
+	if is_instance_valid(best_unit):
+		target = best_unit
+	elif is_instance_valid(best_struct):
+		target = best_struct
+	else:
+		target = null
 
 func _process_combat(delta: float):
 	var aspd_mult = 1.0
@@ -436,7 +503,7 @@ func _process_commander_abilities(delta: float):
 		for u in get_tree().get_nodes_in_group("WildlifeUnits"):
 			if not is_instance_valid(u) or not (u is Node3D):
 				continue
-			if u.get("team") != team:
+			if not _is_same_team(u):
 				continue
 			if global_position.distance_to(u.global_position) <= 14.0:
 				u.set_meta("wildlife_pack_speed_until", expire_ms)
@@ -451,7 +518,9 @@ func _process_commander_abilities(delta: float):
 				var hornet_scene = load("res://Scenes/Units/WildlifeHornetSwarm.tscn") as PackedScene
 				if hornet_scene:
 					var h = hornet_scene.instantiate()
-					h.team = team
+					var my_t = _get_my_team()
+					h.team = my_t
+					h.add_to_group(my_t)
 					h.assigned_lane = assigned_lane
 					arena.add_child(h)
 					h.global_position = global_position + Vector3(randf_range(-1.5, 1.5), 0.0, randf_range(-1.5, 1.5))

@@ -101,7 +101,8 @@ func _setup_visuals():
 
 func _is_unit_flying(unit: Node) -> bool:
 	if not is_instance_valid(unit): return false
-	if unit.get("is_flying") == true: return true
+	if "is_flying" in unit:
+		return bool(unit.get("is_flying"))
 	if unit.get("unit_attribute") == "Flying" or unit.get("unit_attribute") == "Ethereal": return true
 	if unit.is_in_group("Flyer"): return true
 	if unit.get("flight_height") != null: return true

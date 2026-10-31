@@ -195,8 +195,8 @@ func _build_sealion_mesh():
 	for s in [-1.0, 1.0]:
 		var fang = MeshInstance3D.new()
 		var fang_cyl = CylinderMesh.new()
-		fang_cyl.top_radius = 0.01
-		fang_cyl.bottom_radius = 0.04
+		fang_cyl.top_radius = 0.038
+		fang_cyl.bottom_radius = 0.006
 		fang_cyl.height = 0.16
 		fang.mesh = fang_cyl
 		fang.material_override = fang_mat
@@ -241,10 +241,14 @@ func is_valid_organic_target(node: Node) -> bool:
 	# Strictly ignores tanks, planes, mechs, mechanical units, and buildings!
 	if "Base" in n_name or "Tower" in n_name or "CommandBay" in n_name or "Structure" in n_name:
 		return false
-	if "Plane" in n_name or "Flyer" in n_name or "Gargoyle" in n_name or "Jellyfish" in n_name or "Beetle" in n_name:
-		return false
-	if node.get("is_flying") == true or node.get("unit_attribute") == "Flying" or node.is_in_group("Flyer") or node.get("flight_height") != null:
-		return false
+	if "is_flying" in node:
+		if bool(node.get("is_flying")):
+			return false
+	else:
+		if "Plane" in n_name or "Flyer" in n_name or "Gargoyle" in n_name or "Jellyfish" in n_name or "Beetle" in n_name:
+			return false
+		if node.get("unit_attribute") == "Flying" or node.is_in_group("Flyer") or node.get("flight_height") != null:
+			return false
 	if "Tank" in n_name or "Mech" in n_name or "Walker" in n_name or "Spiker" in n_name:
 		return false
 	if node.get("unit_attribute") == "Mechanical" or node.get("unit_attribute") == "Ethereal":
