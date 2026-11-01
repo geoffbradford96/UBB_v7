@@ -171,35 +171,35 @@ const SPECIES_CATALOG: Dictionary = {
 		"desc": "2 long-snouted Gharials with 110 needle-sharp interlocking teeth for high-speed strikes."
 	},
 	"WildlifeKomodoDragon": {
-		"title": "Komodo Dragon", "archetype": "CROCODILIAN", "cmdr": false,
+		"title": "Komodo Dragon", "archetype": "LIZARD", "cmdr": false,
 		"c1": Color(0.34, 0.30, 0.24), "c2": Color(0.46, 0.40, 0.32), "c3": Color(0.85, 0.22, 0.25),
 		"scale": Vector3(1.12, 1.05, 1.18), "cost": 3.0, "count": 2, "hp": 160.0, "spd": 4.6, "dmg": 22.0, "rng": 2.0, "aspd": 1.1,
 		"fly": false, "rock": false, "peck": false, "poison_dps": 7.0, "poison_ticks": 5, "proj": "NONE", "armor": 30.0,
 		"desc": "2 giant Komodo Monitor Lizards whose toxic anticoagulant bite inflicts lethal Poison over time!"
 	},
 	"WildlifeMonitorLizard": {
-		"title": "Nile Monitor Lizard", "archetype": "CROCODILIAN", "cmdr": false,
+		"title": "Nile Monitor Lizard", "archetype": "LIZARD", "cmdr": false,
 		"c1": Color(0.26, 0.34, 0.20), "c2": Color(0.75, 0.68, 0.28), "c3": Color(0.85, 0.25, 0.30),
 		"scale": Vector3(0.90, 0.88, 0.98), "cost": 2.0, "count": 3, "hp": 80.0, "spd": 5.3, "dmg": 14.0, "rng": 1.8, "aspd": 1.3,
 		"fly": false, "rock": false, "peck": false, "poison_dps": 3.0, "poison_ticks": 3, "proj": "NONE", "armor": 0.0,
 		"desc": "3 fast whip-tailed Monitor Lizards that slash with claws and venomous jaws."
 	},
 	"WildlifeGilaMonster": {
-		"title": "Venomous Gila Monster", "archetype": "CROCODILIAN", "cmdr": false,
+		"title": "Venomous Gila Monster", "archetype": "LIZARD", "cmdr": false,
 		"c1": Color(0.14, 0.12, 0.12), "c2": Color(0.95, 0.48, 0.18), "c3": Color(0.95, 0.35, 0.15),
 		"scale": Vector3(0.78, 0.78, 0.82), "cost": 2.0, "count": 3, "hp": 85.0, "spd": 4.2, "dmg": 13.0, "rng": 1.7, "aspd": 1.15,
 		"fly": false, "rock": false, "peck": false, "poison_dps": 8.0, "poison_ticks": 5, "proj": "NONE", "armor": 20.0,
 		"desc": "3 orange-and-black beaded Gila Monsters that clamp onto targets and chew potent neurotoxin into them."
 	},
 	"WildlifeChameleon": {
-		"title": "Horned Chameleon", "archetype": "CROCODILIAN", "cmdr": false,
+		"title": "Horned Chameleon", "archetype": "LIZARD", "cmdr": false,
 		"c1": Color(0.22, 0.72, 0.28), "c2": Color(0.55, 0.88, 0.22), "c3": Color(0.92, 0.45, 0.55),
 		"scale": Vector3(0.85, 0.90, 0.85), "cost": 2.0, "count": 3, "hp": 70.0, "spd": 4.0, "dmg": 16.0, "rng": 8.0, "aspd": 1.2,
 		"fly": false, "rock": false, "peck": false, "poison_dps": 0.0, "poison_ticks": 0, "proj": "TONGUE", "armor": 0.0,
 		"desc": "3 Three-Horned Chameleons that lash enemies from range with ballistic sticky tongues!"
 	},
 	"WildlifeFrilledLizard": {
-		"title": "Frilled Dragon Lizard", "archetype": "CROCODILIAN", "cmdr": false,
+		"title": "Frilled Dragon Lizard", "archetype": "LIZARD", "cmdr": false,
 		"c1": Color(0.62, 0.45, 0.26), "c2": Color(0.88, 0.52, 0.18), "c3": Color(0.95, 0.28, 0.12),
 		"scale": Vector3(0.76, 0.82, 0.78), "cost": 1.0, "count": 4, "hp": 48.0, "spd": 5.8, "dmg": 10.0, "rng": 6.5, "aspd": 1.35,
 		"fly": false, "rock": false, "peck": false, "poison_dps": 4.0, "poison_ticks": 3, "proj": "VENOM", "armor": 0.0,
@@ -678,7 +678,7 @@ const SPECIES_CATALOG: Dictionary = {
 		"desc": "3 Pistol Shrimp whose oversized snapping claw fires superheated 4,700°C sonic cavitation bubbles!"
 	},
 	"WildlifeBullWalrus": {
-		"title": "Arctic Tusker Walrus", "archetype": "TANK_MAMMAL", "cmdr": false,
+		"title": "Arctic Tusker Walrus", "archetype": "WALRUS", "cmdr": false,
 		"c1": Color(0.48, 0.34, 0.28), "c2": Color(0.58, 0.42, 0.35), "c3": Color(0.95, 0.92, 0.82),
 		"scale": Vector3(1.38, 1.28, 1.42), "cost": 3.0, "count": 1, "hp": 310.0, "spd": 3.5, "dmg": 30.0, "rng": 2.2, "aspd": 0.9,
 		"fly": false, "rock": false, "peck": false, "poison_dps": 0.0, "poison_ticks": 0, "proj": "NONE", "armor": 50.0,
@@ -915,6 +915,8 @@ static func build_animal_model(unit: Node3D, raw_name: String) -> Node3D:
 			_build_primate(root, key, m1, m2, m3, m_dark, m_white, m_eye)
 		"CROCODILIAN":
 			_build_crocodilian(root, key, m1, m2, m3, m_dark, m_white, m_eye)
+		"LIZARD":
+			_build_lizard(root, key, m1, m2, m3, m_dark, m_white, m_eye)
 		"SERPENT":
 			_build_serpent(root, key, m1, m2, m3, m_dark, m_white, m_eye)
 		"CORVID", "AVIAN_FLYER":
@@ -925,7 +927,7 @@ static func build_animal_model(unit: Node3D, raw_name: String) -> Node3D:
 			_build_insect(root, key, arch, m1, m2, m3, m_dark, m_eye)
 		"ARACHNID", "SCORPION", "CENTIPEDE":
 			_build_arachnid_or_crawler(root, key, arch, m1, m2, m3, m_dark, m_eye)
-		"SHARK", "FISH", "EEL":
+		"SHARK", "FISH", "EEL", "WALRUS":
 			_build_aquatic(root, key, arch, m1, m2, m3, m_dark, m_white, m_eye)
 		"CRAB":
 			_build_crab(root, key, m1, m2, m3, m_dark, m_eye)
@@ -951,22 +953,35 @@ static func build_animal_model(unit: Node3D, raw_name: String) -> Node3D:
 
 static func _build_primate(root: Node3D, key: String, m1: Material, m2: Material, m3: Material, m_dark: Material, m_white: Material, m_eye: Material) -> void:
 	var is_ape = ("Gorilla" in key or "Chimpanzee" in key or "Orangutan" in key or "Baboon" in key or "Mandrill" in key)
-	var torso_y = 0.72 if is_ape else 0.58
+	var is_gibbon = ("Gibbon" in key)
+	var torso_y = 0.72 if is_ape else (0.64 if is_gibbon else 0.58)
 	var torso = _add_sphere(root, 0.36 if is_ape else 0.24, 0.78 if is_ape else 0.54, Vector3(0, torso_y, 0.02), m1, Vector3(1.15, 1.0, 1.15), "Torso")
 	_add_sphere(torso, 0.26 if is_ape else 0.17, 0.55 if is_ape else 0.38, Vector3(0, -0.02, -0.14), m2, Vector3(0.95, 0.9, 0.75), "Chest")
 	if "Gorilla" in key:
 		_add_sphere(torso, 0.34, 0.68, Vector3(0, 0.08, 0.10), m2, Vector3(1.12, 0.95, 1.05), "SilverBackSaddle")
+	elif "Baboon" in key:
+		_add_sphere(torso, 0.30, 0.56, Vector3(0, 0.14, -0.12), m2, Vector3(1.22, 1.05, 1.05), "BaboonMane")
+	elif "Mandrill" in key:
+		_add_sphere(torso, 0.18, 0.32, Vector3(0, -0.04, 0.26), m3, Vector3(1.1, 0.9, 0.6), "MandrillRump")
 
 	var head = Node3D.new()
 	head.name = "HeadPivot"
 	head.position = Vector3(0, torso_y + (0.42 if is_ape else 0.30), -0.26 if is_ape else -0.18)
 	root.add_child(head)
 	_add_sphere(head, 0.24 if is_ape else 0.17, 0.48 if is_ape else 0.34, Vector3.ZERO, m1)
-	var muzzle_len = 0.26 if ("Baboon" in key or "Mandrill" in key) else 0.14
-	_add_box(head, Vector3(0.22, 0.16, muzzle_len), Vector3(0, -0.04, -0.16 - muzzle_len * 0.3), m2, Vector3.ZERO, "Muzzle")
-	if "Mandrill" in key:
+	if "Gorilla" in key:
+		_add_box(head, Vector3(0.30, 0.08, 0.14), Vector3(0, 0.11, -0.18), m1, Vector3.ZERO, "BrowRidge")
+	elif "Orangutan" in key:
 		for s in [-1.0, 1.0]:
-			_add_box(head, Vector3(0.05, 0.08, 0.22), Vector3(s * 0.09, -0.01, -0.22), m3)
+			_add_sphere(head, 0.16, 0.34, Vector3(s * 0.22, -0.01, -0.06), m2, Vector3(0.45, 1.05, 0.85), "CheekFlange")
+	elif is_gibbon:
+		_add_sphere(head, 0.15, 0.30, Vector3(0, 0.0, -0.06), m2, Vector3(1.05, 1.05, 0.85), "FaceRing")
+	var muzzle_len = 0.26 if ("Baboon" in key or "Mandrill" in key) else 0.14
+	_add_box(head, Vector3(0.22, 0.16, muzzle_len), Vector3(0, -0.04, -0.16 - muzzle_len * 0.3), m2 if not is_gibbon else m3, Vector3.ZERO, "Muzzle")
+	if "Mandrill" in key:
+		_add_box(head, Vector3(0.05, 0.09, 0.24), Vector3(0, 0.02, -0.23), m3, Vector3.ZERO, "NasalBridge")
+		for s in [-1.0, 1.0]:
+			_add_box(head, Vector3(0.05, 0.08, 0.22), Vector3(s * 0.09, -0.01, -0.22), m2)
 	elif "Proboscis" in key:
 		_add_sphere(head, 0.075, 0.22, Vector3(0, -0.04, -0.28), m2, Vector3(0.85, 1.15, 1.15), "ProboscisNose")
 	for s in [-1.0, 1.0]:
@@ -981,6 +996,7 @@ static func _build_primate(root: Node3D, key: String, m1: Material, m2: Material
 	for s in [-1.0, 1.0]:
 		_add_cyl(jaw, 0.004, 0.022, 0.07, Vector3(s * 0.06, 0.03, -muzzle_len * 0.75), m_white)
 
+	var arm_len = 0.56 if ("Orangutan" in key or is_gibbon) else (0.48 if is_ape else 0.34)
 	for s_idx in range(2):
 		var s = -1.0 if s_idx == 0 else 1.0
 		var side_tag = "L" if s < 0 else "R"
@@ -988,8 +1004,8 @@ static func _build_primate(root: Node3D, key: String, m1: Material, m2: Material
 		arm.name = "LegF" + side_tag
 		arm.position = Vector3(s * (0.38 if is_ape else 0.24), torso_y + 0.18, -0.16)
 		root.add_child(arm)
-		_add_cyl(arm, 0.11 if is_ape else 0.065, 0.09 if is_ape else 0.055, 0.48 if is_ape else 0.34, Vector3(0, -0.22, -0.04), m1, Vector3(14, 0, 0))
-		_add_sphere(arm, 0.11 if is_ape else 0.07, 0.18 if is_ape else 0.12, Vector3(0, -0.46 if is_ape else -0.34, -0.10), m2)
+		_add_cyl(arm, 0.11 if is_ape else 0.065, 0.09 if is_ape else 0.055, arm_len, Vector3(0, -arm_len * 0.46, -0.04), m1, Vector3(14, 0, 0))
+		_add_sphere(arm, 0.11 if is_ape else 0.07, 0.18 if is_ape else 0.12, Vector3(0, -arm_len * 0.95, -0.10), m2)
 
 		var leg = Node3D.new()
 		leg.name = "LegB" + side_tag
@@ -998,30 +1014,44 @@ static func _build_primate(root: Node3D, key: String, m1: Material, m2: Material
 		_add_cyl(leg, 0.10 if is_ape else 0.065, 0.08 if is_ape else 0.05, 0.40 if is_ape else 0.30, Vector3(0, -0.18, 0.02), m1)
 		_add_box(leg, Vector3(0.12, 0.07, 0.20), Vector3(0, -0.38 if is_ape else -0.28, -0.04), m2)
 
-	if not ("Gorilla" in key or "Chimpanzee" in key or "Orangutan" in key):
+	if "Orangutan" in key:
+		var rock_mat = _make_mat(Color(0.48, 0.46, 0.44), 0.90, 0.05)
+		_add_sphere(root, 0.16, 0.28, Vector3(0.36, 0.38, -0.32), rock_mat, Vector3(1.15, 0.85, 1.05), "HeldRock")
+
+	if not ("Gorilla" in key or "Chimpanzee" in key or "Orangutan" in key or is_gibbon):
 		var tail = Node3D.new()
 		tail.name = "TailPivot"
 		tail.position = Vector3(0, torso_y + 0.04, 0.28)
 		root.add_child(tail)
-		for t_i in range(4):
-			_add_cyl(tail, 0.035, 0.04, 0.24, Vector3(0, float(t_i) * 0.14 + 0.08, float(t_i) * 0.12 + 0.08), m1 if (t_i % 2 == 0 or not "Lemur" in key) else m2, Vector3(-42 + t_i * 12, 0, 0))
+		var t_segs = 6 if "Lemur" in key else 4
+		for t_i in range(t_segs):
+			var t_mat = m1
+			if "Lemur" in key:
+				t_mat = m2 if (t_i % 2 == 0) else m3
+			_add_cyl(tail, 0.038, 0.042, 0.20, Vector3(0, float(t_i) * 0.13 + 0.06, float(t_i) * 0.09 + 0.06), t_mat, Vector3(-38 + t_i * 8, 0, 0))
 
 static func _build_crocodilian(root: Node3D, key: String, m1: Material, m2: Material, m3: Material, m_dark: Material, m_white: Material, m_eye: Material) -> void:
 	var body = _add_box(root, Vector3(0.62, 0.32, 1.35), Vector3(0, 0.26, 0.05), m1, Vector3.ZERO, "Torso")
 	_add_box(body, Vector3(0.56, 0.12, 1.28), Vector3(0, -0.14, 0), m2, Vector3.ZERO, "Belly")
 	for r in range(5):
 		for c in [-1.0, 0.0, 1.0]:
-			_add_box(body, Vector3(0.09, 0.08, 0.14), Vector3(c * 0.16, 0.18, -0.48 + float(r) * 0.24), m1, Vector3(-12, 0, 0))
+			_add_box(body, Vector3(0.09, 0.08, 0.14), Vector3(c * 0.16, 0.18, -0.48 + float(r) * 0.24), m1, Vector3(-12, 0, 0), "Scute")
 
 	var head = Node3D.new()
 	head.name = "HeadPivot"
 	head.position = Vector3(0, 0.30, -0.62)
 	root.add_child(head)
-	var snout_w = 0.16 if "Gharial" in key else 0.42
-	var snout_l = 0.82 if "Gharial" in key else 0.68
+	var snout_w = 0.15 if "Gharial" in key else (0.48 if "Alligator" in key else 0.40)
+	var snout_l = 0.86 if "Gharial" in key else 0.68
 	_add_box(head, Vector3(0.46, 0.20, 0.32), Vector3(0, 0.04, -0.12), m1)
 	_add_box(head, Vector3(snout_w, 0.14, snout_l), Vector3(0, 0.0, -0.24 - snout_l * 0.5), m1)
+	if "Gharial" in key:
+		_add_sphere(head, 0.09, 0.16, Vector3(0, 0.09, -0.22 - snout_l * 0.88), m1, Vector3.ONE, "GharaBulb")
 	_add_eyes(head, 0.16, 0.14, -0.14, 0.05, m_eye, m_dark)
+	for t in range(5):
+		for s in [-1.0, 1.0]:
+			var tz = -0.32 - float(t) * (snout_l * 0.16)
+			_add_cyl(head, 0.022, 0.003, 0.07, Vector3(s * (snout_w * 0.42), -0.08, tz), m_white)
 
 	var jaw = Node3D.new()
 	jaw.name = "JawPivot"
@@ -1041,8 +1071,9 @@ static func _build_crocodilian(root: Node3D, key: String, m1: Material, m2: Mate
 		var w = 0.46 * (1.0 - float(seg) * 0.20)
 		var h = 0.26 * (1.0 - float(seg) * 0.16)
 		var z = 0.22 + float(seg) * 0.32
-		_add_box(tail, Vector3(w, h, 0.34), Vector3(0, 0, z), m1)
-		_add_box(tail, Vector3(0.06, 0.10, 0.16), Vector3(0, h * 0.65, z), m1)
+		var t_seg = _add_box(tail, Vector3(w, h, 0.34), Vector3(0, 0, z), m1, Vector3.ZERO, "Coil" + str(seg))
+		t_seg.set_meta("base_x", 0.0)
+		_add_box(t_seg, Vector3(0.06, 0.10, 0.16), Vector3(0, h * 0.65, 0), m1)
 
 	for s_idx in range(2):
 		var s = -1.0 if s_idx == 0 else 1.0
@@ -1055,6 +1086,83 @@ static func _build_crocodilian(root: Node3D, key: String, m1: Material, m2: Mate
 			root.add_child(leg)
 			_add_box(leg, Vector3(0.18, 0.14, 0.16), Vector3(s * 0.06, -0.04, 0), m1, Vector3(0, 0, -s * 20.0))
 			_add_box(leg, Vector3(0.16, 0.08, 0.24), Vector3(s * 0.12, -0.16, -0.04), m2)
+
+static func _build_lizard(root: Node3D, key: String, m1: Material, m2: Material, m3: Material, m_dark: Material, m_white: Material, m_eye: Material) -> void:
+	var is_cham = ("Chameleon" in key)
+	var is_frill = ("Frilled" in key)
+	var is_gila = ("Gila" in key)
+	var body_y = 0.46 if (is_cham or is_frill) else 0.32
+	var body_scl = Vector3(0.62, 1.25, 1.32) if is_cham else (Vector3(1.18, 0.72, 1.38) if is_gila else Vector3(0.95, 0.68, 1.48))
+	var body = _add_sphere(root, 0.30, 0.68, Vector3(0, body_y, 0.04), m1, body_scl, "Torso")
+	_add_sphere(body, 0.25, 0.58, Vector3(0, -0.06, 0), m2, Vector3(0.88, 0.75, 1.25), "Belly")
+	if is_gila:
+		for b_i in range(4):
+			_add_box(body, Vector3(0.56, 0.32, 0.10), Vector3(0, 0.04, -0.24 + float(b_i) * 0.16), m2, Vector3.ZERO, "BeadBand")
+	elif is_cham:
+		for c_i in range(6):
+			_add_box(body, Vector3(0.05, 0.10, 0.08), Vector3(0, 0.28 - absf(float(c_i) - 2.5) * 0.03, -0.25 + float(c_i) * 0.10), m2)
+
+	var head = Node3D.new()
+	head.name = "HeadPivot"
+	head.position = Vector3(0, body_y + (0.14 if is_frill else 0.06), -0.44)
+	root.add_child(head)
+	_add_sphere(head, 0.19, 0.38, Vector3.ZERO, m1, Vector3(0.95, 0.78, 1.22))
+	_add_box(head, Vector3(0.18, 0.12, 0.26), Vector3(0, -0.02, -0.18), m1)
+
+	if is_cham:
+		_add_box(head, Vector3(0.12, 0.22, 0.22), Vector3(0, 0.14, 0.06), m1, Vector3(-28, 0, 0), "Casque")
+		_add_cyl(head, 0.004, 0.022, 0.22, Vector3(0, 0.02, -0.30), m_white, Vector3(-86, 0, 0), "CenterHorn")
+		for s in [-1.0, 1.0]:
+			_add_cyl(head, 0.004, 0.020, 0.20, Vector3(s * 0.07, 0.06, -0.26), m_white, Vector3(-82, -s * 12.0, 0), "SideHorn")
+			_add_sphere(head, 0.065, 0.13, Vector3(s * 0.12, 0.04, -0.12), m2, Vector3.ONE, "TurretEye")
+	elif is_frill:
+		var frill = Node3D.new()
+		frill.name = "NeckFrill"
+		frill.position = Vector3(0, 0.02, 0.06)
+		head.add_child(frill)
+		for s in [-1.0, 1.0]:
+			_add_box(frill, Vector3(0.36, 0.42, 0.04), Vector3(s * 0.18, 0.02, 0.02), m2, Vector3(12, s * 22.0, -s * 14.0), "FrillWing")
+			_add_box(frill, Vector3(0.24, 0.30, 0.05), Vector3(s * 0.16, 0.02, 0.01), m3, Vector3(12, s * 22.0, -s * 14.0))
+	_add_eyes(head, 0.11, 0.04, -0.14, 0.038, m_eye, m_dark)
+
+	var jaw = Node3D.new()
+	jaw.name = "JawPivot"
+	jaw.position = Vector3(0, -0.06, -0.08)
+	head.add_child(jaw)
+	_add_box(jaw, Vector3(0.16, 0.05, 0.24), Vector3(0, -0.02, -0.10), m2)
+	if "Komodo" in key or "Monitor" in key:
+		_add_box(jaw, Vector3(0.025, 0.01, 0.26), Vector3(0, 0.02, -0.28), m3, Vector3.ZERO, "ForkedTongue")
+	elif is_cham:
+		_add_cyl(jaw, 0.025, 0.018, 0.26, Vector3(0, 0.02, -0.22), m3, Vector3(-90, 0, 0), "BallisticTongue")
+
+	var tail = Node3D.new()
+	tail.name = "TailPivot"
+	tail.position = Vector3(0, body_y - 0.02, 0.44)
+	root.add_child(tail)
+	if is_cham:
+		for c_t in range(6):
+			var ang = float(c_t) * 0.85
+			var r_c = 0.22 - float(c_t) * 0.028
+			_add_sphere(tail, 0.065 - float(c_t) * 0.007, 0.13, Vector3(0, -cos(ang) * r_c + 0.12, sin(ang) * r_c + 0.18), m2)
+	elif is_gila:
+		_add_cyl(tail, 0.05, 0.11, 0.48, Vector3(0, -0.04, 0.22), m2, Vector3(78, 0, 0))
+	else:
+		for seg in range(4):
+			var t_s = _add_cyl(tail, 0.045 * (1.0 - float(seg) * 0.2), 0.065 * (1.0 - float(seg) * 0.2), 0.26, Vector3(0, -0.04 - float(seg) * 0.02, 0.14 + float(seg) * 0.22), m1, Vector3(82, 0, 0), "Coil" + str(seg))
+			t_s.set_meta("base_x", 0.0)
+
+	for s_idx in range(2):
+		var s = -1.0 if s_idx == 0 else 1.0
+		var side_tag = "L" if s < 0 else "R"
+		for f_idx in range(2):
+			var is_front = (f_idx == 0)
+			var leg = Node3D.new()
+			leg.name = ("LegF" if is_front else "LegB") + side_tag
+			leg.position = Vector3(s * (0.18 if is_cham else 0.26), body_y - 0.08, -0.24 if is_front else 0.26)
+			root.add_child(leg)
+			var leg_h = 0.34 if (is_cham or is_frill) else 0.24
+			_add_cyl(leg, 0.055, 0.042, leg_h, Vector3(s * 0.06, -leg_h * 0.45, 0), m1, Vector3(0, 0, -s * (14.0 if is_cham else 28.0)))
+			_add_box(leg, Vector3(0.11, 0.05, 0.16), Vector3(s * 0.12, -leg_h * 0.90, -0.03), m2)
 
 static func _build_serpent(root: Node3D, key: String, m1: Material, m2: Material, m3: Material, m_dark: Material, m_white: Material, m_eye: Material) -> void:
 	var has_hood = ("Cobra" in key)
@@ -1085,68 +1193,106 @@ static func _build_serpent(root: Node3D, key: String, m1: Material, m2: Material
 	tail.name = "TailPivot"
 	tail.position = Vector3(0, 0.14, -0.40)
 	root.add_child(tail)
+	var is_constrictor = ("Anaconda" in key or "Python" in key or "Gaboon" in key)
 	for i in range(9):
 		var frac = float(i) / 8.0
-		var rad = lerpf(0.15, 0.05, frac)
+		var rad = lerpf(0.19 if is_constrictor else 0.15, 0.05, frac)
 		var x_off = sin(float(i) * 0.95) * 0.24
-		var y_off = 0.28 * (1.0 - float(i) * 0.35) if (has_hood and i < 3) else 0.0
+		var y_off = 0.32 * (1.0 - float(i) * 0.32) if (has_hood and i < 3) else 0.0
 		var seg_mat = m1 if (i % 2 == 0) else m2
 		if "Coral" in key and (i % 3 == 2):
 			seg_mat = m3
-		_add_sphere(tail, rad, rad * 2.2, Vector3(x_off, y_off, float(i) * 0.20), seg_mat, Vector3(1.0, 0.78, 1.35), "Coil" + str(i))
+		var coil = _add_sphere(tail, rad, rad * 2.2, Vector3(x_off, y_off, float(i) * 0.20), seg_mat, Vector3(1.0, 0.78, 1.35), "Coil" + str(i))
+		coil.set_meta("base_x", x_off)
 	if has_rattle:
+		var rattle_piv = Node3D.new()
+		rattle_piv.name = "RattlePivot"
+		rattle_piv.position = Vector3(sin(8.0 * 0.95) * 0.24, 0.10, 1.65)
+		tail.add_child(rattle_piv)
 		for r in range(4):
-			_add_sphere(tail, 0.055 - float(r) * 0.008, 0.09, Vector3(sin(8.0 * 0.95) * 0.24, 0.10 + float(r) * 0.05, 1.65 + float(r) * 0.04), m3)
+			_add_sphere(rattle_piv, 0.055 - float(r) * 0.008, 0.09, Vector3(0, float(r) * 0.05, float(r) * 0.04), m3)
+	elif "SeaKrait" in key:
+		_add_box(tail, Vector3(0.03, 0.18, 0.26), Vector3(sin(8.0 * 0.95) * 0.24, 0.04, 1.72), m1, Vector3.ZERO, "PaddleTail")
 
 static func _build_avian_flyer(root: Node3D, key: String, info: Dictionary, m1: Material, m2: Material, m3: Material, m_dark: Material, m_white: Material, m_eye: Material) -> void:
 	var body = _add_sphere(root, 0.24, 0.62, Vector3(0, 0.55, 0), m1, Vector3(0.92, 0.85, 1.35), "Torso")
 	_add_sphere(body, 0.20, 0.48, Vector3(0, -0.04, -0.08), m2, Vector3(0.88, 0.80, 1.15), "Breast")
+	if "Condor" in key:
+		_add_cyl(root, 0.16, 0.19, 0.12, Vector3(0, 0.66, -0.26), m_white, Vector3(45, 0, 0), "CondorRuff")
+	elif "Goose" in key:
+		_add_cyl(root, 0.065, 0.085, 0.28, Vector3(0, 0.68, -0.26), m2, Vector3(28, 0, 0), "GooseNeck")
 
 	var head = Node3D.new()
 	head.name = "HeadPivot"
 	head.position = Vector3(0, 0.74, -0.34)
 	root.add_child(head)
-	var head_mat = m_white if "BaldEagle" in key else m1
+	var head_mat = m_white if "BaldEagle" in key else (m2 if "Goose" in key else (m3 if "Condor" in key else m1))
 	_add_sphere(head, 0.16, 0.32, Vector3.ZERO, head_mat)
-	if "Woodpecker" in key or "BlueJay" in key or "Cockatoo" in key or "Kingfisher" in key:
-		_add_box(head, Vector3(0.06, 0.14, 0.18), Vector3(0, 0.12, 0.04), m3 if "Cockatoo" in key else (m2 if "Woodpecker" in key else m1), Vector3(-28, 0, 0), "Crest")
-	_add_eyes(head, 0.11, 0.03, -0.10, 0.034, m_eye, m_dark)
+	if "Woodpecker" in key or "BlueJay" in key or "Cockatoo" in key or "Kingfisher" in key or "Harpy" in key:
+		var cr_mat = m3 if ("Cockatoo" in key or "Woodpecker" in key) else m1
+		_add_box(head, Vector3(0.06, 0.14, 0.18), Vector3(0, 0.12, 0.04), cr_mat, Vector3(-28, 0, 0), "Crest")
+	elif "Owl" in key:
+		for s in [-1.0, 1.0]:
+			_add_cyl(head, 0.01, 0.04, 0.14, Vector3(s * 0.11, 0.14, -0.04), m1, Vector3(-15, 0, -s * 24.0), "OwlTuft")
+			_add_sphere(head, 0.075, 0.15, Vector3(s * 0.08, 0.02, -0.11), m2, Vector3(1.1, 1.1, 0.35), "FacialDisc")
+	elif "Goose" in key:
+		_add_box(head, Vector3(0.24, 0.08, 0.10), Vector3(0, -0.04, -0.04), m3, Vector3.ZERO, "Chinstrap")
+	_add_eyes(head, 0.10 if "Owl" in key else 0.11, 0.03, -0.10, 0.042 if "Owl" in key else 0.034, m_eye, m_dark)
 
-	var beak_len = 0.38 if ("Toucan" in key or "Pelican" in key or "Hornbill" in key or "Seagull" in key) else 0.24
+	var is_raptor = ("Eagle" in key or "Falcon" in key or "Owl" in key or "Condor" in key)
+	var beak_len = 0.38 if ("Toucan" in key or "Pelican" in key or "Hornbill" in key or "Seagull" in key) else (0.28 if "Woodpecker" in key else 0.24)
 	var beak_r = 0.09 if ("Toucan" in key or "Pelican" in key or "Hornbill" in key) else 0.048
-	_add_cyl(head, 0.006, beak_r, beak_len, Vector3(0, -0.01, -0.14 - beak_len * 0.45), m3, Vector3(-90, 0, 0), "Beak")
-	if "Pelican" in key:
-		_add_sphere(head, 0.11, 0.26, Vector3(0, -0.10, -0.28), m2, Vector3(0.85, 0.95, 1.45), "PelicanPouch")
+	_add_cyl(head, 0.006, beak_r, beak_len, Vector3(0, -0.01, -0.14 - beak_len * 0.45), m3, Vector3(-98 if is_raptor else -90, 0, 0), "Beak")
+	if is_raptor:
+		_add_cyl(head, 0.003, 0.028, 0.10, Vector3(0, -0.06, -0.16 - beak_len * 0.82), m3, Vector3(-155, 0, 0), "BeakHook")
+	elif "Pelican" in key:
+		_add_sphere(head, 0.11, 0.26, Vector3(0, -0.10, -0.28), m3, Vector3(0.85, 0.95, 1.45), "PelicanPouch")
 
 	for s_idx in range(2):
 		var s = -1.0 if s_idx == 0 else 1.0
+		var side_tag = "L" if s < 0 else "R"
 		var wing = Node3D.new()
-		wing.name = "WingL" if s < 0 else "WingR"
+		wing.name = "Wing" + side_tag
 		wing.position = Vector3(s * 0.20, 0.62, -0.04)
 		root.add_child(wing)
 		_add_box(wing, Vector3(0.58, 0.045, 0.34), Vector3(s * 0.28, 0, 0.02), m1, Vector3(0, -s * 8.0, 0))
-		_add_box(wing, Vector3(0.46, 0.035, 0.24), Vector3(s * 0.66, 0, 0.08), m2, Vector3(0, -s * 18.0, 0))
+		_add_box(wing, Vector3(0.46, 0.035, 0.24), Vector3(s * 0.66, 0, 0.08), m2 if not "BaldEagle" in key else m1, Vector3(0, -s * 18.0, 0))
+
+		var talon = Node3D.new()
+		talon.name = "LegB" + side_tag
+		talon.position = Vector3(s * 0.10, 0.38, -0.04)
+		root.add_child(talon)
+		_add_cyl(talon, 0.028, 0.020, 0.18, Vector3(0, -0.08, -0.02), m3, Vector3(24, 0, 0))
+		_add_box(talon, Vector3(0.08, 0.035, 0.12), Vector3(0, -0.16, -0.06), m3)
 
 	var tail = Node3D.new()
 	tail.name = "TailPivot"
 	tail.position = Vector3(0, 0.52, 0.32)
 	root.add_child(tail)
-	_add_box(tail, Vector3(0.32, 0.04, 0.38), Vector3(0, -0.02, 0.16), m1, Vector3(-14, 0, 0))
+	_add_box(tail, Vector3(0.32, 0.04, 0.38), Vector3(0, -0.02, 0.16), m_white if "BaldEagle" in key else m1, Vector3(-14, 0, 0))
 
 	if info.get("rock", false):
 		var rock_mat = _make_mat(Color(0.48, 0.46, 0.44), 0.90, 0.05)
-		_add_sphere(root, 0.13, 0.24, Vector3(0, 0.24, -0.12), rock_mat, Vector3(1.15, 0.85, 1.05), "HeldRock")
+		_add_sphere(root, 0.13, 0.24, Vector3(0, 0.20, -0.10), rock_mat, Vector3(1.15, 0.85, 1.05), "HeldRock")
 
 static func _build_avian_walker(root: Node3D, key: String, m1: Material, m2: Material, m3: Material, m_dark: Material, m_white: Material, m_eye: Material) -> void:
 	var tall = ("Ostrich" in key or "Cassowary" in key or "Emu" in key or "Secretary" in key or "Shoebill" in key or "Swan" in key or "Goose" in key)
 	var body_y = 0.78 if tall else 0.48
 	var body = _add_sphere(root, 0.32 if tall else 0.24, 0.72 if tall else 0.52, Vector3(0, body_y, 0.06), m1, Vector3(0.95, 0.90, 1.28), "Torso")
-	for s in [-1.0, 1.0]:
-		_add_box(body, Vector3(0.08, 0.26, 0.42), Vector3(s * 0.28, 0.02, 0), m2)
+	for s_idx in range(2):
+		var s = -1.0 if s_idx == 0 else 1.0
+		var side_tag = "L" if s < 0 else "R"
+		var w_piv = Node3D.new()
+		w_piv.name = "Wing" + side_tag
+		w_piv.position = Vector3(s * 0.28, body_y + 0.04, -0.04)
+		root.add_child(w_piv)
+		_add_box(w_piv, Vector3(0.08, 0.26, 0.42), Vector3(s * 0.04, -0.02, 0.06), m2)
 
 	var neck_h = 0.52 if tall else 0.24
 	var neck_mat = m2 if ("Ostrich" in key or "Cassowary" in key) else m1
 	_add_cyl(root, 0.065, 0.095, neck_h, Vector3(0, body_y + neck_h * 0.55, -0.24), neck_mat, Vector3(16, 0, 0), "Neck")
+	if "Cassowary" in key:
+		_add_box(root, Vector3(0.06, 0.18, 0.06), Vector3(0, body_y + 0.16, -0.32), m3, Vector3.ZERO, "Wattle")
 
 	var head = Node3D.new()
 	head.name = "HeadPivot"
@@ -1154,12 +1300,20 @@ static func _build_avian_walker(root: Node3D, key: String, m1: Material, m2: Mat
 	root.add_child(head)
 	_add_sphere(head, 0.14, 0.28, Vector3.ZERO, neck_mat)
 	if "Cassowary" in key:
-		_add_box(head, Vector3(0.06, 0.20, 0.22), Vector3(0, 0.14, -0.02), m3, Vector3(-18, 0, 0), "Casque")
-	elif "Rooster" in key or "Turkey" in key:
-		_add_box(head, Vector3(0.04, 0.14, 0.16), Vector3(0, 0.12, 0), m2, Vector3.ZERO, "Comb")
-	var beak_w = 0.18 if "Shoebill" in key else 0.08
-	_add_box(head, Vector3(beak_w, 0.09, 0.24), Vector3(0, -0.02, -0.20), m3, Vector3.ZERO, "Beak")
+		_add_box(head, Vector3(0.06, 0.22, 0.24), Vector3(0, 0.15, -0.02), m3, Vector3(-18, 0, 0), "Casque")
+	elif "Secretary" in key:
+		for q_i in range(5):
+			_add_cyl(head, 0.005, 0.018, 0.22, Vector3((float(q_i) - 2.0) * 0.025, 0.10, 0.14), m2, Vector3(48, 0, (float(q_i) - 2.0) * 8.0), "CrestQuill")
+	var beak_w = 0.20 if "Shoebill" in key else 0.08
+	var beak_l = 0.34 if "Shoebill" in key else 0.24
+	_add_box(head, Vector3(beak_w, 0.11 if "Shoebill" in key else 0.08, beak_l), Vector3(0, -0.02, -0.14 - beak_l * 0.4), m3, Vector3.ZERO, "Beak")
 	_add_eyes(head, 0.09, 0.03, -0.08, 0.032, m_eye, m_dark)
+
+	var tail = Node3D.new()
+	tail.name = "TailPivot"
+	tail.position = Vector3(0, body_y + 0.04, 0.42)
+	root.add_child(tail)
+	_add_box(tail, Vector3(0.28, 0.16, 0.32), Vector3(0, -0.02, 0.12), m2, Vector3(-18, 0, 0))
 
 	for s_idx in range(2):
 		var s = -1.0 if s_idx == 0 else 1.0
@@ -1169,41 +1323,51 @@ static func _build_avian_walker(root: Node3D, key: String, m1: Material, m2: Mat
 		leg.position = Vector3(s * 0.16, body_y - 0.16, 0.02)
 		root.add_child(leg)
 		var leg_h = body_y - 0.14
-		_add_cyl(leg, 0.045, 0.035, leg_h, Vector3(0, -leg_h * 0.5, 0), m3)
+		_add_cyl(leg, 0.048, 0.035, leg_h, Vector3(0, -leg_h * 0.5, 0), m2 if "Secretary" in key else m3)
 		_add_box(leg, Vector3(0.14, 0.05, 0.24), Vector3(0, -leg_h, -0.06), m3)
 
-static func _build_insect(root: Node3D, key: String, arch: String, m1: Material, m2: Material, m3: Material, m_dark: Material, m_eye: Material) -> void:
+static func _build_insect(root: Node3D, key: String, arch: String, m1: Material, m2: Material, m3: Material, m_dark: Material, _m_eye: Material) -> void:
 	var is_flyer = (arch == "FLYING_INSECT")
 	var is_beetle = (arch == "BEETLE")
+	var is_mantis = ("Mantis" in key)
+	var is_dragonfly = ("Dragonfly" in key)
 	var y_base = 0.45 if is_flyer else 0.28
-	_add_sphere(root, 0.16, 0.36, Vector3(0, y_base, -0.08), m1, Vector3(0.95, 0.85, 1.18), "Thorax")
-	var abd_r = 0.28 if is_beetle else 0.22
-	var abd = _add_sphere(root, abd_r, abd_r * 2.2, Vector3(0, y_base + 0.02, 0.30), m1 if is_beetle else m2, Vector3(1.05, 0.85, 1.45), "Abdomen")
+	var thorax = _add_sphere(root, 0.16, 0.36, Vector3(0, y_base, -0.08), m1, Vector3(0.95, 0.85, 1.18), "Thorax")
+	if is_mantis:
+		_add_cyl(root, 0.055, 0.075, 0.34, Vector3(0, y_base + 0.16, -0.24), m1, Vector3(-36, 0, 0), "Prothorax")
+	elif "Hercules" in key:
+		_add_cyl(thorax, 0.014, 0.065, 0.56, Vector3(0, 0.16, -0.34), m2, Vector3(-86, 0, 0), "ThoraxHorn")
+
+	var abd_r = 0.28 if is_beetle else (0.12 if is_dragonfly else 0.22)
+	var abd_scl = Vector3(0.75, 0.75, 2.8) if is_dragonfly else Vector3(1.05, 0.85, 1.45)
+	var abd = _add_sphere(root, abd_r, abd_r * 2.2, Vector3(0, y_base + 0.02, 0.36 if is_dragonfly else 0.30), m1 if is_beetle else m2, abd_scl, "Abdomen")
 	if "Hornet" in key or "Wasp" in key or "Bee" in key:
 		for st in range(3):
 			_add_box(abd, Vector3(0.38, 0.26, 0.08), Vector3(0, 0, -0.14 + float(st) * 0.14), m1)
 		_add_cyl(abd, 0.003, 0.04, 0.18, Vector3(0, -0.02, 0.36), m_dark, Vector3(85, 0, 0), "Stinger")
+	elif "Bombardier" in key:
+		_add_sphere(abd, 0.12, 0.24, Vector3(0, -0.02, 0.28), m3, Vector3.ONE, "AcidNozzle")
 
 	var head = Node3D.new()
 	head.name = "HeadPivot"
-	head.position = Vector3(0, y_base + 0.04, -0.32)
+	head.position = Vector3(0, y_base + (0.28 if is_mantis else 0.04), -0.36 if is_mantis else -0.32)
 	root.add_child(head)
-	_add_sphere(head, 0.14, 0.26, Vector3.ZERO, m1)
-	_add_eyes(head, 0.10, 0.03, -0.08, 0.045, m3, m_dark)
+	_add_sphere(head, 0.14, 0.26, Vector3.ZERO, m1, Vector3(1.18, 0.85, 0.75) if is_mantis else Vector3.ONE)
+	_add_eyes(head, 0.11 if is_mantis else 0.10, 0.04 if is_mantis else 0.03, -0.08, 0.052 if (is_mantis or is_dragonfly) else 0.045, m3, m_dark)
 	for s in [-1.0, 1.0]:
-		_add_cyl(head, 0.01, 0.018, 0.24, Vector3(s * 0.06, 0.14, -0.14), m_dark, Vector3(-35, 0, -s * 22.0), "Antenna")
+		_add_cyl(head, 0.008, 0.018, 0.24, Vector3(s * 0.06, 0.14, -0.14), m_dark, Vector3(-35, 0, -s * 22.0), "Antenna")
 
 	if "Hercules" in key or "Rhino" in key or "Goliath" in key:
-		_add_cyl(head, 0.015, 0.055, 0.46, Vector3(0, 0.12, -0.26), m2, Vector3(-55, 0, 0), "BeetleHorn")
-		_add_cyl(head, 0.012, 0.045, 0.36, Vector3(0, -0.02, -0.24), m2, Vector3(-82, 0, 0), "LowerHorn")
+		_add_cyl(head, 0.015, 0.055, 0.46, Vector3(0, 0.06, -0.26), m2, Vector3(-52, 0, 0), "BeetleHorn")
+		_add_cyl(head, 0.012, 0.045, 0.32, Vector3(0, -0.04, -0.22), m2, Vector3(-78, 0, 0), "LowerHorn")
 	elif "Stag" in key or "Ant" in key or "Termite" in key or "TigerBeetle" in key:
 		for s in [-1.0, 1.0]:
-			var m_len = 0.36 if "Stag" in key else 0.18
-			_add_box(head, Vector3(0.05, 0.04, m_len), Vector3(s * 0.09, -0.02, -0.12 - m_len * 0.4), m2, Vector3(0, -s * 18.0, 0), "Mandible")
+			var m_len = 0.38 if "Stag" in key else 0.18
+			_add_box(head, Vector3(0.05, 0.04, m_len), Vector3(s * 0.09, -0.02, -0.12 - m_len * 0.4), m3 if "Stag" in key else m2, Vector3(0, -s * 18.0, 0), "Mandible")
 	elif "Mosquito" in key or "Assassin" in key:
 		_add_cyl(head, 0.004, 0.016, 0.36, Vector3(0, -0.04, -0.24), m3, Vector3(-78, 0, 0), "Proboscis")
 
-	if is_flyer or "Locust" in key or "Mantis" in key:
+	if is_flyer or "Locust" in key or is_mantis:
 		var wing_mat = _make_mat(Color(0.85, 0.94, 1.0), 0.15, 0.2, 0.25)
 		for s_idx in range(2):
 			var s = -1.0 if s_idx == 0 else 1.0
@@ -1211,7 +1375,9 @@ static func _build_insect(root: Node3D, key: String, arch: String, m1: Material,
 			wing.name = "WingL" if s < 0 else "WingR"
 			wing.position = Vector3(s * 0.14, y_base + 0.14, -0.04)
 			root.add_child(wing)
-			_add_box(wing, Vector3(0.52, 0.015, 0.22), Vector3(s * 0.26, 0, 0.04), wing_mat, Vector3(0, -s * 12.0, 0))
+			_add_box(wing, Vector3(0.56 if is_dragonfly else 0.52, 0.015, 0.18 if is_dragonfly else 0.22), Vector3(s * 0.26, 0, -0.02 if is_dragonfly else 0.04), wing_mat, Vector3(0, -s * 8.0, 0))
+			if is_dragonfly:
+				_add_box(wing, Vector3(0.50, 0.015, 0.16), Vector3(s * 0.24, -0.01, 0.18), wing_mat, Vector3(0, -s * 18.0, 0), "HindWing")
 
 	for leg_i in range(3):
 		var z_off = -0.16 + float(leg_i) * 0.16
@@ -1224,12 +1390,14 @@ static func _build_insect(root: Node3D, key: String, arch: String, m1: Material,
 				leg.name = "LegB" + ("L" if s < 0 else "R")
 			else:
 				leg.name = "LegM" + ("L" if s < 0 else "R")
-			leg.position = Vector3(s * 0.15, y_base - 0.04, z_off)
+			leg.position = Vector3(s * 0.15, (y_base + 0.16) if (is_mantis and leg_i == 0) else (y_base - 0.04), -0.28 if (is_mantis and leg_i == 0) else z_off)
 			root.add_child(leg)
-			if "Mantis" in key and leg_i == 0:
-				_add_box(leg, Vector3(0.05, 0.28, 0.08), Vector3(s * 0.04, 0.08, -0.18), m2, Vector3(38, 0, 0), "ScytheArm")
+			if is_mantis and leg_i == 0:
+				_add_box(leg, Vector3(0.05, 0.24, 0.07), Vector3(s * 0.04, -0.06, -0.10), m2, Vector3(-42, 0, 0), "ScytheFemur")
+				_add_box(leg, Vector3(0.04, 0.24, 0.06), Vector3(s * 0.04, -0.06, -0.24), m3, Vector3(48, 0, 0), "ScytheBlade")
 			else:
-				_add_cyl(leg, 0.024, 0.016, 0.28, Vector3(s * 0.10, -0.12, 0), m2, Vector3(0, 0, -s * 34.0))
+				_add_cyl(leg, 0.022, 0.018, 0.16, Vector3(s * 0.08, 0.02, 0), m2, Vector3(0, 0, -s * 62.0))
+				_add_cyl(leg, 0.018, 0.012, 0.22, Vector3(s * 0.18, -0.10, 0), m2, Vector3(0, 0, -s * 18.0))
 
 static func _build_arachnid_or_crawler(root: Node3D, key: String, arch: String, m1: Material, m2: Material, m3: Material, m_dark: Material, m_eye: Material) -> void:
 	if arch == "CENTIPEDE":
@@ -1239,11 +1407,21 @@ static func _build_arachnid_or_crawler(root: Node3D, key: String, arch: String, 
 		root.add_child(head)
 		_add_box(head, Vector3(0.28, 0.12, 0.24), Vector3.ZERO, m2)
 		_add_eyes(head, 0.10, 0.03, -0.10, 0.03, m_eye, m_dark)
+		for s in [-1.0, 1.0]:
+			_add_cyl(head, 0.008, 0.016, 0.26, Vector3(s * 0.08, 0.04, -0.20), m1, Vector3(-68, -s * 24.0, 0), "Antenna")
+			_add_box(head, Vector3(0.05, 0.04, 0.18), Vector3(s * 0.14, -0.02, -0.14), m3, Vector3(0, s * 24.0, 0), "Forcipule")
 		for seg in range(7):
 			var z = -0.34 + float(seg) * 0.20
-			_add_box(root, Vector3(0.28, 0.11, 0.18), Vector3(0, 0.18, z), m1 if seg % 2 == 0 else m2)
+			var seg_piv = Node3D.new()
+			seg_piv.name = "Seg" + str(seg)
+			seg_piv.position = Vector3(0, 0.18, z)
+			root.add_child(seg_piv)
+			_add_box(seg_piv, Vector3(0.28, 0.11, 0.18), Vector3.ZERO, m1 if seg % 2 == 0 else m2)
 			for s in [-1.0, 1.0]:
-				_add_cyl(root, 0.018, 0.012, 0.22, Vector3(s * 0.22, 0.10, z), m3, Vector3(0, 0, -s * 48.0))
+				_add_cyl(seg_piv, 0.018, 0.010, 0.24, Vector3(s * 0.22, -0.06, 0), m2, Vector3(0, 0, -s * 54.0))
+			if seg == 6:
+				for s in [-1.0, 1.0]:
+					_add_cyl(seg_piv, 0.006, 0.020, 0.26, Vector3(s * 0.09, 0.0, 0.18), m1, Vector3(78, s * 16.0, 0), "Cerci")
 		return
 
 	_add_sphere(root, 0.22, 0.36, Vector3(0, 0.28, -0.14), m1, Vector3(1.1, 0.72, 1.15), "Cephalothorax")
@@ -1256,11 +1434,18 @@ static func _build_arachnid_or_crawler(root: Node3D, key: String, arch: String, 
 	head.position = Vector3(0, 0.28, -0.34)
 	root.add_child(head)
 	_add_eyes(head, 0.07, 0.05, -0.04, 0.032, m3, m_dark)
-	for s in [-1.0, 1.0]:
+	for s_idx in range(2):
+		var s = -1.0 if s_idx == 0 else 1.0
+		var side_tag = "L" if s < 0 else "R"
 		if arch == "SCORPION":
-			_add_box(head, Vector3(0.14, 0.08, 0.28), Vector3(s * 0.24, 0.0, -0.18), m2, Vector3(0, -s * 14.0, 0), "Pincer")
+			var claw = Node3D.new()
+			claw.name = "LegF" + side_tag
+			claw.position = Vector3(s * 0.20, 0.28, -0.30)
+			root.add_child(claw)
+			_add_cyl(claw, 0.032, 0.028, 0.22, Vector3(s * 0.08, 0, -0.08), m2, Vector3(75, -s * 28.0, 0))
+			_add_box(claw, Vector3(0.14, 0.08, 0.28), Vector3(s * 0.12, 0.0, -0.24), m2, Vector3(0, -s * 14.0, 0), "Pincer")
 		else:
-			_add_cyl(head, 0.012, 0.032, 0.16, Vector3(s * 0.07, -0.04, -0.08), m2, Vector3(-35, 0, 0), "Chelicera")
+			_add_cyl(head, 0.032, 0.010, 0.16, Vector3(s * 0.07, -0.05, -0.08), m3, Vector3(24, 0, 0), "Chelicera")
 
 	if arch == "SCORPION":
 		var tail = Node3D.new()
@@ -1281,7 +1466,8 @@ static func _build_arachnid_or_crawler(root: Node3D, key: String, arch: String, 
 			leg.name = ("LegF" if leg_i < 2 else "LegB") + ("L" if s < 0 else "R") + str(leg_i)
 			leg.position = Vector3(s * 0.18, 0.26, z_off)
 			root.add_child(leg)
-			_add_cyl(leg, 0.028, 0.020, 0.32, Vector3(s * 0.14, -0.06, 0), m2, Vector3(0, 0, -s * 46.0))
+			_add_cyl(leg, 0.026, 0.022, 0.20, Vector3(s * 0.09, 0.05, 0), m2, Vector3(0, 0, -s * 64.0))
+			_add_cyl(leg, 0.022, 0.014, 0.28, Vector3(s * 0.22, -0.08, 0), m2, Vector3(0, 0, -s * 22.0))
 
 static func _build_aquatic(root: Node3D, key: String, arch: String, m1: Material, m2: Material, m3: Material, m_dark: Material, m_white: Material, m_eye: Material) -> void:
 	if arch == "EEL":
@@ -1297,18 +1483,60 @@ static func _build_aquatic(root: Node3D, key: String, arch: String, m1: Material
 		root.add_child(tail)
 		for i in range(7):
 			var x_w = sin(float(i) * 0.85) * 0.18
-			_add_sphere(tail, 0.14 * (1.0 - float(i) * 0.09), 0.28, Vector3(x_w, 0, float(i) * 0.20), m1 if i % 2 == 0 else m2, Vector3(0.85, 1.0, 1.35))
+			var coil = _add_sphere(tail, 0.14 * (1.0 - float(i) * 0.09), 0.28, Vector3(x_w, 0, float(i) * 0.20), m1 if i % 2 == 0 else m2, Vector3(0.85, 1.0, 1.35), "Coil" + str(i))
+			coil.set_meta("base_x", x_w)
+			if "Electric" in key and i < 5:
+				for s in [-1.0, 1.0]:
+					_add_sphere(coil, 0.032, 0.064, Vector3(s * 0.12, 0.0, 0.0), m3, Vector3.ONE, "ElectricNode")
+		return
+
+	if arch == "WALRUS" or "Walrus" in key:
+		var w_body = _add_sphere(root, 0.44, 0.92, Vector3(0, 0.44, 0.08), m1, Vector3(1.10, 0.82, 1.42), "Torso")
+		_add_sphere(w_body, 0.38, 0.82, Vector3(0, -0.08, 0.0), m2, Vector3(1.02, 0.72, 1.34), "Belly")
+		_add_sphere(root, 0.34, 0.68, Vector3(0, 0.64, -0.38), m1, Vector3(1.05, 1.08, 1.05), "WalrusNeck")
+		var w_head = Node3D.new()
+		w_head.name = "HeadPivot"
+		w_head.position = Vector3(0, 0.82, -0.62)
+		root.add_child(w_head)
+		_add_sphere(w_head, 0.26, 0.48, Vector3.ZERO, m1, Vector3(1.05, 0.95, 1.08))
+		_add_box(w_head, Vector3(0.36, 0.20, 0.24), Vector3(0, -0.04, -0.20), m2, Vector3.ZERO, "WhiskerPad")
+		_add_eyes(w_head, 0.16, 0.08, -0.14, 0.038, m_eye, m_dark)
+		for s in [-1.0, 1.0]:
+			_add_cyl(w_head, 0.046, 0.009, 0.48, Vector3(s * 0.12, -0.26, -0.22), m3, Vector3(10, 0, 0), "Tusk")
+			for w_i in range(3):
+				_add_cyl(w_head, 0.005, 0.012, 0.18, Vector3(s * 0.18, -0.06 - float(w_i) * 0.03, -0.26), m3, Vector3(0, 0, -s * 42.0), "Whisker")
+		var w_jaw = Node3D.new()
+		w_jaw.name = "JawPivot"
+		w_jaw.position = Vector3(0, -0.12, -0.10)
+		w_head.add_child(w_jaw)
+		_add_box(w_jaw, Vector3(0.24, 0.08, 0.22), Vector3(0, -0.02, -0.10), m1)
+		for s_idx in range(2):
+			var s = -1.0 if s_idx == 0 else 1.0
+			var fl = Node3D.new()
+			fl.name = "LegF" + ("L" if s < 0 else "R")
+			fl.position = Vector3(s * 0.42, 0.30, -0.26)
+			root.add_child(fl)
+			_add_box(fl, Vector3(0.42, 0.07, 0.28), Vector3(s * 0.16, -0.08, 0.02), m1, Vector3(8, s * 18.0, -s * 24.0))
+		var w_tail = Node3D.new()
+		w_tail.name = "TailPivot"
+		w_tail.position = Vector3(0, 0.26, 0.68)
+		root.add_child(w_tail)
+		for s in [-1.0, 1.0]:
+			_add_box(w_tail, Vector3(0.24, 0.06, 0.38), Vector3(s * 0.18, -0.04, 0.16), m1, Vector3(-8, -s * 22.0, 0))
 		return
 
 	var is_manta = ("MantaRay" in key)
 	var is_puffer = ("Pufferfish" in key)
-	var body_scale = Vector3(1.55, 0.35, 1.35) if is_manta else (Vector3(1.18, 1.15, 1.18) if is_puffer else Vector3(0.88, 0.92, 1.48))
+	var is_piranha = ("Piranha" in key)
+	var body_scale = Vector3(1.55, 0.35, 1.35) if is_manta else (Vector3(1.18, 1.15, 1.18) if is_puffer else (Vector3(0.58, 1.18, 1.25) if is_piranha else Vector3(0.88, 0.92, 1.48)))
 	var body = _add_sphere(root, 0.30, 0.72, Vector3(0, 0.44, 0.02), m1, body_scale, "Torso")
 	_add_sphere(body, 0.26, 0.62, Vector3(0, -0.08, -0.02), m2, Vector3(0.82, 0.75, 1.38), "Belly")
-	if not is_manta and not ("Walrus" in key or "ElephantSeal" in key or "LeopardSeal" in key):
-		var df_h = 0.48 if ("Orca" in key or "Swordfish" in key or "Megalodon" in key) else 0.34
+	if not is_manta:
+		var df_h = 0.52 if ("Orca" in key or "Swordfish" in key or "Megalodon" in key) else 0.34
 		_add_box(body, Vector3(0.05, df_h, 0.26), Vector3(0, 0.32, 0.04), m1, Vector3(-22, 0, 0), "DorsalFin")
-	if is_puffer:
+	if "Orca" in key:
+		_add_sphere(body, 0.16, 0.32, Vector3(0, 0.18, 0.20), m3, Vector3(1.08, 0.75, 1.15), "SaddlePatch")
+	elif is_puffer:
 		for sp_i in range(10):
 			var ang = float(sp_i) * TAU / 10.0
 			_add_cyl(body, 0.005, 0.028, 0.18, Vector3(cos(ang) * 0.28, sin(ang) * 0.22, -0.10 + float(sp_i % 3) * 0.12), m3, Vector3(0, 0, rad_to_deg(-ang + PI * 0.5)), "PufferSpine")
@@ -1322,17 +1550,14 @@ static func _build_aquatic(root: Node3D, key: String, arch: String, m1: Material
 		_add_eyes(head, 0.36, 0.04, -0.16, 0.042, m_eye, m_dark)
 	else:
 		_add_sphere(head, 0.22, 0.46, Vector3(0, 0.02, -0.10), m1, Vector3(0.95, 0.85, 1.25))
-		var eye_y = 0.16 if "Mudskipper" in key else 0.06
-		_add_eyes(head, 0.16, eye_y, -0.16, 0.042, m_eye, m_dark)
+		var eye_y = 0.18 if "Mudskipper" in key else 0.06
+		_add_eyes(head, 0.16, eye_y, -0.16, 0.046 if "Mudskipper" in key else 0.042, m_eye, m_dark)
 	if "Orca" in key:
 		for s in [-1.0, 1.0]:
 			_add_sphere(head, 0.06, 0.14, Vector3(s * 0.18, 0.08, -0.06), m2, Vector3(0.5, 0.8, 1.3), "EyePatch")
 	if "Anglerfish" in key:
 		_add_cyl(head, 0.01, 0.02, 0.32, Vector3(0, 0.24, -0.18), m1, Vector3(-42, 0, 0))
 		_add_sphere(head, 0.07, 0.14, Vector3(0, 0.34, -0.32), _make_mat(Color(0.3, 1.0, 0.85), 0.1, 0.2, 2.2), Vector3.ONE, "Esclure")
-	elif "Walrus" in key:
-		for s in [-1.0, 1.0]:
-			_add_cyl(head, 0.042, 0.008, 0.36, Vector3(s * 0.10, -0.16, -0.22), m_white, Vector3(12, 0, 0), "Tusk")
 	elif "Swordfish" in key:
 		_add_cyl(head, 0.006, 0.042, 0.62, Vector3(0, 0.02, -0.46), m3, Vector3(-90, 0, 0), "SwordBill")
 	elif "WalkingCatfish" in key:
@@ -1343,8 +1568,8 @@ static func _build_aquatic(root: Node3D, key: String, arch: String, m1: Material
 	jaw.name = "JawPivot"
 	jaw.position = Vector3(0, -0.08, -0.06)
 	head.add_child(jaw)
-	_add_box(jaw, Vector3(0.28, 0.08, 0.30), Vector3(0, -0.02, -0.12), m2)
-	if arch == "SHARK" or "Piranha" in key or "Angler" in key or "Barracuda" in key:
+	_add_box(jaw, Vector3(0.28, 0.09 if is_piranha else 0.08, 0.34 if is_piranha else 0.30), Vector3(0, -0.02, -0.14 if is_piranha else -0.12), m2)
+	if arch == "SHARK" or is_piranha or "Angler" in key or "Barracuda" in key:
 		for s in [-1.0, 0.0, 1.0]:
 			_add_cyl(jaw, 0.003, 0.026, 0.08, Vector3(s * 0.08, 0.05, -0.22), m_white)
 			_add_cyl(head, 0.024, 0.003, 0.08, Vector3(s * 0.08, -0.05, -0.26), m_white)
@@ -1364,36 +1589,56 @@ static func _build_aquatic(root: Node3D, key: String, arch: String, m1: Material
 	tail.position = Vector3(0, 0.44, 0.48)
 	root.add_child(tail)
 	_add_box(tail, Vector3(0.16, 0.20, 0.36), Vector3(0, 0, 0.16), m1)
-	if "Orca" in key or "Seal" in key or "Walrus" in key:
-		_add_box(tail, Vector3(0.46, 0.06, 0.24), Vector3(0, 0.0, 0.38), m1)
+	if "Orca" in key:
+		_add_box(tail, Vector3(0.54, 0.05, 0.24), Vector3(0, 0.0, 0.38), m1, Vector3.ZERO, "HorizontalFluke")
 	elif is_manta:
 		_add_cyl(tail, 0.006, 0.03, 0.65, Vector3(0, 0, 0.42), m_dark, Vector3(88, 0, 0), "WhipTail")
 	else:
-		_add_box(tail, Vector3(0.06, 0.46, 0.24), Vector3(0, 0.04, 0.38), m1)
+		_add_box(tail, Vector3(0.06, 0.48, 0.24), Vector3(0, 0.04, 0.38), m1)
 
-static func _build_crab(root: Node3D, key: String, m1: Material, m2: Material, m3: Material, m_dark: Material, m_eye: Material) -> void:
-	_add_sphere(root, 0.34, 0.56, Vector3(0, 0.32, 0.04), m1, Vector3(1.28, 0.65, 1.05), "Carapace")
+static func _build_crab(root: Node3D, key: String, m1: Material, m2: Material, m3: Material, _m_dark: Material, _m_eye: Material) -> void:
+	var is_shrimp = ("Shrimp" in key)
+	var cara_scl = Vector3(0.88, 0.72, 1.38) if is_shrimp else Vector3(1.28, 0.65, 1.05)
+	_add_sphere(root, 0.34, 0.56, Vector3(0, 0.32, -0.04 if is_shrimp else 0.04), m1, cara_scl, "Carapace")
 	var head = Node3D.new()
 	head.name = "HeadPivot"
-	head.position = Vector3(0, 0.38, -0.26)
+	head.position = Vector3(0, 0.38, -0.32 if is_shrimp else -0.26)
 	root.add_child(head)
 	for s in [-1.0, 1.0]:
 		_add_cyl(head, 0.02, 0.025, 0.14, Vector3(s * 0.12, 0.08, -0.04), m2)
-		_add_sphere(head, 0.042, 0.084, Vector3(s * 0.12, 0.16, -0.06), m3)
+		_add_sphere(head, 0.045, 0.09, Vector3(s * 0.12, 0.16, -0.06), m3)
 		var claw = Node3D.new()
 		claw.name = "LegF" + ("L" if s < 0 else "R")
-		claw.position = Vector3(s * 0.34, 0.28, -0.18)
+		claw.position = Vector3(s * (0.24 if is_shrimp else 0.34), 0.28, -0.22 if is_shrimp else -0.18)
 		root.add_child(claw)
-		var c_scale = 1.45 if ("Pistol" in key and s > 0) else 1.0
-		_add_box(claw, Vector3(0.18, 0.14, 0.34) * c_scale, Vector3(s * 0.08, 0, -0.18), m2, Vector3(0, -s * 16.0, 0))
+		var c_scale = 1.55 if ("Pistol" in key and s > 0) else (0.75 if ("Pistol" in key and s < 0) else 1.0)
+		if "MantisShrimp" in key:
+			_add_sphere(claw, 0.12, 0.26, Vector3(s * 0.04, -0.04, -0.18), m3, Vector3(0.85, 1.1, 1.25), "RaptorialClub")
+		else:
+			_add_box(claw, Vector3(0.18, 0.14, 0.34) * c_scale, Vector3(s * 0.08, 0, -0.18), m2, Vector3(0, -s * 16.0, 0), "PincerClaw")
+	if is_shrimp:
+		var tail = Node3D.new()
+		tail.name = "TailPivot"
+		tail.position = Vector3(0, 0.28, 0.32)
+		root.add_child(tail)
+		for t_s in range(4):
+			_add_box(tail, Vector3(0.28 - float(t_s) * 0.04, 0.16 - float(t_s) * 0.02, 0.18), Vector3(0, -float(t_s) * 0.02, float(t_s) * 0.16), m2 if t_s % 2 == 0 else m1)
 	for leg_i in range(3):
 		var z_off = -0.08 + float(leg_i) * 0.14
-		for s in [-1.0, 1.0]:
-			_add_cyl(root, 0.03, 0.02, 0.34, Vector3(s * 0.40, 0.18, z_off), m1, Vector3(0, 0, -s * 48.0))
+		for s_idx in range(2):
+			var s = -1.0 if s_idx == 0 else 1.0
+			var leg = Node3D.new()
+			leg.name = ("LegF" if leg_i == 0 else "LegB") + ("L" if s < 0 else "R") + str(leg_i + 1)
+			leg.position = Vector3(s * (0.24 if is_shrimp else 0.34), 0.24, z_off)
+			root.add_child(leg)
+			_add_cyl(leg, 0.028, 0.022, 0.20, Vector3(s * 0.10, 0.02, 0), m1, Vector3(0, 0, -s * 62.0))
+			_add_cyl(leg, 0.022, 0.014, 0.24, Vector3(s * 0.22, -0.10, 0), m2, Vector3(0, 0, -s * 20.0))
 
-static func _build_tank_mammal(root: Node3D, key: String, m1: Material, m2: Material, m3: Material, m_dark: Material, m_white: Material, m_eye: Material) -> void:
+static func _build_tank_mammal(root: Node3D, key: String, m1: Material, m2: Material, m3: Material, m_dark: Material, _m_white: Material, m_eye: Material) -> void:
 	var body = _add_sphere(root, 0.48, 0.96, Vector3(0, 0.72, 0.06), m1, Vector3(1.05, 0.95, 1.32), "Torso")
 	_add_sphere(body, 0.42, 0.82, Vector3(0, -0.08, 0), m2, Vector3(0.95, 0.85, 1.25))
+	if "Mammoth" in key:
+		_add_sphere(body, 0.38, 0.76, Vector3(0, 0.22, -0.22), m1, Vector3(1.05, 1.05, 0.95), "WoolHump")
 
 	var head = Node3D.new()
 	head.name = "HeadPivot"
@@ -1403,26 +1648,46 @@ static func _build_tank_mammal(root: Node3D, key: String, m1: Material, m2: Mate
 	_add_eyes(head, 0.20, 0.06, -0.22, 0.042, m_eye, m_dark)
 
 	if "Elephant" in key or "Mammoth" in key:
-		for s in [-1.0, 1.0]:
-			_add_box(head, Vector3(0.06, 0.48, 0.38), Vector3(s * 0.34, 0.02, 0.02), m2, Vector3(0, s * 28.0, 0), "Ear")
-			_add_cyl(head, 0.015, 0.055, 0.62, Vector3(s * 0.16, -0.14, -0.38), m3, Vector3(-68, 0, 0), "Tusk")
-		_add_cyl(head, 0.11, 0.06, 0.56, Vector3(0, -0.24, -0.34), m1, Vector3(26, 0, 0), "Trunk")
-		_add_cyl(head, 0.06, 0.045, 0.24, Vector3(0, -0.48, -0.52), m1, Vector3(68, 0, 0), "TrunkTip")
+		for s_idx in range(2):
+			var s = -1.0 if s_idx == 0 else 1.0
+			var ear_piv = Node3D.new()
+			ear_piv.name = "Ear" + ("L" if s < 0 else "R")
+			ear_piv.position = Vector3(s * 0.26, 0.04, 0.02)
+			head.add_child(ear_piv)
+			var ear_sz = Vector3(0.06, 0.34, 0.26) if "Mammoth" in key else Vector3(0.06, 0.52, 0.42)
+			_add_box(ear_piv, ear_sz, Vector3(s * 0.10, -0.02, 0.02), m2, Vector3(0, s * 28.0, 0), "EarBlade")
+			_add_cyl(head, 0.016, 0.058, 0.68 if "Mammoth" in key else 0.58, Vector3(s * 0.16, -0.14, -0.38), m3, Vector3(-68, s * (16.0 if "Mammoth" in key else 6.0), 0), "Tusk")
+		var tr_piv = Node3D.new()
+		tr_piv.name = "TrunkPivot"
+		tr_piv.position = Vector3(0, -0.04, -0.24)
+		head.add_child(tr_piv)
+		_add_cyl(tr_piv, 0.11, 0.06, 0.56, Vector3(0, -0.22, -0.10), m1, Vector3(26, 0, 0), "Trunk")
+		_add_cyl(tr_piv, 0.06, 0.045, 0.24, Vector3(0, -0.46, -0.28), m1, Vector3(68, 0, 0), "TrunkTip")
 	elif "Rhino" in key:
-		_add_cyl(head, 0.015, 0.09, 0.42, Vector3(0, 0.18, -0.32), m3, Vector3(-24, 0, 0), "FrontHorn")
-		_add_cyl(head, 0.012, 0.06, 0.22, Vector3(0, 0.12, -0.16), m3, Vector3(-18, 0, 0), "RearHorn")
+		_add_box(head, Vector3(0.32, 0.20, 0.32), Vector3(0, -0.04, -0.22), m1)
+		_add_cyl(head, 0.015, 0.095, 0.44, Vector3(0, 0.18, -0.34), m3, Vector3(-24, 0, 0), "FrontHorn")
+		_add_cyl(head, 0.012, 0.06, 0.22, Vector3(0, 0.12, -0.18), m3, Vector3(-18, 0, 0), "RearHorn")
 	elif "Buffalo" in key or "Bison" in key:
+		_add_box(head, Vector3(0.42, 0.14, 0.22), Vector3(0, 0.18, -0.08), m3, Vector3.ZERO, "BossShield")
 		for s in [-1.0, 1.0]:
-			_add_cyl(head, 0.015, 0.06, 0.38, Vector3(s * 0.26, 0.18, -0.06), m3, Vector3(0, 0, -s * 58.0), "Horn")
+			_add_cyl(head, 0.015, 0.065, 0.40, Vector3(s * 0.28, 0.18, -0.08), m3, Vector3(0, 0, -s * 58.0), "Horn")
+	elif "Hippo" in key:
+		_add_box(head, Vector3(0.42, 0.26, 0.38), Vector3(0, -0.02, -0.24), m1, Vector3.ZERO, "HippoMuzzle")
 
 	var jaw = Node3D.new()
 	jaw.name = "JawPivot"
 	jaw.position = Vector3(0, -0.12, -0.14)
 	head.add_child(jaw)
-	_add_box(jaw, Vector3(0.34, 0.12, 0.34), Vector3(0, -0.02, -0.12), m2)
+	_add_box(jaw, Vector3(0.36 if "Hippo" in key else 0.32, 0.12, 0.36 if "Hippo" in key else 0.32), Vector3(0, -0.02, -0.14), m2)
 	if "Hippo" in key:
 		for s in [-1.0, 1.0]:
-			_add_cyl(jaw, 0.01, 0.04, 0.18, Vector3(s * 0.12, 0.08, -0.24), m3)
+			_add_cyl(jaw, 0.01, 0.042, 0.20, Vector3(s * 0.13, 0.09, -0.26), m3)
+
+	var tail = Node3D.new()
+	tail.name = "TailPivot"
+	tail.position = Vector3(0, 0.68, 0.62)
+	root.add_child(tail)
+	_add_cyl(tail, 0.02, 0.04, 0.34, Vector3(0, -0.14, 0.08), m1, Vector3(28, 0, 0))
 
 	for s_idx in range(2):
 		var s = -1.0 if s_idx == 0 else 1.0
@@ -1467,17 +1732,25 @@ static func _build_biped_hopper(root: Node3D, key: String, m1: Material, m2: Mat
 	_add_cyl(tail, 0.03, 0.09, 0.68, Vector3(0, -0.16, 0.28), m1, Vector3(62, 0, 0))
 
 static func _build_turtle(root: Node3D, key: String, m1: Material, m2: Material, m3: Material, m_dark: Material, m_eye: Material) -> void:
-	var shell = _add_sphere(root, 0.42, 0.68, Vector3(0, 0.36, 0.04), m1, Vector3(1.12, 0.72, 1.28), "Shell")
+	var is_tortoise = ("Tortoise" in key)
+	var shell_scl = Vector3(1.10, 0.98, 1.24) if is_tortoise else Vector3(1.14, 0.68, 1.30)
+	var shell = _add_sphere(root, 0.42, 0.68, Vector3(0, 0.38 if is_tortoise else 0.34, 0.04), m1, shell_scl, "Shell")
 	_add_box(shell, Vector3(0.76, 0.10, 0.88), Vector3(0, -0.22, 0), m2)
 	for r in [-1.0, 0.0, 1.0]:
-		_add_box(shell, Vector3(0.14, 0.12, 0.20), Vector3(0, 0.32, r * 0.24), m1)
+		for c in ([-1.0, 0.0, 1.0] if not is_tortoise else [0.0]):
+			_add_box(shell, Vector3(0.11, 0.12, 0.18), Vector3(c * 0.18, 0.30, r * 0.24), m2 if is_tortoise else m1)
 	var head = Node3D.new()
 	head.name = "HeadPivot"
-	head.position = Vector3(0, 0.30, -0.52)
+	head.position = Vector3(0, 0.32, -0.52)
 	root.add_child(head)
 	_add_sphere(head, 0.16, 0.32, Vector3.ZERO, m2, Vector3(1.0, 0.9, 1.25))
-	_add_cyl(head, 0.01, 0.08, 0.16, Vector3(0, -0.02, -0.18), m3, Vector3(-90, 0, 0), "HookBeak")
+	_add_cyl(head, 0.01, 0.08, 0.18, Vector3(0, -0.02, -0.18), m3, Vector3(-95, 0, 0), "HookBeak")
 	_add_eyes(head, 0.10, 0.04, -0.10, 0.032, m_eye, m_dark)
+	var tail = Node3D.new()
+	tail.name = "TailPivot"
+	tail.position = Vector3(0, 0.26, 0.56)
+	root.add_child(tail)
+	_add_cyl(tail, 0.018, 0.055, 0.32, Vector3(0, -0.04, 0.14), m2, Vector3(74, 0, 0))
 	for s_idx in range(2):
 		var s = -1.0 if s_idx == 0 else 1.0
 		var side_tag = "L" if s < 0 else "R"
@@ -1485,41 +1758,53 @@ static func _build_turtle(root: Node3D, key: String, m1: Material, m2: Material,
 			var is_front = (f_idx == 0)
 			var leg = Node3D.new()
 			leg.name = ("LegF" if is_front else "LegB") + side_tag
-			leg.position = Vector3(s * 0.38, 0.22, -0.28 if is_front else 0.32)
+			leg.position = Vector3(s * 0.38, 0.24, -0.28 if is_front else 0.32)
 			root.add_child(leg)
-			_add_cyl(leg, 0.09, 0.08, 0.24, Vector3(0, -0.10, 0), m2)
+			_add_cyl(leg, 0.095, 0.085, 0.26, Vector3(0, -0.12, 0), m2)
 
 static func _build_quadruped(root: Node3D, key: String, _info: Dictionary, m1: Material, m2: Material, m3: Material, m_dark: Material, m_white: Material, m_eye: Material) -> void:
-	var is_lizard = ("Komodo" in key or "Monitor" in key or "Gila" in key or "Frilled" in key or "Chameleon" in key)
-	var body_y = 0.38 if is_lizard else 0.56
-	var body_scale = Vector3(1.05, 0.68, 1.48) if is_lizard else Vector3(0.95, 0.90, 1.38)
+	var is_bear = ("Bear" in key)
+	var is_cheetah = ("Cheetah" in key)
+	var is_hyena = ("Hyena" in key)
+	var is_badger = ("HoneyBadger" in key or "Wolverine" in key)
+	var body_y = 0.42 if is_badger else (0.62 if is_bear else 0.56)
+	var body_scale = Vector3(1.16, 1.08, 1.36) if is_bear else (Vector3(0.76, 0.88, 1.48) if is_cheetah else (Vector3(1.12, 0.72, 1.38) if is_badger else Vector3(0.95, 0.90, 1.38)))
 	var body = _add_sphere(root, 0.32, 0.76, Vector3(0, body_y, 0.04), m1, body_scale, "Torso")
+	if is_hyena:
+		body.rotation_degrees.x = 12.0
 	_add_sphere(body, 0.28, 0.66, Vector3(0, -0.06, 0), m2, Vector3(0.88, 0.80, 1.28), "Belly")
 
 	if "Lion" in key:
 		_add_sphere(root, 0.38, 0.76, Vector3(0, 0.66, -0.32), m2, Vector3(1.12, 1.12, 0.82), "LionMane")
-	elif "HoneyBadger" in key or "Wolverine" in key:
-		_add_box(body, Vector3(0.42, 0.12, 0.88), Vector3(0, 0.26, 0), m2, Vector3.ZERO, "DorsalCape")
+	elif is_bear:
+		_add_sphere(body, 0.28, 0.54, Vector3(0, 0.20, -0.18), m1, Vector3(1.05, 0.95, 0.95), "ShoulderHump")
+	elif is_badger:
+		_add_box(body, Vector3(0.46, 0.12, 0.92), Vector3(0, 0.26, 0), m2, Vector3.ZERO, "DorsalCape")
 	elif "Porcupine" in key:
-		for q in range(12):
+		for q in range(14):
 			var qx = (float(q % 3) - 1.0) * 0.14
-			var qz = -0.10 + float(int(float(q) / 3.0)) * 0.14
-			_add_cyl(body, 0.004, 0.022, 0.44, Vector3(qx, 0.28, qz), m2, Vector3(38, qx * 45.0, 0), "Quill")
+			var qz = -0.14 + float(int(float(q) / 3.0)) * 0.13
+			_add_cyl(body, 0.004, 0.022, 0.48, Vector3(qx, 0.28, qz), m2, Vector3(38, qx * 45.0, 0), "Quill")
 	elif "Tiger" in key:
 		for st in range(4):
 			_add_box(body, Vector3(0.64, 0.44, 0.06), Vector3(0, 0.04, -0.24 + float(st) * 0.16), m2)
+	elif is_cheetah or is_hyena:
+		for sp_i in range(6):
+			var sx = -0.26 if (sp_i % 2 == 0) else 0.26
+			var sz = -0.20 + float(int(float(sp_i) / 2.0)) * 0.20
+			_add_sphere(body, 0.055, 0.11, Vector3(sx, 0.06, sz), m2, Vector3(0.5, 1.0, 1.0), "CoatSpot")
 
 	var head = Node3D.new()
 	head.name = "HeadPivot"
-	head.position = Vector3(0, (0.46 if is_lizard else 0.72), -0.44)
+	head.position = Vector3(0, body_y + (0.12 if is_badger else 0.16), -0.46 if is_bear else -0.44)
 	root.add_child(head)
-	_add_sphere(head, 0.20, 0.40, Vector3.ZERO, m1, Vector3(1.0, 0.75 if is_lizard else 0.92, 1.15))
-	_add_box(head, Vector3(0.18, 0.14, 0.26), Vector3(0, -0.04, -0.18), m1)
-	if "Frilled" in key:
-		_add_cyl(head, 0.36, 0.12, 0.08, Vector3(0, 0.02, 0.06), m2, Vector3(78, 0, 0), "NeckFrill")
-	elif not is_lizard:
-		for s in [-1.0, 1.0]:
-			_add_sphere(head, 0.07, 0.14, Vector3(s * 0.15, 0.16, 0.02), m1, Vector3(0.7, 1.1, 0.5), "Ear")
+	_add_sphere(head, 0.20, 0.40, Vector3.ZERO, m1, Vector3(1.0, 0.92, 1.15))
+	var muz_len = 0.30 if ("Wolf" in key or is_bear or is_hyena) else 0.24
+	_add_box(head, Vector3(0.18, 0.14, muz_len), Vector3(0, -0.04, -0.18), m2 if is_hyena else m1)
+	_add_sphere(head, 0.045, 0.09, Vector3(0, 0.01, -0.18 - muz_len * 0.5), m_dark, Vector3.ONE, "Nose")
+	for s in [-1.0, 1.0]:
+		var ear_scl = Vector3(0.5, 1.45, 0.5) if "Wolf" in key else Vector3(0.7, 1.0, 0.5)
+		_add_sphere(head, 0.07, 0.14, Vector3(s * 0.15, 0.16, 0.02), m1, ear_scl, "Ear")
 	_add_eyes(head, 0.11, 0.05, -0.16, 0.036, m_eye, m_dark)
 	for s in [-1.0, 1.0]:
 		var fang_h = 0.22 if "Sabertooth" in key else 0.08
@@ -1530,16 +1815,18 @@ static func _build_quadruped(root: Node3D, key: String, _info: Dictionary, m1: M
 	jaw.position = Vector3(0, -0.08, -0.08)
 	head.add_child(jaw)
 	_add_box(jaw, Vector3(0.16, 0.06, 0.24), Vector3(0, -0.02, -0.10), m2)
-	if "Komodo" in key or "Monitor" in key:
-		_add_box(jaw, Vector3(0.02, 0.01, 0.22), Vector3(0, 0.02, -0.26), m3, Vector3.ZERO, "ForkedTongue")
 
 	var tail = Node3D.new()
 	tail.name = "TailPivot"
-	tail.position = Vector3(0, (0.38 if is_lizard else 0.60), 0.46)
+	tail.position = Vector3(0, body_y + 0.02, 0.46)
 	root.add_child(tail)
-	_add_cyl(tail, 0.025, 0.055, 0.56 if is_lizard else 0.46, Vector3(0, -0.06, 0.22 if is_lizard else 0.18), m1, Vector3(72 if is_lizard else 58, 0, 0))
-	if "Chameleon" in key:
-		_add_sphere(tail, 0.12, 0.24, Vector3(0, -0.04, 0.28), m2, Vector3(0.5, 1.0, 1.0))
+	if is_bear:
+		_add_sphere(tail, 0.07, 0.14, Vector3(0, 0, 0.06), m1)
+	else:
+		var t_len = 0.58 if is_cheetah else 0.46
+		_add_cyl(tail, 0.025, 0.055, t_len, Vector3(0, -0.06, t_len * 0.38), m1, Vector3(58, 0, 0))
+		if "Lion" in key:
+			_add_sphere(tail, 0.055, 0.12, Vector3(0, -0.16, 0.40), m2, Vector3.ONE, "TailTuft")
 
 	for s_idx in range(2):
 		var s = -1.0 if s_idx == 0 else 1.0
@@ -1548,8 +1835,9 @@ static func _build_quadruped(root: Node3D, key: String, _info: Dictionary, m1: M
 			var is_front = (f_idx == 0)
 			var leg = Node3D.new()
 			leg.name = ("LegF" if is_front else "LegB") + side_tag
-			leg.position = Vector3(s * (0.26 if is_lizard else 0.20), (0.30 if is_lizard else 0.44), -0.26 if is_front else 0.28)
+			leg.position = Vector3(s * (0.24 if is_bear else 0.20), body_y - 0.12, -0.26 if is_front else 0.28)
 			root.add_child(leg)
-			var leg_h = 0.28 if is_lizard else 0.42
-			_add_cyl(leg, 0.075, 0.055, leg_h, Vector3(0, -leg_h * 0.48, 0), m1, Vector3(0, 0, -s * (22.0 if is_lizard else 0.0)))
-			_add_box(leg, Vector3(0.11, 0.06, 0.16), Vector3(s * (0.06 if is_lizard else 0.0), -leg_h * 0.95, -0.03), m2)
+			var leg_h = 0.28 if is_badger else (0.46 if is_bear else 0.42)
+			var leg_r = 0.10 if is_bear else 0.075
+			_add_cyl(leg, leg_r, leg_r * 0.78, leg_h, Vector3(0, -leg_h * 0.48, 0), m1)
+			_add_box(leg, Vector3(0.13 if is_bear else 0.11, 0.06, 0.18 if is_bear else 0.16), Vector3(0, -leg_h * 0.95, -0.03), m2)

@@ -3,6 +3,7 @@ extends Node
 const MapLayoutBuilder = preload("res://Scripts/MapLayoutBuilder.gd")
 const BotAI = preload("res://Scripts/BotAI.gd")
 const WildlifeModelBuilder = preload("res://Scripts/WildlifeModelBuilder.gd")
+const WildlifeCreatureScript = preload("res://Scripts/WildlifeCreature.gd")
 
 func _ready():
 	print("==================================================")
@@ -901,19 +902,47 @@ func test_ai_systems() -> bool:
 		printerr("WildlifeApexCrocCommander missing CommanderUnit group or CommanderCrown on HeadPivot!")
 		success = false
 
-	# Audit all 108 wildlife 3D models to ensure every species builds a valid HeadPivot and meshes
-	var audit_dummy = Node3D.new()
-	var audit_pivot = Node3D.new()
-	audit_pivot.name = "VisualPivot"
-	audit_dummy.add_child(audit_pivot)
-	add_child(audit_dummy)
+	# Audit all 108 wildlife 3D models and namesake locomotion/attack animations across every species
 	for sp_key in WildlifeModelBuilder.SPECIES_CATALOG.keys():
-		var built_root = WildlifeModelBuilder.build_animal_model(audit_dummy, sp_key)
-		if built_root == null or built_root.get_node_or_null("HeadPivot") == null or built_root.get_child_count() < 2:
-			printerr("WildlifeModelBuilder 3D model audit failed for species: ", sp_key)
+		var test_creature = WildlifeCreatureScript.new()
+		test_creature.species_id = sp_key
+		var vp = Node3D.new()
+		vp.name = "VisualPivot"
+		test_creature.add_child(vp)
+		var hc = HealthComponent.new()
+		hc.name = "HealthComponent"
+		test_creature.add_child(hc)
+		add_child(test_creature)
+		if test_creature._model_root == null or test_creature._head_pivot == null:
+			printerr("WildlifeCreature model/head initialization failed for species: ", sp_key)
 			success = false
+			test_creature.queue_free()
 			break
-	audit_dummy.queue_free()
+		if sp_key == "WildlifeFrilledLizard" and test_creature._neck_frill == null:
+			printerr("WildlifeFrilledLizard missing NeckFrill pivot!")
+			success = false
+		elif sp_key == "WildlifeChameleon" and test_creature._ballistic_tongue == null:
+			printerr("WildlifeChameleon missing BallisticTongue node!")
+			success = false
+		elif sp_key == "WildlifeAfricanElephant" and (test_creature._trunk_pivot == null or test_creature._ear_l == null):
+			printerr("WildlifeAfricanElephant missing TrunkPivot or EarL pivot!")
+			success = false
+		elif sp_key == "WildlifeRattlesnake" and (test_creature._rattle_pivot == null or test_creature._body_segments.size() != 9):
+			printerr("WildlifeRattlesnake missing RattlePivot or 9 Coil segments!")
+			success = false
+		elif sp_key == "WildlifeGiantCentipede" and test_creature._body_segments.size() != 7:
+			printerr("WildlifeGiantCentipede missing 7 articulated body segments!")
+			success = false
+		elif sp_key == "WildlifeTarantula" and (test_creature._multi_legs_l.size() != 4 or test_creature._multi_legs_r.size() != 4):
+			printerr("WildlifeTarantula missing 8 articulated spider legs!")
+			success = false
+		elif sp_key == "WildlifeKingCrab" and (test_creature._multi_legs_l.size() != 3 or test_creature._multi_legs_r.size() != 3):
+			printerr("WildlifeKingCrab missing 6 crab walking legs!")
+			success = false
+		test_creature._strike_flash = 1.0
+		test_creature._animate_creature(0.08, true)
+		test_creature._animate_creature(0.08, false)
+		test_creature.queue_free()
 
 	snake_inst.queue_free()
 	crow_inst.queue_free()

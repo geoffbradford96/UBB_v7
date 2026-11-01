@@ -44,6 +44,8 @@ var _strike_flash: float = 0.0
 var _archetype: String = "QUADRUPED"
 
 var _model_root: Node3D = null
+var _base_model_scale: Vector3 = Vector3.ONE
+var _base_head_pos: Vector3 = Vector3.ZERO
 var _head_pivot: Node3D = null
 var _jaw_pivot: Node3D = null
 var _tail_pivot: Node3D = null
@@ -51,13 +53,24 @@ var _wing_l: Node3D = null
 var _wing_r: Node3D = null
 var _leg_fl: Node3D = null
 var _leg_fr: Node3D = null
+var _leg_ml: Node3D = null
+var _leg_mr: Node3D = null
 var _leg_bl: Node3D = null
 var _leg_br: Node3D = null
 var _held_rock: Node3D = null
+var _trunk_pivot: Node3D = null
+var _ear_l: Node3D = null
+var _ear_r: Node3D = null
+var _neck_frill: Node3D = null
+var _ballistic_tongue: Node3D = null
+var _rattle_pivot: Node3D = null
+var _multi_legs_l: Array[Node3D] = []
+var _multi_legs_r: Array[Node3D] = []
+var _body_segments: Array[Node3D] = []
 
-@onready var health_comp: HealthComponent = $HealthComponent
-@onready var visual_pivot: Node3D = $VisualPivot
-@onready var selection_ring: MeshInstance3D = $SelectionRing
+@onready var health_comp: HealthComponent = get_node_or_null("HealthComponent")
+@onready var visual_pivot: Node3D = get_node_or_null("VisualPivot")
+@onready var selection_ring: MeshInstance3D = get_node_or_null("SelectionRing")
 
 func is_humanoid() -> bool:
 	return false
@@ -144,17 +157,45 @@ func _ready():
 
 	_model_root = WildlifeModelBuilder.build_animal_model(self, species_id)
 	if _model_root:
+		_base_model_scale = _model_root.scale
 		_head_pivot = _model_root.get_node_or_null("HeadPivot")
 		if _head_pivot:
+			_base_head_pos = _head_pivot.position
 			_jaw_pivot = _head_pivot.get_node_or_null("JawPivot")
+			_trunk_pivot = _head_pivot.get_node_or_null("TrunkPivot")
+			_ear_l = _head_pivot.get_node_or_null("EarL")
+			_ear_r = _head_pivot.get_node_or_null("EarR")
+			_neck_frill = _head_pivot.get_node_or_null("NeckFrill")
+			if _jaw_pivot:
+				_ballistic_tongue = _jaw_pivot.get_node_or_null("BallisticTongue")
 		_tail_pivot = _model_root.get_node_or_null("TailPivot")
+		if _tail_pivot:
+			_rattle_pivot = _tail_pivot.get_node_or_null("RattlePivot")
+			for i in range(9):
+				var coil = _tail_pivot.get_node_or_null("Coil" + str(i)) as Node3D
+				if coil:
+					_body_segments.append(coil)
+		for i in range(7):
+			var seg = _model_root.get_node_or_null("Seg" + str(i)) as Node3D
+			if seg:
+				_body_segments.append(seg)
 		_wing_l = _model_root.get_node_or_null("WingL")
 		_wing_r = _model_root.get_node_or_null("WingR")
 		_leg_fl = _model_root.get_node_or_null("LegFL")
 		_leg_fr = _model_root.get_node_or_null("LegFR")
+		_leg_ml = _model_root.get_node_or_null("LegML")
+		_leg_mr = _model_root.get_node_or_null("LegMR")
 		_leg_bl = _model_root.get_node_or_null("LegBL")
 		_leg_br = _model_root.get_node_or_null("LegBR")
 		_held_rock = _model_root.get_node_or_null("HeldRock")
+		for idx in range(4):
+			var pfx = "LegF" if idx < 2 else "LegB"
+			var ml = _model_root.get_node_or_null(pfx + "L" + str(idx)) as Node3D
+			var mr = _model_root.get_node_or_null(pfx + "R" + str(idx)) as Node3D
+			if ml:
+				_multi_legs_l.append(ml)
+			if mr:
+				_multi_legs_r.append(mr)
 
 	set_selected(false)
 	update_team_visuals()
@@ -530,40 +571,450 @@ func _process_commander_abilities(delta: float):
 func _animate_creature(delta: float, moving: bool):
 	if not is_instance_valid(_model_root):
 		return
-	var rate = (8.5 if moving else 2.4) * (1.35 if is_flying else 1.0)
+	var rate = (8.8 if moving else 2.4) * (1.35 if is_flying else 1.0)
 	_anim_phase += delta * rate
 	if _strike_flash > 0.0:
-		_strike_flash = maxf(0.0, _strike_flash - delta * 4.5)
+		_strike_flash = maxf(0.0, _strike_flash - delta * 4.2)
 
-	var swing = sin(_anim_phase) * (26.0 if moving else 4.0)
-	if is_instance_valid(_leg_fl):
-		_leg_fl.rotation_degrees.x = swing
-	if is_instance_valid(_leg_br):
-		_leg_br.rotation_degrees.x = swing
-	if is_instance_valid(_leg_fr):
-		_leg_fr.rotation_degrees.x = -swing
-	if is_instance_valid(_leg_bl):
-		_leg_bl.rotation_degrees.x = -swing
-
-	if is_instance_valid(_wing_l) and is_instance_valid(_wing_r):
-		var flap = sin(_anim_phase * 2.2) * 38.0
-		_wing_l.rotation_degrees.z = flap
-		_wing_r.rotation_degrees.z = -flap
-
-	if is_instance_valid(_tail_pivot):
-		if _archetype == "SERPENT" or _archetype == "EEL":
-			_tail_pivot.rotation_degrees.y = sin(_anim_phase * 1.4) * 18.0
-		else:
-			_tail_pivot.rotation_degrees.y = sin(_anim_phase) * 14.0
-
+	_model_root.position = Vector3.ZERO
+	_model_root.rotation_degrees = Vector3.ZERO
+	_model_root.scale = _base_model_scale
 	if is_instance_valid(_head_pivot):
-		var peck_angle = -_strike_flash * (36.0 if is_pecking else 18.0)
-		_head_pivot.rotation_degrees.x = peck_angle + sin(_anim_phase * 0.5) * 4.0
-
+		_head_pivot.position = _base_head_pos
+		_head_pivot.rotation_degrees = Vector3.ZERO
 	if is_instance_valid(_jaw_pivot):
-		_jaw_pivot.rotation_degrees.x = _strike_flash * 28.0
+		_jaw_pivot.rotation_degrees = Vector3.ZERO
+	if is_instance_valid(_held_rock):
+		_held_rock.visible = (_strike_flash < 0.55)
 
-	if _archetype == "BIPED_HOPPER" and moving:
-		_model_root.position.y = absf(sin(_anim_phase)) * 0.28
-	else:
-		_model_root.position.y = 0.0
+	match _archetype:
+		"SERPENT", "EEL":
+			var wave_amp = 0.24 if moving else 0.08
+			var yaw_amp = 24.0 if moving else 8.0
+			for i in range(_body_segments.size()):
+				var coil = _body_segments[i]
+				if is_instance_valid(coil):
+					var ph = _anim_phase * 1.45 - float(i) * 0.85
+					coil.position.x = sin(ph) * wave_amp
+					coil.rotation_degrees.y = cos(ph) * yaw_amp
+			if is_instance_valid(_tail_pivot):
+				_tail_pivot.rotation_degrees.y = sin(_anim_phase * 1.45) * (10.0 if moving else 4.0)
+			if is_instance_valid(_head_pivot):
+				_head_pivot.position.x = _base_head_pos.x + sin(_anim_phase * 1.45 + 0.6) * (0.08 if moving else 0.03)
+				_head_pivot.position.z = _base_head_pos.z - _strike_flash * 0.38
+				_head_pivot.rotation_degrees.x = -_strike_flash * 14.0
+			if is_instance_valid(_jaw_pivot):
+				_jaw_pivot.rotation_degrees.x = _strike_flash * 42.0
+			if is_instance_valid(_rattle_pivot):
+				var buzz = _anim_phase * (12.0 if (_strike_flash > 0.0 or is_instance_valid(target)) else 7.0)
+				_rattle_pivot.rotation_degrees.x = sin(buzz) * 18.0
+				_rattle_pivot.rotation_degrees.z = cos(buzz) * 18.0
+
+		"CENTIPEDE":
+			for i in range(_body_segments.size()):
+				var seg = _body_segments[i]
+				if is_instance_valid(seg):
+					var ph = _anim_phase * 1.55 - float(i) * 0.90
+					seg.position.x = sin(ph) * (0.14 if moving else 0.03)
+					seg.rotation_degrees.y = cos(ph) * (22.0 if moving else 5.0)
+					seg.rotation_degrees.z = sin(ph * 1.5) * (10.0 if moving else 2.0)
+			if is_instance_valid(_head_pivot):
+				_head_pivot.position.x = _base_head_pos.x + sin(_anim_phase * 1.55 + 0.5) * (0.08 if moving else 0.02)
+				_head_pivot.position.z = _base_head_pos.z - _strike_flash * 0.24
+				_head_pivot.rotation_degrees.x = _strike_flash * 18.0
+
+		"ARACHNID", "SCORPION":
+			var scuttle_amp = 24.0 if moving else 4.0
+			var lift_amp = 18.0 if moving else 2.0
+			for i in range(_multi_legs_l.size()):
+				var ph_l = _anim_phase * 1.65 + float(i) * 1.55
+				var ph_r = ph_l + PI
+				var ll = _multi_legs_l[i]
+				if is_instance_valid(ll):
+					ll.rotation_degrees.y = sin(ph_l) * scuttle_amp
+					ll.rotation_degrees.z = maxf(0.0, cos(ph_l)) * lift_amp
+				if i < _multi_legs_r.size():
+					var lr = _multi_legs_r[i]
+					if is_instance_valid(lr):
+						lr.rotation_degrees.y = sin(ph_r) * scuttle_amp
+						lr.rotation_degrees.z = -maxf(0.0, cos(ph_r)) * lift_amp
+			if _archetype == "SCORPION":
+				if is_instance_valid(_leg_fl):
+					_leg_fl.rotation_degrees.y = -_strike_flash * 28.0 + sin(_anim_phase * 0.8) * 5.0
+				if is_instance_valid(_leg_fr):
+					_leg_fr.rotation_degrees.y = _strike_flash * 28.0 - sin(_anim_phase * 0.8) * 5.0
+				if is_instance_valid(_tail_pivot):
+					_tail_pivot.rotation_degrees.x = 12.0 + sin(_anim_phase * 0.9) * 6.0 + _strike_flash * 54.0
+					_tail_pivot.rotation_degrees.z = cos(_anim_phase * 0.7) * 5.0
+			else:
+				_model_root.rotation_degrees.x = _strike_flash * 16.0
+				if is_instance_valid(_head_pivot):
+					_head_pivot.rotation_degrees.x = -_strike_flash * 28.0
+
+		"INSECT", "FLYING_INSECT", "BEETLE":
+			var tri_a = sin(_anim_phase * 1.55) * (26.0 if moving else 4.0)
+			var tri_b = -tri_a
+			if "Mantis" in species_id:
+				if is_instance_valid(_leg_fl):
+					_leg_fl.rotation_degrees.x = -_strike_flash * 62.0 + sin(_anim_phase * 0.7) * 6.0
+				if is_instance_valid(_leg_fr):
+					_leg_fr.rotation_degrees.x = -_strike_flash * 62.0 - sin(_anim_phase * 0.7) * 6.0
+			else:
+				if is_instance_valid(_leg_fl):
+					_leg_fl.rotation_degrees.x = tri_a
+				if is_instance_valid(_leg_fr):
+					_leg_fr.rotation_degrees.x = tri_b
+			if is_instance_valid(_leg_mr):
+				_leg_mr.rotation_degrees.x = tri_a
+			if is_instance_valid(_leg_ml):
+				_leg_ml.rotation_degrees.x = tri_b
+			if is_instance_valid(_leg_bl):
+				_leg_bl.rotation_degrees.x = tri_a
+			if is_instance_valid(_leg_br):
+				_leg_br.rotation_degrees.x = tri_b
+			if is_instance_valid(_wing_l) and is_instance_valid(_wing_r):
+				var buzz = sin(_anim_phase * 5.2) * (44.0 if is_flying else 12.0)
+				_wing_l.rotation_degrees.z = buzz
+				_wing_r.rotation_degrees.z = -buzz
+			if is_flying:
+				_model_root.position.y = sin(_anim_phase * 1.4) * 0.10
+				_model_root.rotation_degrees.x = -_strike_flash * 22.0
+			elif "Bombardier" in species_id:
+				_model_root.rotation_degrees.x = -_strike_flash * 18.0
+			if is_instance_valid(_head_pivot):
+				if _archetype == "BEETLE":
+					_head_pivot.rotation_degrees.x = (-10.0 if moving else 0.0) + _strike_flash * 38.0
+				else:
+					_head_pivot.rotation_degrees.x = -_strike_flash * 20.0 + sin(_anim_phase * 0.6) * 4.0
+
+		"CRAB":
+			var is_shrimp = ("Shrimp" in species_id)
+			if not is_shrimp and moving:
+				_model_root.rotation_degrees.y = 28.0
+				_model_root.rotation_degrees.z = sin(_anim_phase * 1.6) * 5.0
+			var c_amp = 22.0 if moving else 4.0
+			for i in range(_multi_legs_l.size()):
+				var ph_l = _anim_phase * 1.7 + float(i) * 1.4
+				var ph_r = ph_l + PI
+				var ll = _multi_legs_l[i]
+				if is_instance_valid(ll):
+					ll.rotation_degrees.y = sin(ph_l) * c_amp
+					ll.rotation_degrees.z = maxf(0.0, cos(ph_l)) * 14.0
+				if i < _multi_legs_r.size():
+					var lr = _multi_legs_r[i]
+					if is_instance_valid(lr):
+						lr.rotation_degrees.y = sin(ph_r) * c_amp
+						lr.rotation_degrees.z = -maxf(0.0, cos(ph_r)) * 14.0
+			if "MantisShrimp" in species_id:
+				if is_instance_valid(_leg_fl):
+					_leg_fl.rotation_degrees.x = -_strike_flash * 58.0
+				if is_instance_valid(_leg_fr):
+					_leg_fr.rotation_degrees.x = -_strike_flash * 58.0
+			elif "PistolShrimp" in species_id:
+				if is_instance_valid(_leg_fr):
+					_leg_fr.rotation_degrees.y = _strike_flash * 36.0
+				if is_instance_valid(_leg_fl):
+					_leg_fl.rotation_degrees.y = -_strike_flash * 16.0
+			else:
+				if is_instance_valid(_leg_fl):
+					_leg_fl.rotation_degrees.y = -_strike_flash * 30.0 + sin(_anim_phase * 0.7) * 6.0
+				if is_instance_valid(_leg_fr):
+					_leg_fr.rotation_degrees.y = _strike_flash * 30.0 - sin(_anim_phase * 0.7) * 6.0
+			if is_instance_valid(_tail_pivot):
+				_tail_pivot.rotation_degrees.x = sin(_anim_phase * 1.8) * 16.0
+
+		"WALRUS":
+			var row_f = sin(_anim_phase) * (28.0 if moving else 5.0)
+			if is_instance_valid(_leg_fl):
+				_leg_fl.rotation_degrees.x = row_f
+			if is_instance_valid(_leg_fr):
+				_leg_fr.rotation_degrees.x = row_f
+			if is_instance_valid(_tail_pivot):
+				_tail_pivot.rotation_degrees.x = -row_f * 0.5
+			if moving:
+				_model_root.position.y = absf(sin(_anim_phase)) * 0.10
+				_model_root.rotation_degrees.x = cos(_anim_phase) * 6.0
+			if is_instance_valid(_head_pivot):
+				_head_pivot.rotation_degrees.x = -_strike_flash * 36.0 + sin(_anim_phase * 0.5) * 4.0
+			if is_instance_valid(_jaw_pivot):
+				_jaw_pivot.rotation_degrees.x = _strike_flash * 24.0
+
+		"SHARK", "FISH":
+			if "Orca" in species_id:
+				if is_instance_valid(_tail_pivot):
+					_tail_pivot.rotation_degrees.x = sin(_anim_phase * 1.35) * (28.0 if moving else 10.0)
+					_tail_pivot.rotation_degrees.y = 0.0
+				_model_root.rotation_degrees.x = cos(_anim_phase * 1.35) * (8.0 if moving else 2.0) - _strike_flash * 16.0
+				_model_root.position.y = absf(sin(_anim_phase * 0.68)) * (0.16 if moving else 0.03)
+			elif "MantaRay" in species_id:
+				if is_instance_valid(_wing_l) and is_instance_valid(_wing_r):
+					var m_flap = sin(_anim_phase * 1.25) * 32.0
+					_wing_l.rotation_degrees.z = m_flap
+					_wing_r.rotation_degrees.z = -m_flap
+				_model_root.position.y = sin(_anim_phase * 1.25) * 0.10
+				if is_instance_valid(_tail_pivot):
+					_tail_pivot.rotation_degrees.y = sin(_anim_phase) * 10.0
+			elif "Mudskipper" in species_id:
+				var crutch = sin(_anim_phase * 1.5) * (34.0 if moving else 6.0)
+				if is_instance_valid(_leg_fl):
+					_leg_fl.rotation_degrees.x = crutch
+				if is_instance_valid(_leg_fr):
+					_leg_fr.rotation_degrees.x = crutch
+				if moving:
+					_model_root.position.y = maxf(0.0, sin(_anim_phase * 1.5)) * 0.18
+				if is_instance_valid(_tail_pivot):
+					_tail_pivot.rotation_degrees.y = cos(_anim_phase * 1.5) * 18.0
+			else:
+				_model_root.rotation_degrees.y = sin(_anim_phase * 1.5) * (10.0 if moving else 3.0)
+				if is_instance_valid(_tail_pivot):
+					_tail_pivot.rotation_degrees.y = -cos(_anim_phase * 1.5) * (28.0 if moving else 10.0)
+				if is_instance_valid(_leg_fl) and is_instance_valid(_leg_fr):
+					var p_fin = sin(_anim_phase * 1.5) * 12.0
+					_leg_fl.rotation_degrees.z = p_fin
+					_leg_fr.rotation_degrees.z = -p_fin
+				if "Piranha" in species_id and moving:
+					_model_root.position.y = absf(sin(_anim_phase * 1.8)) * 0.14
+				elif "Pufferfish" in species_id:
+					var puff = 1.0 + _strike_flash * 0.35 + (0.12 if is_instance_valid(target) else 0.0)
+					_model_root.scale = _base_model_scale * puff
+			if is_instance_valid(_head_pivot):
+				_head_pivot.rotation_degrees.x = -_strike_flash * 16.0
+			if is_instance_valid(_jaw_pivot):
+				_jaw_pivot.rotation_degrees.x = _strike_flash * 38.0
+
+		"PRIMATE":
+			var p_swing = sin(_anim_phase) * (30.0 if moving else 4.0)
+			if "Gorilla" in species_id or "Chimpanzee" in species_id:
+				if moving:
+					_model_root.rotation_degrees.z = sin(_anim_phase) * 7.0
+					_model_root.position.y = absf(sin(_anim_phase)) * 0.08
+				_model_root.rotation_degrees.x = -_strike_flash * 14.0
+				if is_instance_valid(_leg_fl):
+					_leg_fl.rotation_degrees.x = p_swing - _strike_flash * 75.0
+				if is_instance_valid(_leg_fr):
+					_leg_fr.rotation_degrees.x = -p_swing - _strike_flash * 75.0
+			elif "Orangutan" in species_id:
+				if is_instance_valid(_leg_fl):
+					_leg_fl.rotation_degrees.x = p_swing
+				if is_instance_valid(_leg_fr):
+					_leg_fr.rotation_degrees.x = -p_swing - _strike_flash * 85.0
+			elif "Gibbon" in species_id:
+				var br_swing = sin(_anim_phase) * (44.0 if moving else 8.0)
+				if is_instance_valid(_leg_fl):
+					_leg_fl.rotation_degrees.x = br_swing - _strike_flash * 50.0
+				if is_instance_valid(_leg_fr):
+					_leg_fr.rotation_degrees.x = -br_swing - _strike_flash * 50.0
+			else:
+				if moving:
+					_model_root.position.y = absf(sin(_anim_phase * 1.3)) * 0.12
+				if is_instance_valid(_leg_fl):
+					_leg_fl.rotation_degrees.x = p_swing - _strike_flash * 45.0
+				if is_instance_valid(_leg_fr):
+					_leg_fr.rotation_degrees.x = -p_swing - _strike_flash * 45.0
+			if is_instance_valid(_leg_bl):
+				_leg_bl.rotation_degrees.x = -p_swing
+			if is_instance_valid(_leg_br):
+				_leg_br.rotation_degrees.x = p_swing
+			if is_instance_valid(_tail_pivot):
+				_tail_pivot.rotation_degrees.z = sin(_anim_phase * 1.2) * 18.0
+				_tail_pivot.rotation_degrees.x = cos(_anim_phase * 0.8) * 12.0
+			if is_instance_valid(_head_pivot):
+				_head_pivot.rotation_degrees.x = -_strike_flash * 16.0 + sin(_anim_phase * 0.5) * 4.0
+			if is_instance_valid(_jaw_pivot):
+				_jaw_pivot.rotation_degrees.x = _strike_flash * 32.0
+
+		"CORVID", "AVIAN_FLYER":
+			if is_instance_valid(_wing_l) and is_instance_valid(_wing_r):
+				var w_rate = 3.8 if "Hummingbird" in species_id else 2.2
+				var flap = sin(_anim_phase * w_rate) * 38.0
+				_wing_l.rotation_degrees.z = flap
+				_wing_r.rotation_degrees.z = -flap
+			_model_root.position.y = sin(_anim_phase * 2.2) * 0.10
+			if is_instance_valid(_tail_pivot):
+				_tail_pivot.rotation_degrees.x = cos(_anim_phase * 2.2) * 8.0
+			var is_raptor = ("Eagle" in species_id or "Falcon" in species_id or "Owl" in species_id or "Condor" in species_id)
+			if is_instance_valid(_leg_bl) and is_instance_valid(_leg_br):
+				var talon_ang = -_strike_flash * (58.0 if is_raptor else 24.0)
+				_leg_bl.rotation_degrees.x = talon_ang
+				_leg_br.rotation_degrees.x = talon_ang
+			if is_instance_valid(_head_pivot):
+				if is_pecking:
+					var jackhammer = absf(sin(_strike_flash * PI * 4.0)) if _strike_flash > 0.0 else 0.0
+					_head_pivot.rotation_degrees.x = -jackhammer * 42.0 + sin(_anim_phase * 0.5) * 4.0
+					_head_pivot.position.z = _base_head_pos.z - jackhammer * 0.16
+				else:
+					_head_pivot.rotation_degrees.x = -_strike_flash * 22.0 + sin(_anim_phase * 0.5) * 4.0
+
+		"AVIAN_WALKER":
+			var run_s = sin(_anim_phase * 1.35) * (38.0 if moving else 4.0)
+			if is_instance_valid(_leg_bl):
+				_leg_bl.rotation_degrees.x = run_s - _strike_flash * 65.0
+			if is_instance_valid(_leg_br):
+				_leg_br.rotation_degrees.x = -run_s
+			if moving or _strike_flash > 0.0:
+				_model_root.position.y = absf(sin(_anim_phase * 1.35)) * (0.10 if moving else 0.0) + _strike_flash * 0.20
+			if is_instance_valid(_wing_l) and is_instance_valid(_wing_r):
+				var flare = _strike_flash * 35.0 + (absf(sin(_anim_phase)) * 8.0 if moving else 0.0)
+				_wing_l.rotation_degrees.z = flare
+				_wing_r.rotation_degrees.z = -flare
+			if is_instance_valid(_head_pivot):
+				_head_pivot.position.z = _base_head_pos.z - absf(sin(_anim_phase * 1.35)) * (0.10 if moving else 0.02) - _strike_flash * 0.18
+				_head_pivot.rotation_degrees.x = -_strike_flash * (38.0 if is_pecking else 22.0)
+			if is_instance_valid(_tail_pivot):
+				_tail_pivot.rotation_degrees.x = sin(_anim_phase * 1.35) * 8.0
+
+		"CROCODILIAN":
+			var c_walk = sin(_anim_phase) * (24.0 if moving else 3.0)
+			if is_instance_valid(_leg_fl):
+				_leg_fl.rotation_degrees.x = c_walk
+			if is_instance_valid(_leg_br):
+				_leg_br.rotation_degrees.x = c_walk
+			if is_instance_valid(_leg_fr):
+				_leg_fr.rotation_degrees.x = -c_walk
+			if is_instance_valid(_leg_bl):
+				_leg_bl.rotation_degrees.x = -c_walk
+			_model_root.rotation_degrees.y = sin(_anim_phase) * (7.0 if moving else 1.5)
+			if _strike_flash > 0.01:
+				_model_root.rotation_degrees.z = (1.0 - _strike_flash) * 360.0
+			for i in range(_body_segments.size()):
+				var t_seg = _body_segments[i]
+				if is_instance_valid(t_seg):
+					t_seg.position.x = sin(_anim_phase * 1.3 - float(i) * 0.7) * (0.10 if moving else 0.03)
+			if is_instance_valid(_tail_pivot):
+				_tail_pivot.rotation_degrees.y = -cos(_anim_phase * 1.3) * (18.0 if moving else 6.0)
+			if is_instance_valid(_head_pivot):
+				_head_pivot.rotation_degrees.x = _strike_flash * 14.0
+			if is_instance_valid(_jaw_pivot):
+				_jaw_pivot.rotation_degrees.x = _strike_flash * 42.0
+
+		"LIZARD":
+			var l_rate = 0.65 if "Chameleon" in species_id else 1.25
+			var l_walk = sin(_anim_phase * l_rate) * (26.0 if moving else 3.0)
+			if is_instance_valid(_leg_fl):
+				_leg_fl.rotation_degrees.x = l_walk
+			if is_instance_valid(_leg_br):
+				_leg_br.rotation_degrees.x = l_walk
+			if is_instance_valid(_leg_fr):
+				_leg_fr.rotation_degrees.x = -l_walk
+			if is_instance_valid(_leg_bl):
+				_leg_bl.rotation_degrees.x = -l_walk
+			if "Frilled" in species_id:
+				if moving:
+					_model_root.rotation_degrees.x = 18.0
+					_model_root.rotation_degrees.z = sin(_anim_phase * 1.5) * 6.0
+				if is_instance_valid(_neck_frill):
+					var frill_open = maxf(_strike_flash, 0.45 if is_instance_valid(target) else 0.0)
+					_neck_frill.scale = Vector3(1.0 + frill_open * 0.65, 1.0 + frill_open * 0.65, 1.0)
+			elif "Chameleon" in species_id:
+				if moving:
+					_model_root.position.z = sin(_anim_phase * 1.5) * 0.06
+				if is_instance_valid(_ballistic_tongue):
+					_ballistic_tongue.scale = Vector3(1.0, 1.0 + _strike_flash * 5.5, 1.0)
+					_ballistic_tongue.position.z = -0.22 - _strike_flash * 0.65
+			else:
+				_model_root.rotation_degrees.y = sin(_anim_phase) * (8.0 if moving else 2.0)
+				for i in range(_body_segments.size()):
+					var t_s = _body_segments[i]
+					if is_instance_valid(t_s):
+						t_s.position.x = sin(_anim_phase * 1.4 - float(i) * 0.7) * (0.09 if moving else 0.02)
+			if is_instance_valid(_tail_pivot):
+				_tail_pivot.rotation_degrees.y = sin(_anim_phase * l_rate) * 16.0
+			if is_instance_valid(_jaw_pivot):
+				_jaw_pivot.rotation_degrees.x = _strike_flash * 34.0
+
+		"TURTLE":
+			var t_walk = sin(_anim_phase * 0.85) * (18.0 if moving else 2.0)
+			if is_instance_valid(_leg_fl):
+				_leg_fl.rotation_degrees.x = t_walk
+			if is_instance_valid(_leg_br):
+				_leg_br.rotation_degrees.x = t_walk
+			if is_instance_valid(_leg_fr):
+				_leg_fr.rotation_degrees.x = -t_walk
+			if is_instance_valid(_leg_bl):
+				_leg_bl.rotation_degrees.x = -t_walk
+			if is_instance_valid(_head_pivot):
+				_head_pivot.position.z = _base_head_pos.z - _strike_flash * (0.34 if "Snapping" in species_id else 0.16)
+			if is_instance_valid(_jaw_pivot):
+				_jaw_pivot.rotation_degrees.x = _strike_flash * 38.0
+
+		"BIPED_HOPPER":
+			var hop_s = sin(_anim_phase * 1.35)
+			if moving:
+				_model_root.position.y = absf(hop_s) * 0.32
+				_model_root.rotation_degrees.x = -hop_s * 10.0 + _strike_flash * 18.0
+			else:
+				_model_root.rotation_degrees.x = _strike_flash * 18.0
+			var leg_ang = (hop_s * 34.0 if moving else 0.0) - _strike_flash * 60.0
+			if is_instance_valid(_leg_bl):
+				_leg_bl.rotation_degrees.x = leg_ang
+			if is_instance_valid(_leg_br):
+				_leg_br.rotation_degrees.x = leg_ang
+			if is_instance_valid(_leg_fl):
+				_leg_fl.rotation_degrees.x = -_strike_flash * 55.0 + sin(_anim_phase * 2.0) * 8.0
+			if is_instance_valid(_leg_fr):
+				_leg_fr.rotation_degrees.x = -_strike_flash * 55.0 - sin(_anim_phase * 2.0) * 8.0
+			if is_instance_valid(_tail_pivot):
+				_tail_pivot.rotation_degrees.x = (-absf(hop_s) * 20.0 if moving else 0.0) - _strike_flash * 18.0
+
+		"TANK_MAMMAL":
+			var h_walk = sin(_anim_phase * 0.85) * (20.0 if moving else 3.0)
+			if is_instance_valid(_leg_fl):
+				_leg_fl.rotation_degrees.x = h_walk
+			if is_instance_valid(_leg_br):
+				_leg_br.rotation_degrees.x = h_walk
+			if is_instance_valid(_leg_fr):
+				_leg_fr.rotation_degrees.x = -h_walk
+			if is_instance_valid(_leg_bl):
+				_leg_bl.rotation_degrees.x = -h_walk
+			if is_instance_valid(_ear_l) and is_instance_valid(_ear_r):
+				var ear_flap = absf(sin(_anim_phase * 0.9)) * 26.0 + _strike_flash * 28.0
+				_ear_l.rotation_degrees.y = -ear_flap
+				_ear_r.rotation_degrees.y = ear_flap
+			if is_instance_valid(_trunk_pivot):
+				_trunk_pivot.rotation_degrees.z = sin(_anim_phase * 0.8) * 14.0
+				_trunk_pivot.rotation_degrees.x = -_strike_flash * 68.0 + cos(_anim_phase * 0.8) * 8.0
+			if is_instance_valid(_head_pivot):
+				var charge_dip = -12.0 if (moving and ("Rhino" in species_id or "Buffalo" in species_id)) else 0.0
+				_head_pivot.rotation_degrees.x = charge_dip + _strike_flash * 34.0
+			if is_instance_valid(_jaw_pivot):
+				_jaw_pivot.rotation_degrees.x = _strike_flash * (62.0 if "Hippo" in species_id else 26.0)
+			if is_instance_valid(_tail_pivot):
+				_tail_pivot.rotation_degrees.z = sin(_anim_phase) * 12.0
+
+		_:
+			var is_galloper = ("Lion" in species_id or "Tiger" in species_id or "Cheetah" in species_id or "Panther" in species_id or "Sabertooth" in species_id or "Wolf" in species_id or "Hyena" in species_id)
+			if is_galloper and moving:
+				var g_f1 = sin(_anim_phase * 1.25) * 32.0
+				var g_f2 = sin(_anim_phase * 1.25 + 0.45) * 32.0
+				var g_b1 = -sin(_anim_phase * 1.25 + 0.20) * 34.0
+				var g_b2 = -sin(_anim_phase * 1.25 + 0.65) * 34.0
+				if is_instance_valid(_leg_fl):
+					_leg_fl.rotation_degrees.x = g_f1 - _strike_flash * 48.0
+				if is_instance_valid(_leg_fr):
+					_leg_fr.rotation_degrees.x = g_f2 - _strike_flash * 48.0
+				if is_instance_valid(_leg_bl):
+					_leg_bl.rotation_degrees.x = g_b1
+				if is_instance_valid(_leg_br):
+					_leg_br.rotation_degrees.x = g_b2
+				_model_root.rotation_degrees.x = cos(_anim_phase * 1.25) * 5.5 - _strike_flash * 10.0
+				_model_root.position.y = absf(sin(_anim_phase * 1.25)) * 0.10 + _strike_flash * 0.14
+			else:
+				var q_swing = sin(_anim_phase) * (26.0 if moving else 4.0)
+				if is_instance_valid(_leg_fl):
+					_leg_fl.rotation_degrees.x = q_swing - _strike_flash * (65.0 if "Bear" in species_id else 35.0)
+				if is_instance_valid(_leg_br):
+					_leg_br.rotation_degrees.x = q_swing
+				if is_instance_valid(_leg_fr):
+					_leg_fr.rotation_degrees.x = -q_swing - _strike_flash * 35.0
+				if is_instance_valid(_leg_bl):
+					_leg_bl.rotation_degrees.x = -q_swing
+				if "Bear" in species_id:
+					_model_root.rotation_degrees.x = _strike_flash * 14.0
+				elif "Porcupine" in species_id:
+					_model_root.rotation_degrees.x = -_strike_flash * 16.0
+			if is_instance_valid(_tail_pivot):
+				_tail_pivot.rotation_degrees.y = sin(_anim_phase) * 16.0
+			if is_instance_valid(_head_pivot):
+				_head_pivot.rotation_degrees.x = -_strike_flash * 18.0 + sin(_anim_phase * 0.5) * 4.0
+			if is_instance_valid(_jaw_pivot):
+				_jaw_pivot.rotation_degrees.x = _strike_flash * 36.0
