@@ -281,6 +281,8 @@ func _physics_process(delta: float):
 			eff_range += 2.6
 		elif "Tower" in target.name:
 			eff_range += 1.6
+		elif "Den" in target.name or "Burrow" in target.name or "Hill" in target.name or "Pit" in target.name:
+			eff_range += 4.5
 
 		if d2 <= eff_range:
 			velocity.x = 0.0
@@ -306,10 +308,11 @@ func _physics_process(delta: float):
 			moving = true
 	else:
 		var my_t = _get_my_team()
+		var map_span: float = GameState.current_map_radius if GameState and GameState.current_map_radius > 15.0 else 56.0
 		var forward_z = -1.0 if (my_t == "SideA" or my_t == "Player") else 1.0
-		var goal_z = -55.0 if (my_t == "SideA" or my_t == "Player") else 55.0
+		var goal_z = -map_span if (my_t == "SideA" or my_t == "Player") else map_span
 		var lane_x = _get_lane_x()
-		var next_pos = Vector3(lane_x, global_position.y, clampf(global_position.z + forward_z * 12.0, -56.0, 56.0))
+		var next_pos = Vector3(lane_x, global_position.y, clampf(global_position.z + forward_z * 12.0, -map_span, map_span))
 		if absf(global_position.z - goal_z) < 10.0:
 			next_pos.x = 0.0
 			next_pos.z = goal_z

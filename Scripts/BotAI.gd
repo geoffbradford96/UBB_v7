@@ -480,6 +480,42 @@ func evaluate_moves():
 					return a_prio > b_prio
 				return a.cost < b.cost # Prefer quick cheap deployments
 			)
+		elif archetype == "Galactic Wildlife":
+			# Galactic Wildlife: nature's primal swarm, apex predators, and aerial harassment
+			var wild_bank = 3.2 * bank_scale
+			if threat_info.threat_score < 8.0 and current_requisition < wild_bank:
+				return
+			valid_hand.sort_custom(func(a, b):
+				var a_prio = 0
+				var b_prio = 0
+				if a.card_type == "Commander": a_prio += 30
+				elif "Mammoth" in a.card_name or "Megalodon" in a.card_name or "Croc" in a.card_name or "Grizzly" in a.card_name or "Gorilla" in a.card_name or "Elephant" in a.card_name or "Hippo" in a.card_name or "Rhino" in a.card_name:
+					a_prio += 24 # Apex frontline vanguard
+				elif "Eagle" in a.card_name or "Condor" in a.card_name or "Raven" in a.card_name or "Owl" in a.card_name or "Hornet" in a.card_name or "Bat" in a.card_name:
+					a_prio += 20 # Aerial harassment along flanks
+				elif "Archerfish" in a.card_name or "PistolShrimp" in a.card_name or "Bombardier" in a.card_name or "SpittingCobra" in a.card_name or "Monkey" in a.card_name:
+					a_prio += (18 if friendly_screens >= 1 else 10) # Ranged artillery/spitters behind screens
+				elif "Snake" in a.card_name or "Scorpion" in a.card_name or "Spider" in a.card_name or "Centipede" in a.card_name:
+					a_prio += 15 # Venomous skirmishers
+				else:
+					a_prio += 12 # Swarm pack
+
+				if b.card_type == "Commander": b_prio += 30
+				elif "Mammoth" in b.card_name or "Megalodon" in b.card_name or "Croc" in b.card_name or "Grizzly" in b.card_name or "Gorilla" in b.card_name or "Elephant" in b.card_name or "Hippo" in b.card_name or "Rhino" in b.card_name:
+					b_prio += 24
+				elif "Eagle" in b.card_name or "Condor" in b.card_name or "Raven" in b.card_name or "Owl" in b.card_name or "Hornet" in b.card_name or "Bat" in b.card_name:
+					b_prio += 20
+				elif "Archerfish" in b.card_name or "PistolShrimp" in b.card_name or "Bombardier" in b.card_name or "SpittingCobra" in b.card_name or "Monkey" in b.card_name:
+					b_prio += (18 if friendly_screens >= 1 else 10)
+				elif "Snake" in b.card_name or "Scorpion" in b.card_name or "Spider" in b.card_name or "Centipede" in b.card_name:
+					b_prio += 15
+				else:
+					b_prio += 12
+
+				if a_prio != b_prio:
+					return a_prio > b_prio
+				return a.cost < b.cost
+			)
 		else:
 			# "Chaos" (Mixed Faction) or Custom Hybrid Deck:
 			# Dynamically adapts to cross-faction cards in hand!
@@ -709,8 +745,8 @@ func calculate_optimal_spawn(card: CardData, threat_info: Dictionary, team_ctx: 
 			var threat_dir = to_threat.normalized() if threat_dist > 0.1 else Vector3(0, 0, 1)
 			var side_dir = threat_dir.cross(Vector3.UP).normalized()
 			
-			# Ranged / Artillery / Sniper / Acid spitters / Infectors deploy slightly offset / behind anchor
-			if card.card_name in ["Sniper", "VoidSpitter", "VoidCorruptor", "SpiderTank", "ReachRanged", "RimworlderGunner", "BeastDigestiveCell", "PlagueRangedEye", "PlagueEnlightenedRanged", "PlagueInfector", "GildedInfector", "GildedGeneticRanged", "GildedHuskRanged", "SupportingFire", "ScrapRanged", "RocketInfantry"]:
+			# Ranged / Artillery / Sniper / Acid spitters / Infectors / Animal spitters deploy slightly offset / behind anchor
+			if card.card_name in ["Sniper", "VoidSpitter", "VoidCorruptor", "SpiderTank", "ReachRanged", "RimworlderGunner", "BeastDigestiveCell", "PlagueRangedEye", "PlagueEnlightenedRanged", "PlagueInfector", "GildedInfector", "GildedGeneticRanged", "GildedHuskRanged", "SupportingFire", "ScrapRanged", "RocketInfantry", "WildlifeArcherfish", "WildlifePistolShrimp", "WildlifeBombardierBeetle", "WildlifeSpittingCobra", "WildlifeMonkey", "WildlifeChameleon", "PrimitiveShortBow", "PrimitiveCrossbowman", "PrimitiveRockThrower"]:
 				var offset_dist = clamp(threat_dist * 0.35, 4.0, 14.0)
 				target_pos = anchor.global_position + (side_dir * (8.0 if randf() > 0.5 else -8.0)) + (threat_dir * offset_dist)
 			else:
@@ -849,17 +885,17 @@ func calculate_optimal_spawn(card: CardData, threat_info: Dictionary, team_ctx: 
 			elif "Genetic" in card.card_name or "SavedHorde" in card.card_name:
 				# Gilded Harmony Mitosis Spacing: stagger deployments so wounded monsters regenerate to full HP and divide!
 				target_pos += (push_dir * randf_range(11.0, 19.0)) + (right_dir * randf_range(-6.5, 6.5))
-			elif "Beetle" in card.card_name or "Jellyfish" in card.card_name or "Plane" in card.card_name or "Flyer" in card.card_name or "Gargoyle" in card.card_name:
+			elif "Beetle" in card.card_name or "Jellyfish" in card.card_name or "Plane" in card.card_name or "Flyer" in card.card_name or "Gargoyle" in card.card_name or "Eagle" in card.card_name or "Condor" in card.card_name or "Raven" in card.card_name or "Owl" in card.card_name or "Bird" in card.card_name or "Goose" in card.card_name or "Hawk" in card.card_name or "Falcon" in card.card_name or "Bat" in card.card_name or "Vulture" in card.card_name or "Pelican" in card.card_name or "Hornet" in card.card_name or "Wasp" in card.card_name or "Mosquito" in card.card_name or "Dragonfly" in card.card_name or "Bee" in card.card_name:
 				# Flying Beasts & Aircraft: bypass ground obstacles along wide aerial flanks
 				var flank_offset = right_dir * (16.0 if randf() > 0.5 else -16.0)
 				target_pos += (push_dir * randf_range(13.0, 22.0)) + flank_offset
-			elif "Leviathan" in card.card_name or "Monstrous" in card.card_name or "Mutant" in card.card_name or "Octopus" in card.card_name or "Squid" in card.card_name or "MeleeEye" in card.card_name or "Tank" in card.card_name or "Mech" in card.card_name or "EnlightenedBig" in card.card_name or "ShieldInfantry" in card.card_name or "ArmoredInfantry" in card.card_name:
-				# Frontline Armor / Shielded Vanguards / Bio-Titan / Eye sponges march down the primary push vector
+			elif "Leviathan" in card.card_name or "Monstrous" in card.card_name or "Mutant" in card.card_name or "Octopus" in card.card_name or "Squid" in card.card_name or "MeleeEye" in card.card_name or "Tank" in card.card_name or "Mech" in card.card_name or "EnlightenedBig" in card.card_name or "ShieldInfantry" in card.card_name or "ArmoredInfantry" in card.card_name or "Mammoth" in card.card_name or "Megalodon" in card.card_name or "Whale" in card.card_name or "Shark" in card.card_name or "Elephant" in card.card_name or "Hippo" in card.card_name or "Rhino" in card.card_name or "Bear" in card.card_name or "Croc" in card.card_name or "Alligator" in card.card_name or "Gorilla" in card.card_name or "Tiger" in card.card_name or "Lion" in card.card_name or "Bison" in card.card_name or "Buffalo" in card.card_name or "Walrus" in card.card_name or "Knight" in card.card_name or "Clubber" in card.card_name:
+				# Frontline Armor / Shielded Vanguards / Bio-Titan / Apex Beasts march down the primary push vector
 				target_pos += (push_dir * randf_range(13.0, 21.0)) + (right_dir * randf_range(-3.0, 3.0))
 			elif "CommandBay" in card.card_name:
 				# Deploy near perimeter edge toward objective/hill to expand forward deployment zone
 				target_pos += (push_dir * 20.0) + (right_dir * (7.0 if randf() > 0.5 else -7.0))
-			elif card.card_name in ["Sniper", "VoidSpitter", "SpiderTank", "ReachRanged", "RimworlderGunner", "PlagueRangedEye", "PlagueEnlightenedRanged", "GildedGeneticRanged", "GildedHuskRanged", "SupportingFire", "ScrapRanged", "RocketInfantry"]:
+			elif card.card_name in ["Sniper", "VoidSpitter", "SpiderTank", "ReachRanged", "RimworlderGunner", "PlagueRangedEye", "PlagueEnlightenedRanged", "GildedGeneticRanged", "GildedHuskRanged", "SupportingFire", "ScrapRanged", "RocketInfantry", "WildlifeArcherfish", "WildlifePistolShrimp", "WildlifeBombardierBeetle", "WildlifeSpittingCobra", "WildlifeMonkey", "WildlifeChameleon", "PrimitiveShortBow", "PrimitiveCrossbowman", "PrimitiveRockThrower"]:
 				if allied_vanguard != null and is_instance_valid(allied_vanguard):
 					target_pos = allied_vanguard.global_position - (push_dir * 5.5) + (right_dir * randf_range(-4.5, 4.5))
 				else:
@@ -893,16 +929,40 @@ func calculate_optimal_spawn(card: CardData, threat_info: Dictionary, team_ctx: 
 				if away_dir.length() < 0.1: away_dir = Vector3(1, 0, 0)
 				target_pos = beam_pos + (away_dir * 8.5)
 
-	# 5. Sand Dune Blocker Avoidance (Prevent spawning inside impassable dunes)
+	# 5. Biome Hazard & Obstacle Avoidance (Dunes, Quicksand Sinkholes, Volcanic Fire, and Broken Ice)
 	if am and "placed_feature_records" in am:
 		for feat in am.placed_feature_records:
-			if feat.get("type", "") == "dune":
+			var f_type = feat.get("type", "")
+			if f_type == "dune":
 				var d_pos = feat.get("pos", Vector3.ZERO)
 				var d_rad = feat.get("radius", 9.5)
 				if target_pos.distance_to(d_pos) < d_rad:
 					var shift_dir = (target_pos - d_pos).normalized()
 					if shift_dir.length() < 0.1: shift_dir = Vector3(0, 0, 1)
 					target_pos = d_pos + (shift_dir * (d_rad + 2.0))
+			elif f_type == "sinkhole":
+				var is_flying_c = "Plane" in card.card_name or "Flyer" in card.card_name or "Beetle" in card.card_name or "Jellyfish" in card.card_name or "Gargoyle" in card.card_name or "Eagle" in card.card_name or "Condor" in card.card_name or "Raven" in card.card_name or "Owl" in card.card_name or "Hornet" in card.card_name or "Bat" in card.card_name or "Bird" in card.card_name or "Goose" in card.card_name or "Hawk" in card.card_name or "Falcon" in card.card_name
+				if not is_flying_c:
+					var sh_pos = feat.get("pos", Vector3.ZERO)
+					var sh_rad = feat.get("radius", 4.8)
+					if target_pos.distance_to(sh_pos) < (sh_rad + 1.2):
+						var shift_dir = (target_pos - sh_pos).normalized()
+						if shift_dir.length() < 0.1: shift_dir = Vector3(1, 0, 0)
+						target_pos = sh_pos + (shift_dir * (sh_rad + 2.0))
+			elif f_type == "fire_hazard":
+				var fh_pos = feat.get("pos", Vector3.ZERO)
+				var fh_rad = feat.get("radius", 4.5)
+				if target_pos.distance_to(fh_pos) < (fh_rad + 1.0):
+					var shift_dir = (target_pos - fh_pos).normalized()
+					if shift_dir.length() < 0.1: shift_dir = Vector3(0, 0, 1)
+					target_pos = fh_pos + (shift_dir * (fh_rad + 2.0))
+			elif f_type == "ice_patch":
+				var ip_pos = feat.get("pos", Vector3.ZERO)
+				var ip_rad = feat.get("radius", 6.5)
+				if target_pos.distance_to(ip_pos) < (ip_rad + 1.0):
+					var shift_dir = (target_pos - ip_pos).normalized()
+					if shift_dir.length() < 0.1: shift_dir = Vector3(0, 0, 1)
+					target_pos = ip_pos + (shift_dir * (ip_rad + 2.0))
 
 	# 6. Clamp to valid deployment range (max 28.0m from anchor, identical to player)
 	target_pos.y = 0.0

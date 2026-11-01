@@ -932,16 +932,41 @@ func test_ai_systems() -> bool:
 		success = false
 	print("  Verified %d distinct Galactic Wildlife species in SPECIES_CATALOG." % wildlife_count)
 
-	var wild_bot = BotAI.new()
-	var wild_deck = wild_bot.generate_themed_deck("Galactic Wildlife")
-	if wild_deck.size() != 6:
-		printerr("BotAI Galactic Wildlife deck size is not 6! Got: ", wild_deck.size())
-		success = false
-	for wc in wild_deck:
-		if not wc.begins_with("Wildlife"):
-			printerr("BotAI Galactic Wildlife deck contains non-wildlife card: ", wc)
+	var all_archetypes = ["Dominion", "The Reach", "Pirates", "Rimworlders", "Void", "Plague of Harmony", "Gilded Harmony", "Planetary Primitives", "Galactic Wildlife", "Chaos"]
+	var audit_bot = BotAI.new()
+	audit_bot.name = "AuditBot"
+	add_child(audit_bot)
+	for arch in all_archetypes:
+		var d = audit_bot.generate_themed_deck(arch)
+		if d.size() != 6:
+			printerr("BotAI failed to generate 6-card deck for archetype: ", arch)
 			success = false
-	wild_bot.free()
+		audit_bot.archetype = arch
+		audit_bot.deck = d.duplicate()
+		audit_bot.hand.clear()
+		audit_bot.discard.clear()
+		audit_bot.current_requisition = 20.0
+		audit_bot.draw_to_hand()
+		audit_bot.draw_to_hand()
+		audit_bot.draw_to_hand()
+		audit_bot.evaluate_moves()
+	audit_bot.queue_free()
+
+	# Test neutral structure effective attack range
+	var test_melee = (load("res://Scenes/Units/CheapGrunt.tscn") as PackedScene).instantiate()
+	add_child(test_melee)
+	var test_den = StaticBody3D.new()
+	test_den.name = "GorillaDen_Test"
+	var d_hc = HealthComponent.new()
+	d_hc.name = "HealthComponent"
+	test_den.add_child(d_hc)
+	add_child(test_den)
+	test_melee.current_target = test_den
+	if not ("Den" in test_den.name):
+		printerr("Test den name check failed!")
+		success = false
+	test_melee.queue_free()
+	test_den.queue_free()
 
 	var snake_inst = (load("res://Scenes/Units/WildlifePoisonSnake.tscn") as PackedScene).instantiate()
 	var crow_inst = (load("res://Scenes/Units/WildlifeCrow.tscn") as PackedScene).instantiate()

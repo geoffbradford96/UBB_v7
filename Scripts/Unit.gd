@@ -160,6 +160,8 @@ func _physics_process(delta):
 			effective_range += 5.5
 		elif "Tower" in current_target.name or "CommandBay" in current_target.name:
 			effective_range += 2.5
+		elif "Den" in current_target.name or "Burrow" in current_target.name or "Hill" in current_target.name or "Pit" in current_target.name:
+			effective_range += 4.5
 			
 		if dist > effective_range:
 			# Move towards target
