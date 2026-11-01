@@ -291,7 +291,7 @@ func setup_match():
         
     var chosen_biome = GameState.map_biome if ("map_biome" in GameState and GameState.map_biome != "") else "SUNNY_PLAINS"
     if chosen_biome == "RANDOM":
-        var biome_pool = ["SUNNY_PLAINS", "SCORCHING_DUNES", "REALM_OF_HARMONY", "FROZEN_TUNDRA", "VOLCANIC_BRIMSTONE", "SPACE_VACUUM"]
+        var biome_pool = ["SUNNY_PLAINS", "SCORCHING_DUNES", "REALM_OF_HARMONY", "FROZEN_TUNDRA", "VOLCANIC_BRIMSTONE", "SPACE_VACUUM", "DEEP_JUNGLE"]
         chosen_biome = biome_pool[randi() % biome_pool.size()]
     var map_seed = randi()
     if multiplayer.has_multiplayer_peer() and multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED:
@@ -2007,6 +2007,8 @@ func _apply_map_environment(biome_name: String, seed_val: int):
         _generate_volcanic_brimstone(env_root)
     elif active_biome == "SPACE_VACUUM":
         _generate_space_vacuum(env_root)
+    elif active_biome == "DEEP_JUNGLE" or active_biome == "JUNGLE":
+        _generate_jungle(env_root)
 
 func _apply_biome_visuals(biome_name: String):
     var ground = get_node_or_null("Ground")
@@ -2198,6 +2200,53 @@ func _apply_biome_visuals(biome_name: String):
                 sky_mat.ground_bottom_color = Color(0.01, 0.01, 0.02)
                 sky_mat.ground_horizon_color = Color(0.05, 0.08, 0.18)
 
+    elif biome_name == "DEEP_JUNGLE" or biome_name == "JUNGLE":
+        if ground:
+            var g_mesh = ground.get_node_or_null("MeshInstance3D")
+            if g_mesh:
+                var g_mat = StandardMaterial3D.new()
+                g_mat.albedo_color = Color(0.12, 0.34, 0.10) # Lush rainforest turf / mossy jungle soil
+                g_mat.roughness = 0.90
+                g_mesh.material_override = g_mat
+
+            # Procedural Wooden Boards / Planks Path Texture
+            var wood_img = Image.create(32, 32, false, Image.FORMAT_RGBA8)
+            for py in range(32):
+                var plank_idx = int(float(py) / 8.0)
+                var is_seam = (py % 8 == 0) or (py % 8 == 7)
+                for px in range(32):
+                    if is_seam:
+                        wood_img.set_pixel(px, py, Color(0.18, 0.10, 0.05)) # Dark seam between wooden boards
+                    else:
+                        var base_col = Color(0.54, 0.35, 0.18) if plank_idx % 2 == 0 else Color(0.46, 0.28, 0.14)
+                        var grain = (sin(float(px) * 1.2 + float(py) * 0.4) * 0.035)
+                        var is_nail = (px == 3 or px == 28) and (py % 8 == 3 or py % 8 == 4)
+                        if is_nail:
+                            wood_img.set_pixel(px, py, Color(0.14, 0.12, 0.10))
+                        else:
+                            wood_img.set_pixel(px, py, Color(clampf(base_col.r + grain, 0.0, 1.0), clampf(base_col.g + grain * 0.8, 0.0, 1.0), clampf(base_col.b + grain * 0.6, 0.0, 1.0)))
+            var wood_tex = ImageTexture.create_from_image(wood_img)
+
+            for child in ground.get_children():
+                if child is MeshInstance3D and child.name.begins_with("Path"):
+                    var p_mat = StandardMaterial3D.new()
+                    p_mat.albedo_texture = wood_tex
+                    p_mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+                    p_mat.roughness = 0.78
+                    p_mat.uv1_scale = Vector3(14.0, 14.0, 14.0)
+                    child.material_override = p_mat
+        if dir_light:
+            dir_light.light_color = Color(1.0, 0.96, 0.82)
+            dir_light.light_energy = 1.25
+            dir_light.shadow_enabled = true
+        if world_env and world_env.environment and world_env.environment.sky:
+            var sky_mat = world_env.environment.sky.sky_material
+            if sky_mat is ProceduralSkyMaterial:
+                sky_mat.sky_top_color = Color(0.12, 0.40, 0.65)
+                sky_mat.sky_horizon_color = Color(0.70, 0.85, 0.74)
+                sky_mat.ground_bottom_color = Color(0.08, 0.20, 0.06)
+                sky_mat.ground_horizon_color = Color(0.45, 0.65, 0.38)
+
 func _get_clear_hazard_pos(map_size: float) -> Vector3:
     var attempts = 0
     while attempts < 35:
@@ -2216,10 +2265,10 @@ func _get_clear_hazard_pos(map_size: float) -> Vector3:
             if feat.get("type", "") == "dune" and candidate.distance_to(feat["pos"]) < feat["radius"] * 0.95:
                 obstructed = true
                 break
-            elif (feat.get("type", "") == "pit" or feat.get("type", "") == "hill") and candidate.distance_to(feat["pos"]) < 7.5:
+            elif (feat.get("type", "") in ["pit", "hill", "gorilla_den", "monkey_burrow", "sinkhole"]) and candidate.distance_to(feat["pos"]) < 7.5:
                 obstructed = true
                 break
-            elif feat.get("type", "") == "tree" and candidate.distance_to(feat["pos"]) < 2.5:
+            elif (feat.get("type", "") in ["tree", "jungle_tree"]) and candidate.distance_to(feat["pos"]) < 2.5:
                 obstructed = true
                 break
         if not obstructed:
@@ -2235,7 +2284,7 @@ func _is_pos_clear(pos: Vector3, min_path_dist: float, min_struct_dist: float, s
     if tree:
         for node in tree.get_nodes_in_group("Targetable"):
             if not is_instance_valid(node): continue
-            if "Base" in node.name or "Tower" in node.name or "CommandBay" in node.name or "Structure" in node.name or "Nest" in node.name or "Hill" in node.name:
+            if "Base" in node.name or "Tower" in node.name or "CommandBay" in node.name or "Structure" in node.name or "Nest" in node.name or "Hill" in node.name or "Den" in node.name or "Burrow" in node.name:
                 if pos.distance_to(node.global_position) < min_struct_dist + self_radius + 2.0:
                     return false
                 
@@ -3381,3 +3430,469 @@ func _update_space_vacuum(delta: float) -> void:
             continue
         var vac_dmg = maxf(2.0, hc.max_health * 0.025)
         hc.take_vacuum_damage(vac_dmg)
+
+# --- Deep Jungle Generation (Wooden Board Paths, Quicksand Sinkholes, Jungle Trees & Gorilla/Monkey Nests) ---
+func _generate_jungle(parent: Node3D):
+    placed_feature_records.clear()
+    var sinkhole_script = load("res://Scripts/QuicksandSinkhole.gd")
+    var span = maxf(75.0, GameState.current_map_radius * 0.65)
+    var attempts = 0
+    
+    # 1. Gorilla Dens (1-2 territorial primate dens with 8-10 Gorillas) - GUARANTEED OFF-PATH PLACEMENT
+    var den_angles = [deg_to_rad(60.0), deg_to_rad(240.0)] if GameState.map_selected == "Arena_6P.tscn" else ([deg_to_rad(60.0), deg_to_rad(240.0)] if GameState.map_selected == "Arena_4P.tscn" else [deg_to_rad(45.0), deg_to_rad(225.0)])
+    var den_count = 2 if GameState.map_selected in ["Arena_4P.tscn", "Arena_6P.tscn"] else 1
+    for i in range(den_count):
+        var placed = false
+        attempts = 0
+        while not placed and attempts < 120:
+            attempts += 1
+            var candidate = Vector3.ZERO
+            if GameState.map_selected == "Arena_6P.tscn":
+                var base_ang = den_angles[i] + randf_range(-0.15, 0.15)
+                var r = randf_range(58.0, 88.0)
+                candidate = Vector3(cos(base_ang) * r, 0.0, sin(base_ang) * r)
+            elif GameState.map_selected == "Arena_4P.tscn":
+                var base_ang = den_angles[i] + randf_range(-0.18, 0.18)
+                var r = randf_range(48.0, 75.0)
+                candidate = Vector3(cos(base_ang) * r, 0.0, sin(base_ang) * r)
+            else: # 1v1 Arena
+                var side_x = -1.0 if i == 0 else 1.0
+                candidate = Vector3(side_x * randf_range(40.0, 68.0), 0.0, randf_range(-45.0, 45.0))
+                
+            if _is_pos_clear(candidate, 4.0, 10.0, 7.5):
+                _create_gorilla_den(parent, candidate)
+                placed_feature_records.append({"pos": candidate, "radius": 7.5, "type": "gorilla_den"})
+                placed = true
+        if not placed:
+            var fallback = Vector3.ZERO
+            if GameState.map_selected == "Arena_6P.tscn":
+                var ang = den_angles[i]
+                fallback = Vector3(cos(ang) * 70.0, 0.0, sin(ang) * 70.0)
+            elif GameState.map_selected == "Arena_4P.tscn":
+                var ang = den_angles[i]
+                fallback = Vector3(cos(ang) * 58.0, 0.0, sin(ang) * 58.0)
+            else:
+                var side_x = -1.0 if i == 0 else 1.0
+                fallback = Vector3(side_x * 52.0, 0.0, 24.0 if i == 0 else -24.0)
+            _create_gorilla_den(parent, fallback)
+            placed_feature_records.append({"pos": fallback, "radius": 7.5, "type": "gorilla_den"})
+
+    # 2. Monkey Burrows / Nests (1-2 territorial treehouse burrows with 18-22 Monkeys) - GUARANTEED OFF-PATH PLACEMENT
+    var burrow_angles = [deg_to_rad(150.0), deg_to_rad(330.0)] if GameState.map_selected == "Arena_6P.tscn" else ([deg_to_rad(150.0), deg_to_rad(330.0)] if GameState.map_selected == "Arena_4P.tscn" else [deg_to_rad(135.0), deg_to_rad(315.0)])
+    var burrow_count = 2 if GameState.map_selected in ["Arena_4P.tscn", "Arena_6P.tscn"] else 1
+    for i in range(burrow_count):
+        var placed = false
+        attempts = 0
+        while not placed and attempts < 120:
+            attempts += 1
+            var candidate = Vector3.ZERO
+            if GameState.map_selected == "Arena_6P.tscn":
+                var base_ang = burrow_angles[i] + randf_range(-0.15, 0.15)
+                var r = randf_range(58.0, 88.0)
+                candidate = Vector3(cos(base_ang) * r, 0.0, sin(base_ang) * r)
+            elif GameState.map_selected == "Arena_4P.tscn":
+                var base_ang = burrow_angles[i] + randf_range(-0.18, 0.18)
+                var r = randf_range(48.0, 75.0)
+                candidate = Vector3(cos(base_ang) * r, 0.0, sin(base_ang) * r)
+            else: # 1v1 Arena
+                var side_x = 1.0 if i == 0 else -1.0
+                candidate = Vector3(side_x * randf_range(42.0, 70.0), 0.0, randf_range(-45.0, 45.0))
+                
+            if _is_pos_clear(candidate, 4.0, 10.0, 6.5):
+                _create_monkey_burrow(parent, candidate)
+                placed_feature_records.append({"pos": candidate, "radius": 6.5, "type": "monkey_burrow"})
+                placed = true
+        if not placed:
+            var fallback = Vector3.ZERO
+            if GameState.map_selected == "Arena_6P.tscn":
+                var ang = burrow_angles[i]
+                fallback = Vector3(cos(ang) * 72.0, 0.0, sin(ang) * 72.0)
+            elif GameState.map_selected == "Arena_4P.tscn":
+                var ang = burrow_angles[i]
+                fallback = Vector3(cos(ang) * 60.0, 0.0, sin(ang) * 60.0)
+            else:
+                var side_x = 1.0 if i == 0 else -1.0
+                fallback = Vector3(side_x * 54.0, 0.0, -28.0 if i == 0 else 28.0)
+            _create_monkey_burrow(parent, fallback)
+            placed_feature_records.append({"pos": fallback, "radius": 6.5, "type": "monkey_burrow"})
+
+    # 3. Quicksand Sinkholes (10 to 14 off-path sinkholes that slow and drown units in churning mire)
+    var sinkhole_count = randi_range(10, 14)
+    attempts = 0
+    var placed_sinkholes = 0
+    while placed_sinkholes < sinkhole_count and attempts < 250:
+        attempts += 1
+        var candidate = Vector3(randf_range(-span, span), 0.0, randf_range(-span, span))
+        if _is_pos_clear(candidate, 5.0, 12.0, 4.8):
+            var sh = sinkhole_script.new()
+            sh.name = "QuicksandSinkhole_%d" % placed_sinkholes
+            sh.position = candidate
+            parent.add_child(sh)
+            placed_feature_records.append({"pos": candidate, "radius": 4.8, "type": "sinkhole"})
+            placed_sinkholes += 1
+
+    # 4. Dense Jungle Trees (28 to 36 tropical trees off-path)
+    var tree_count = randi_range(28, 36)
+    attempts = 0
+    var placed_trees = 0
+    while placed_trees < tree_count and attempts < 320:
+        attempts += 1
+        var candidate = Vector3(randf_range(-span, span), 0.0, randf_range(-span, span))
+        if _is_pos_clear(candidate, 4.0, 11.0, 3.2):
+            _create_procedural_jungle_tree(parent, candidate)
+            placed_feature_records.append({"pos": candidate, "radius": 3.2, "type": "jungle_tree"})
+            placed_trees += 1
+
+    # 5. Stealth Jungle Foliage & Fern Brushes (8 to 14 concealment brushes)
+    var brush_count = randi_range(8, 14)
+    attempts = 0
+    var placed_brush = 0
+    while placed_brush < brush_count and attempts < 250:
+        attempts += 1
+        var side = -1.0 if randf() < 0.5 else 1.0
+        var candidate = Vector3(side * randf_range(18.0, span * 0.78), 0.0, randf_range(-span * 0.8, span * 0.8))
+        if _is_pos_clear(candidate, 3.0, 12.0, 5.5):
+            var brush = StealthBrushScript.new()
+            brush.position = candidate
+            brush.setup_visuals(randf_range(4.5, 6.2))
+            parent.add_child(brush)
+            placed_feature_records.append({"pos": candidate, "radius": 5.5, "type": "brush"})
+            placed_brush += 1
+
+func _create_gorilla_den(parent: Node3D, pos: Vector3):
+    var den_body = StaticBody3D.new()
+    den_body.name = "GorillaDen_" + str(Time.get_ticks_usec())
+    den_body.position = pos
+    den_body.add_to_group("Targetable")
+    den_body.add_to_group("NeutralStructure")
+    den_body.add_to_group("Structure")
+    parent.add_child(den_body)
+    
+    var col = CollisionShape3D.new()
+    var col_cyl = CylinderShape3D.new()
+    col_cyl.radius = 4.6
+    col_cyl.height = 2.4
+    col.shape = col_cyl
+    col.position.y = 1.2
+    den_body.add_child(col)
+    
+    var hc = HealthComponent.new()
+    hc.name = "HealthComponent"
+    den_body.add_child(hc)
+    hc.set_max_health(750.0)
+    
+    # 3D Visuals: Bamboo & fern bedding floor
+    var bed_floor = MeshInstance3D.new()
+    var bf_cyl = CylinderMesh.new()
+    bf_cyl.top_radius = 5.8
+    bf_cyl.bottom_radius = 6.4
+    bf_cyl.height = 0.16
+    var bf_mat = StandardMaterial3D.new()
+    bf_mat.albedo_color = Color(0.28, 0.38, 0.14) # Lush mossy fern bedding
+    bf_mat.roughness = 0.90
+    bed_floor.mesh = bf_cyl
+    bed_floor.material_override = bf_mat
+    bed_floor.position.y = 0.08
+    den_body.add_child(bed_floor)
+    
+    # Giant hollow fallen mossy log / timber archway
+    var arch_log = MeshInstance3D.new()
+    var alm = CylinderMesh.new()
+    alm.top_radius = 0.9
+    alm.bottom_radius = 1.15
+    alm.height = 5.4
+    var log_mat = StandardMaterial3D.new()
+    log_mat.albedo_color = Color(0.26, 0.16, 0.09) # Weathered jungle bark
+    log_mat.roughness = 0.85
+    arch_log.mesh = alm
+    arch_log.material_override = log_mat
+    arch_log.position = Vector3(0, 1.4, -0.6)
+    arch_log.rotation_degrees = Vector3(12.0, 35.0, 82.0)
+    den_body.add_child(arch_log)
+    
+    # Surrounding mossy river boulders
+    var rock_mat = StandardMaterial3D.new()
+    rock_mat.albedo_color = Color(0.36, 0.32, 0.28)
+    rock_mat.roughness = 0.88
+    for r in range(7):
+        var ang = (TAU / 7.0) * r + randf_range(-0.15, 0.15)
+        var rk = MeshInstance3D.new()
+        var bm = BoxMesh.new()
+        bm.size = Vector3(randf_range(1.2, 1.8), randf_range(0.8, 1.4), randf_range(1.2, 1.8))
+        rk.mesh = bm
+        rk.material_override = rock_mat
+        rk.position = Vector3(cos(ang) * 5.2, 0.55, sin(ang) * 5.2)
+        rk.rotation = Vector3(randf() * 0.3, randf() * TAU, randf() * 0.3)
+        den_body.add_child(rk)
+        
+    # Initial Gorilla Troop (8-10 Gorillas)
+    var count = randi_range(8, 10)
+    for g in range(count):
+        var ang = (TAU / float(count)) * g + randf_range(-0.15, 0.15)
+        var dist = randf_range(1.6, 4.6)
+        var gorilla = TerritorialCreatureScript.new()
+        gorilla.configure_creature("Gorilla", pos)
+        gorilla.position = pos + Vector3(cos(ang) * dist, 0.2, sin(ang) * dist)
+        parent.add_child(gorilla)
+        
+    # Respawn timer (adds 1 gorilla every 7.5s up to 10 max if den survives)
+    var spawn_timer = Timer.new()
+    spawn_timer.wait_time = 7.5
+    spawn_timer.autostart = true
+    spawn_timer.timeout.connect(func():
+        if not is_instance_valid(den_body) or hc.is_dead:
+            spawn_timer.stop()
+            spawn_timer.queue_free()
+            return
+        var living_gorillas = 0
+        for c in parent.get_children():
+            if c is CharacterBody3D and c.get("creature_type") == "Gorilla":
+                var shc = c.get_node_or_null("HealthComponent")
+                if shc and not shc.is_dead and c.get("home_position") != null and c.home_position.distance_to(pos) < 22.0:
+                    living_gorillas += 1
+        if living_gorillas < 10:
+            var ang = randf() * TAU
+            var dist = randf_range(1.5, 4.2)
+            var new_gorilla = TerritorialCreatureScript.new()
+            new_gorilla.configure_creature("Gorilla", pos)
+            new_gorilla.position = pos + Vector3(cos(ang) * dist, 0.2, sin(ang) * dist)
+            parent.add_child(new_gorilla)
+    )
+    den_body.add_child(spawn_timer)
+
+func _create_monkey_burrow(parent: Node3D, pos: Vector3):
+    var burrow_body = StaticBody3D.new()
+    burrow_body.name = "MonkeyBurrow_" + str(Time.get_ticks_usec())
+    burrow_body.position = pos
+    burrow_body.add_to_group("Targetable")
+    burrow_body.add_to_group("NeutralStructure")
+    burrow_body.add_to_group("Structure")
+    parent.add_child(burrow_body)
+    
+    var col = CollisionShape3D.new()
+    var col_cyl = CylinderShape3D.new()
+    col_cyl.radius = 3.8
+    col_cyl.height = 2.0
+    col.shape = col_cyl
+    col.position.y = 1.0
+    burrow_body.add_child(col)
+    
+    var hc = HealthComponent.new()
+    hc.name = "HealthComponent"
+    burrow_body.add_child(hc)
+    hc.set_max_health(550.0)
+    
+    # 3D Visuals: Raised earthen burrow mound
+    var mound = MeshInstance3D.new()
+    var mm = CylinderMesh.new()
+    mm.top_radius = 2.2
+    mm.bottom_radius = 4.2
+    mm.height = 1.1
+    var mound_mat = StandardMaterial3D.new()
+    mound_mat.albedo_color = Color(0.35, 0.24, 0.14) # Rainforest soil
+    mound_mat.roughness = 0.92
+    mound.mesh = mm
+    mound.material_override = mound_mat
+    mound.position.y = 0.55
+    burrow_body.add_child(mound)
+    
+    # Woven thatch / palm frond canopy roof
+    var roof = MeshInstance3D.new()
+    var rm = CylinderMesh.new()
+    rm.top_radius = 0.4
+    rm.bottom_radius = 2.8
+    rm.height = 1.2
+    var roof_mat = StandardMaterial3D.new()
+    roof_mat.albedo_color = Color(0.44, 0.55, 0.22) # Dried palm thatch & vines
+    roof_mat.roughness = 0.85
+    roof.mesh = rm
+    roof.material_override = roof_mat
+    roof.position.y = 1.55
+    burrow_body.add_child(roof)
+    
+    # Small burrow entrance hole
+    var hole = MeshInstance3D.new()
+    var hm = BoxMesh.new()
+    hm.size = Vector3(1.1, 0.8, 1.2)
+    var hole_mat = StandardMaterial3D.new()
+    hole_mat.albedo_color = Color(0.12, 0.08, 0.05)
+    hole.mesh = hm
+    hole.material_override = hole_mat
+    hole.position = Vector3(0, 0.45, 1.6)
+    burrow_body.add_child(hole)
+    
+    # Initial Monkey Troop (18-22 agile Monkeys)
+    var count = randi_range(18, 22)
+    for m in range(count):
+        var ang = (TAU / float(count)) * m + randf_range(-0.15, 0.15)
+        var dist = randf_range(1.5, 4.4)
+        var monkey = TerritorialCreatureScript.new()
+        monkey.configure_creature("Monkey", pos)
+        monkey.position = pos + Vector3(cos(ang) * dist, 0.2, sin(ang) * dist)
+        parent.add_child(monkey)
+        
+    # Respawn timer (adds 1 monkey every 4.0s up to 20 max if burrow survives)
+    var spawn_timer = Timer.new()
+    spawn_timer.wait_time = 4.0
+    spawn_timer.autostart = true
+    spawn_timer.timeout.connect(func():
+        if not is_instance_valid(burrow_body) or hc.is_dead:
+            spawn_timer.stop()
+            spawn_timer.queue_free()
+            return
+        var living_monkeys = 0
+        for c in parent.get_children():
+            if c is CharacterBody3D and c.get("creature_type") == "Monkey":
+                var shc = c.get_node_or_null("HealthComponent")
+                if shc and not shc.is_dead and c.get("home_position") != null and c.home_position.distance_to(pos) < 20.0:
+                    living_monkeys += 1
+        if living_monkeys < 20:
+            var ang = randf() * TAU
+            var dist = randf_range(1.2, 4.0)
+            var new_monkey = TerritorialCreatureScript.new()
+            new_monkey.configure_creature("Monkey", pos)
+            new_monkey.position = pos + Vector3(cos(ang) * dist, 0.2, sin(ang) * dist)
+            parent.add_child(new_monkey)
+    )
+    burrow_body.add_child(spawn_timer)
+
+func _create_procedural_jungle_tree(parent: Node3D, pos: Vector3):
+    var tree_root = StaticBody3D.new()
+    tree_root.position = pos
+    tree_root.collision_layer = 1
+    tree_root.collision_mask = 0
+    
+    var col = CollisionShape3D.new()
+    var cyl = CylinderShape3D.new()
+    cyl.radius = 0.65
+    cyl.height = 4.2
+    col.shape = cyl
+    col.position.y = 2.1
+    tree_root.add_child(col)
+    
+    var style = randi() % 3
+    var scale_var = randf_range(0.9, 1.35)
+    var rot_y = randf() * TAU
+    tree_root.scale = Vector3(scale_var, scale_var, scale_var)
+    tree_root.rotation.y = rot_y
+    parent.add_child(tree_root)
+    
+    var bark_mat = StandardMaterial3D.new()
+    bark_mat.albedo_color = Color(0.28, 0.18, 0.10) # Dark fibrous tropical bark
+    bark_mat.roughness = 0.88
+    
+    var leaf_mat = StandardMaterial3D.new()
+    leaf_mat.albedo_color = Color(0.12, 0.52, 0.16) if style == 0 else (Color(0.22, 0.62, 0.18) if style == 1 else Color(0.15, 0.44, 0.14))
+    leaf_mat.roughness = 0.72
+    
+    if style == 0:
+        # Giant Tropical Canopy Tree
+        var trunk = MeshInstance3D.new()
+        var tc = CylinderMesh.new()
+        tc.top_radius = 0.42
+        tc.bottom_radius = 0.65
+        tc.height = 4.2
+        trunk.mesh = tc
+        trunk.material_override = bark_mat
+        trunk.position.y = 2.1
+        tree_root.add_child(trunk)
+        
+        # Spreading umbrella canopy
+        for f_pos in [Vector3(0, 4.4, 0), Vector3(1.2, 4.2, 0.8), Vector3(-1.1, 4.3, -0.7), Vector3(-0.8, 4.1, 1.2), Vector3(0.9, 4.3, -1.0)]:
+            var crown = MeshInstance3D.new()
+            var cs = SphereMesh.new()
+            cs.radius = 1.6
+            cs.height = 2.6
+            crown.mesh = cs
+            crown.material_override = leaf_mat
+            crown.position = f_pos
+            crown.scale = Vector3(1.2, 0.8, 1.2)
+            tree_root.add_child(crown)
+            
+        # Hanging Lianas / Vines
+        var vine_mat = StandardMaterial3D.new()
+        vine_mat.albedo_color = Color(0.24, 0.38, 0.14)
+        for v in range(3):
+            var ang = float(v) * (TAU / 3.0) + randf_range(-0.2, 0.2)
+            var vine = MeshInstance3D.new()
+            var vc = CylinderMesh.new()
+            vc.top_radius = 0.04
+            vc.bottom_radius = 0.03
+            vc.height = randf_range(2.0, 3.2)
+            vine.mesh = vc
+            vine.material_override = vine_mat
+            vine.position = Vector3(cos(ang) * 1.2, 2.5, sin(ang) * 1.2)
+            tree_root.add_child(vine)
+            
+    elif style == 1:
+        # Jungle Palm Tree
+        var trunk = MeshInstance3D.new()
+        var tc = CylinderMesh.new()
+        tc.top_radius = 0.22
+        tc.bottom_radius = 0.45
+        tc.height = 4.8
+        trunk.mesh = tc
+        trunk.material_override = bark_mat
+        trunk.position = Vector3(0.25, 2.4, 0)
+        trunk.rotation_degrees = Vector3(6.0, 0, -4.0)
+        tree_root.add_child(trunk)
+        
+        # Radiating palm fronds
+        for p in range(7):
+            var p_ang = float(p) * (TAU / 7.0)
+            var frond = MeshInstance3D.new()
+            var fm = BoxMesh.new()
+            fm.size = Vector3(0.35, 0.08, 2.4)
+            frond.mesh = fm
+            frond.material_override = leaf_mat
+            frond.position = Vector3(cos(p_ang) * 1.1 + 0.25, 4.7, sin(p_ang) * 1.1)
+            frond.rotation = Vector3(-0.35, p_ang + PI * 0.5, 0)
+            tree_root.add_child(frond)
+            
+        # Coconut cluster
+        var coco_mat = StandardMaterial3D.new()
+        coco_mat.albedo_color = Color(0.38, 0.26, 0.14)
+        for c_i in range(3):
+            var c_ang = float(c_i) * (TAU / 3.0)
+            var coco = MeshInstance3D.new()
+            var cs = SphereMesh.new()
+            cs.radius = 0.14
+            cs.height = 0.24
+            coco.mesh = cs
+            coco.material_override = coco_mat
+            coco.position = Vector3(cos(c_ang) * 0.22 + 0.25, 4.45, sin(c_ang) * 0.22)
+            tree_root.add_child(coco)
+            
+    else:
+        # Buttress Root Banyan Tree
+        var trunk = MeshInstance3D.new()
+        var tc = CylinderMesh.new()
+        tc.top_radius = 0.52
+        tc.bottom_radius = 0.85
+        tc.height = 3.8
+        trunk.mesh = tc
+        trunk.material_override = bark_mat
+        trunk.position.y = 1.9
+        tree_root.add_child(trunk)
+        
+        # 4 buttress roots flared at base
+        for b in range(4):
+            var b_ang = float(b) * PI * 0.5
+            var root_f = MeshInstance3D.new()
+            var rm = BoxMesh.new()
+            rm.size = Vector3(0.24, 1.2, 1.2)
+            root_f.mesh = rm
+            root_f.material_override = bark_mat
+            root_f.position = Vector3(cos(b_ang) * 0.8, 0.6, sin(b_ang) * 0.8)
+            root_f.rotation.y = b_ang
+            tree_root.add_child(root_f)
+            
+        var crown = MeshInstance3D.new()
+        var cs = SphereMesh.new()
+        cs.radius = 2.2
+        cs.height = 3.2
+        crown.mesh = cs
+        crown.material_override = leaf_mat
+        crown.position = Vector3(0, 3.8, 0)
+        crown.scale = Vector3(1.3, 0.75, 1.3)
+        tree_root.add_child(crown)

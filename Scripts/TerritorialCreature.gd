@@ -1,7 +1,7 @@
 extends CharacterBody3D
 class_name TerritorialCreature
 
-@export var creature_type: String = "Scorpion" # "Scorpion" or "SwarmAnt"
+@export var creature_type: String = "Scorpion" # "Scorpion", "SwarmAnt", "Gorilla", "Monkey"
 @export var nest_radius: float = 16.5
 @export var leash_radius: float = 36.0
 @export var home_position: Vector3 = Vector3.ZERO
@@ -25,8 +25,12 @@ func _ready():
 	add_to_group("NeutralCreature")
 	if creature_type == "Scorpion":
 		add_to_group("Scorpion")
-	else:
+	elif creature_type == "SwarmAnt":
 		add_to_group("SwarmAnt")
+	elif creature_type == "Gorilla":
+		add_to_group("Gorilla")
+	elif creature_type == "Monkey":
+		add_to_group("Monkey")
 		
 	# Setup HealthComponent
 	var hc = get_node_or_null("HealthComponent")
@@ -60,13 +64,29 @@ func configure_creature(type: String, home: Vector3):
 		attack_speed = 1.1
 		nest_radius = 16.5
 		leash_radius = 36.0
-	else: # SwarmAnt - smaller, less health, ranged
+	elif creature_type == "SwarmAnt":
 		max_health = 28.0
 		speed = 5.6
 		attack_damage = 4.5
 		attack_range = 10.0
 		attack_speed = 1.4
 		nest_radius = 18.5
+		leash_radius = 38.0
+	elif creature_type == "Gorilla":
+		max_health = 260.0
+		speed = 5.2
+		attack_damage = 26.0
+		attack_range = 2.4
+		attack_speed = 1.15
+		nest_radius = 19.5
+		leash_radius = 40.0
+	elif creature_type == "Monkey":
+		max_health = 58.0
+		speed = 6.0
+		attack_damage = 9.0
+		attack_range = 8.5
+		attack_speed = 1.45
+		nest_radius = 18.0
 		leash_radius = 38.0
 		
 	var hc = get_node_or_null("HealthComponent")
@@ -76,8 +96,12 @@ func configure_creature(type: String, home: Vector3):
 		for c in visual_mesh.get_children(): c.queue_free()
 		if creature_type == "Scorpion":
 			_build_scorpion_mesh()
-		else:
+		elif creature_type == "SwarmAnt":
 			_build_ant_mesh()
+		elif creature_type == "Gorilla":
+			_build_gorilla_mesh()
+		elif creature_type == "Monkey":
+			_build_monkey_mesh()
 
 func _setup_collision():
 	var col = get_node_or_null("CollisionShape3D")
@@ -85,9 +109,19 @@ func _setup_collision():
 		col = CollisionShape3D.new()
 		col.name = "CollisionShape3D"
 		var shape = SphereShape3D.new()
-		shape.radius = 0.6 if creature_type == "Scorpion" else 0.3
+		if creature_type == "Gorilla":
+			shape.radius = 0.8
+			col.position.y = 0.5
+		elif creature_type == "Scorpion":
+			shape.radius = 0.6
+			col.position.y = 0.3
+		elif creature_type == "Monkey":
+			shape.radius = 0.38
+			col.position.y = 0.22
+		else: # SwarmAnt
+			shape.radius = 0.3
+			col.position.y = 0.15
 		col.shape = shape
-		col.position.y = 0.3 if creature_type == "Scorpion" else 0.15
 		add_child(col)
 
 func _setup_model():
@@ -97,8 +131,12 @@ func _setup_model():
 	
 	if creature_type == "Scorpion":
 		_build_scorpion_mesh()
-	else:
+	elif creature_type == "SwarmAnt":
 		_build_ant_mesh()
+	elif creature_type == "Gorilla":
+		_build_gorilla_mesh()
+	elif creature_type == "Monkey":
+		_build_monkey_mesh()
 
 func _build_scorpion_mesh():
 	var chitin_mat = StandardMaterial3D.new()
@@ -271,6 +309,267 @@ func _build_ant_mesh():
 			a_leg.rotation_degrees.z = side * 38.0
 			visual_mesh.add_child(a_leg)
 
+func _build_gorilla_mesh():
+	var fur_mat = StandardMaterial3D.new()
+	fur_mat.albedo_color = Color(0.12, 0.12, 0.14) # Deep slate black gorilla coat
+	fur_mat.roughness = 0.8
+	
+	var chest_mat = StandardMaterial3D.new()
+	chest_mat.albedo_color = Color(0.24, 0.22, 0.24) # Leathery chest skin
+	chest_mat.roughness = 0.65
+	
+	var saddle_mat = StandardMaterial3D.new()
+	saddle_mat.albedo_color = Color(0.68, 0.68, 0.72) # Silverback dorsal saddle
+	saddle_mat.roughness = 0.75
+	
+	var eye_mat = StandardMaterial3D.new()
+	eye_mat.albedo_color = Color(0.95, 0.75, 0.15)
+	eye_mat.emission_enabled = true
+	eye_mat.emission = Color(0.95, 0.75, 0.15)
+	eye_mat.emission_energy_multiplier = 0.8
+	
+	# Scale whole visual
+	visual_mesh.scale = Vector3(1.22, 1.22, 1.22)
+	
+	# Heavy Barrel Torso
+	var torso = MeshInstance3D.new()
+	var t_sph = SphereMesh.new()
+	t_sph.radius = 0.38
+	t_sph.height = 0.82
+	torso.mesh = t_sph
+	torso.material_override = fur_mat
+	torso.position = Vector3(0, 0.62, 0.04)
+	torso.scale = Vector3(1.15, 1.0, 1.15)
+	visual_mesh.add_child(torso)
+	
+	# Chest Pecs
+	var chest = MeshInstance3D.new()
+	var c_sph = SphereMesh.new()
+	c_sph.radius = 0.26
+	c_sph.height = 0.55
+	chest.mesh = c_sph
+	chest.material_override = chest_mat
+	chest.position = Vector3(0, 0.64, -0.16)
+	chest.scale = Vector3(0.95, 0.9, 0.75)
+	visual_mesh.add_child(chest)
+	
+	# Silverback Saddle
+	var saddle = MeshInstance3D.new()
+	var s_sph = SphereMesh.new()
+	s_sph.radius = 0.34
+	s_sph.height = 0.68
+	saddle.mesh = s_sph
+	saddle.material_override = saddle_mat
+	saddle.position = Vector3(0, 0.70, 0.16)
+	saddle.scale = Vector3(1.12, 0.95, 1.05)
+	visual_mesh.add_child(saddle)
+	
+	# Head with heavy brow ridge
+	var head = MeshInstance3D.new()
+	var h_sph = SphereMesh.new()
+	h_sph.radius = 0.24
+	h_sph.height = 0.48
+	head.mesh = h_sph
+	head.material_override = fur_mat
+	head.position = Vector3(0, 1.04, -0.28)
+	visual_mesh.add_child(head)
+	
+	var brow = MeshInstance3D.new()
+	var b_box = BoxMesh.new()
+	b_box.size = Vector3(0.32, 0.09, 0.16)
+	brow.mesh = b_box
+	brow.material_override = fur_mat
+	brow.position = Vector3(0, 1.15, -0.46)
+	visual_mesh.add_child(brow)
+	
+	var muzzle = MeshInstance3D.new()
+	var m_box = BoxMesh.new()
+	m_box.size = Vector3(0.24, 0.18, 0.18)
+	muzzle.mesh = m_box
+	muzzle.material_override = chest_mat
+	muzzle.position = Vector3(0, 0.98, -0.48)
+	visual_mesh.add_child(muzzle)
+	
+	for s in [-1.0, 1.0]:
+		var eye = MeshInstance3D.new()
+		var e_sph = SphereMesh.new()
+		e_sph.radius = 0.038
+		e_sph.height = 0.076
+		eye.mesh = e_sph
+		eye.material_override = eye_mat
+		eye.position = Vector3(s * 0.09, 1.09, -0.47)
+		visual_mesh.add_child(eye)
+		
+		var ear = MeshInstance3D.new()
+		var er_sph = SphereMesh.new()
+		er_sph.radius = 0.075
+		er_sph.height = 0.14
+		ear.mesh = er_sph
+		ear.material_override = chest_mat
+		ear.position = Vector3(s * 0.24, 1.06, -0.30)
+		ear.scale = Vector3(0.45, 1.0, 0.85)
+		visual_mesh.add_child(ear)
+		
+		# Muscular Knuckle-walking Arms
+		var arm = MeshInstance3D.new()
+		var a_cyl = CylinderMesh.new()
+		a_cyl.top_radius = 0.12
+		a_cyl.bottom_radius = 0.10
+		a_cyl.height = 0.58
+		arm.mesh = a_cyl
+		arm.material_override = fur_mat
+		arm.position = Vector3(s * 0.44, 0.46, -0.24)
+		arm.rotation_degrees = Vector3(18.0, 0, s * -12.0)
+		visual_mesh.add_child(arm)
+		
+		# Knuckle Fist on ground
+		var fist = MeshInstance3D.new()
+		var f_sph = SphereMesh.new()
+		f_sph.radius = 0.12
+		f_sph.height = 0.20
+		fist.mesh = f_sph
+		fist.material_override = chest_mat
+		fist.position = Vector3(s * 0.48, 0.12, -0.32)
+		visual_mesh.add_child(fist)
+		
+		# Hind Legs
+		var leg = MeshInstance3D.new()
+		var l_cyl = CylinderMesh.new()
+		l_cyl.top_radius = 0.11
+		l_cyl.bottom_radius = 0.09
+		l_cyl.height = 0.44
+		leg.mesh = l_cyl
+		leg.material_override = fur_mat
+		leg.position = Vector3(s * 0.28, 0.30, 0.22)
+		visual_mesh.add_child(leg)
+
+func _build_monkey_mesh():
+	var fur_mat = StandardMaterial3D.new()
+	fur_mat.albedo_color = Color(0.56, 0.38, 0.22) # Golden brown fur
+	fur_mat.roughness = 0.75
+	
+	var skin_mat = StandardMaterial3D.new()
+	skin_mat.albedo_color = Color(0.85, 0.76, 0.62) # Pale face mask and belly
+	skin_mat.roughness = 0.6
+	
+	var eye_mat = StandardMaterial3D.new()
+	eye_mat.albedo_color = Color(0.10, 0.08, 0.08)
+	
+	var rock_mat = StandardMaterial3D.new()
+	rock_mat.albedo_color = Color(0.48, 0.44, 0.40)
+	rock_mat.roughness = 0.9
+	
+	visual_mesh.scale = Vector3(0.68, 0.68, 0.68)
+	
+	# Torso
+	var torso = MeshInstance3D.new()
+	var t_sph = SphereMesh.new()
+	t_sph.radius = 0.24
+	t_sph.height = 0.54
+	torso.mesh = t_sph
+	torso.material_override = fur_mat
+	torso.position = Vector3(0, 0.55, 0.02)
+	visual_mesh.add_child(torso)
+	
+	# Pale Chest
+	var chest = MeshInstance3D.new()
+	var c_sph = SphereMesh.new()
+	c_sph.radius = 0.17
+	c_sph.height = 0.38
+	chest.mesh = c_sph
+	chest.material_override = skin_mat
+	chest.position = Vector3(0, 0.54, -0.12)
+	chest.scale = Vector3(0.9, 0.9, 0.7)
+	visual_mesh.add_child(chest)
+	
+	# Head
+	var head = MeshInstance3D.new()
+	var h_sph = SphereMesh.new()
+	h_sph.radius = 0.17
+	h_sph.height = 0.34
+	head.mesh = h_sph
+	head.material_override = fur_mat
+	head.position = Vector3(0, 0.85, -0.18)
+	visual_mesh.add_child(head)
+	
+	# Face Mask & Muzzle
+	var face = MeshInstance3D.new()
+	var f_sph = SphereMesh.new()
+	f_sph.radius = 0.13
+	f_sph.height = 0.26
+	face.mesh = f_sph
+	face.material_override = skin_mat
+	face.position = Vector3(0, 0.84, -0.26)
+	face.scale = Vector3(0.9, 0.85, 0.6)
+	visual_mesh.add_child(face)
+	
+	for s in [-1.0, 1.0]:
+		var eye = MeshInstance3D.new()
+		var e_sph = SphereMesh.new()
+		e_sph.radius = 0.03
+		e_sph.height = 0.06
+		eye.mesh = e_sph
+		eye.material_override = eye_mat
+		eye.position = Vector3(s * 0.07, 0.89, -0.32)
+		visual_mesh.add_child(eye)
+		
+		var ear = MeshInstance3D.new()
+		var er_sph = SphereMesh.new()
+		er_sph.radius = 0.06
+		er_sph.height = 0.12
+		ear.mesh = er_sph
+		ear.material_override = skin_mat
+		ear.position = Vector3(s * 0.18, 0.87, -0.16)
+		ear.scale = Vector3(0.4, 1.0, 0.8)
+		visual_mesh.add_child(ear)
+		
+		# Limbs
+		var arm = MeshInstance3D.new()
+		var a_cyl = CylinderMesh.new()
+		a_cyl.top_radius = 0.06
+		a_cyl.bottom_radius = 0.05
+		a_cyl.height = 0.38
+		arm.mesh = a_cyl
+		arm.material_override = fur_mat
+		arm.position = Vector3(s * 0.22, 0.42, -0.12)
+		arm.rotation_degrees = Vector3(14.0, 0, s * -14.0)
+		visual_mesh.add_child(arm)
+		
+		var leg = MeshInstance3D.new()
+		var l_cyl = CylinderMesh.new()
+		l_cyl.top_radius = 0.065
+		l_cyl.bottom_radius = 0.05
+		l_cyl.height = 0.34
+		leg.mesh = l_cyl
+		leg.material_override = fur_mat
+		leg.position = Vector3(s * 0.17, 0.28, 0.16)
+		visual_mesh.add_child(leg)
+		
+	# Held Rock in Hand
+	var rock = MeshInstance3D.new()
+	var r_sph = SphereMesh.new()
+	r_sph.radius = 0.11
+	r_sph.height = 0.19
+	rock.mesh = r_sph
+	rock.material_override = rock_mat
+	rock.position = Vector3(0.24, 0.24, -0.22)
+	rock.scale = Vector3(1.1, 0.85, 1.0)
+	visual_mesh.add_child(rock)
+	
+	# Long Arching Prehensile Tail
+	for t_i in range(5):
+		var t_seg = MeshInstance3D.new()
+		var t_cyl = CylinderMesh.new()
+		t_cyl.top_radius = 0.035
+		t_cyl.bottom_radius = 0.04
+		t_cyl.height = 0.18
+		t_seg.mesh = t_cyl
+		t_seg.material_override = fur_mat
+		var t_ang = -28.0 + float(t_i) * 18.0
+		t_seg.position = Vector3(0, 0.58 + float(t_i) * 0.12, 0.26 + float(t_i) * 0.08)
+		t_seg.rotation_degrees = Vector3(t_ang, 0, 0)
+		visual_mesh.add_child(t_seg)
+
 func _physics_process(delta):
 	# Apply gravity
 	if not is_on_floor():
@@ -327,10 +626,12 @@ func _physics_process(delta):
 					set_meta("stealth_revealed_timer", 2.0)
 					if creature_type == "SwarmAnt":
 						_shoot_acid_spit(current_target)
+					elif creature_type == "Monkey":
+						_throw_rock(current_target)
 					else:
 						th.take_damage(attack_damage, global_position)
 						if visual_mesh:
-							visual_mesh.position.z -= 0.2
+							visual_mesh.position.z -= 0.35 if creature_type == "Gorilla" else 0.2
 	else:
 		# Return to home nest or idle wander
 		var dist_to_home = global_position.distance_to(home_position)
@@ -384,14 +685,47 @@ func _physics_process(delta):
 	# Procedural walk wobble
 	if visual_mesh:
 		if is_moving:
-			anim_time += delta * speed * 4.0
-			visual_mesh.rotation.y = sin(anim_time) * 0.12
-			visual_mesh.position.y = abs(sin(anim_time * 2.0)) * 0.05
-			visual_mesh.position.z = lerp(visual_mesh.position.z, 0.0, 10.0 * delta)
+			anim_time += delta * (speed * 4.0 if creature_type in ["SwarmAnt", "Monkey"] else speed * 3.2)
+			if creature_type == "Gorilla":
+				visual_mesh.rotation.z = sin(anim_time) * 0.09
+				visual_mesh.position.y = abs(sin(anim_time)) * 0.08
+				visual_mesh.position.z = lerp(visual_mesh.position.z, 0.0, 10.0 * delta)
+			elif creature_type == "Monkey":
+				visual_mesh.position.y = abs(sin(anim_time * 1.4)) * 0.12
+				visual_mesh.rotation.y = sin(anim_time * 0.8) * 0.14
+				visual_mesh.position.z = lerp(visual_mesh.position.z, 0.0, 10.0 * delta)
+			else:
+				visual_mesh.rotation.y = sin(anim_time) * 0.12
+				visual_mesh.position.y = abs(sin(anim_time * 2.0)) * 0.05
+				visual_mesh.position.z = lerp(visual_mesh.position.z, 0.0, 10.0 * delta)
 		else:
 			visual_mesh.rotation.y = lerp(visual_mesh.rotation.y, 0.0, 10.0 * delta)
+			visual_mesh.rotation.z = lerp(visual_mesh.rotation.z, 0.0, 10.0 * delta)
 			visual_mesh.position.y = lerp(visual_mesh.position.y, 0.0, 10.0 * delta)
 			visual_mesh.position.z = lerp(visual_mesh.position.z, 0.0, 10.0 * delta)
+
+func _throw_rock(target_node: Node3D):
+	if not is_instance_valid(target_node): return
+	var proj_scene = preload("res://Scenes/Projectile.tscn")
+	if proj_scene:
+		var proj = proj_scene.instantiate()
+		var scene_root = get_tree().current_scene if (get_tree() and get_tree().current_scene) else get_parent()
+		if scene_root:
+			scene_root.add_child(proj)
+			proj.global_position = global_position + Vector3(0, 0.45, 0)
+			proj.target = target_node
+			proj.set("damage", attack_damage)
+			proj.set("speed", 20.0)
+			var p_mesh = proj.get_node_or_null("MeshInstance3D")
+			if p_mesh:
+				var r_mat = StandardMaterial3D.new()
+				r_mat.albedo_color = Color(0.48, 0.44, 0.40)
+				r_mat.roughness = 0.9
+				p_mesh.material_override = r_mat
+				var sm = SphereMesh.new()
+				sm.radius = 0.15
+				sm.height = 0.26
+				p_mesh.mesh = sm
 
 func _shoot_acid_spit(target_node: Node3D):
 	if not is_instance_valid(target_node): return
@@ -438,7 +772,7 @@ func _evaluate_targeting():
 		var gs = _get_game_state()
 		
 		if is_inside_tree() and get_tree():
-			var my_group = "Scorpion" if creature_type == "Scorpion" else "SwarmAnt"
+			var my_group = creature_type
 			for node in get_tree().get_nodes_in_group("Targetable"):
 				if node == self or not is_instance_valid(node): continue
 				if node.is_in_group(my_group) or node.is_in_group("NeutralCreature") or node.is_in_group("NeutralStructure"): continue
@@ -466,7 +800,7 @@ func _on_health_changed(new_h: float, max_h: float):
 func _evaluate_retaliation():
 	var closest_d: float = leash_radius
 	var best: Node3D = null
-	var my_group = "Scorpion" if creature_type == "Scorpion" else "SwarmAnt"
+	var my_group = creature_type
 	if not is_inside_tree() or not get_tree(): return
 	for node in get_tree().get_nodes_in_group("Targetable"):
 		if node == self or not is_instance_valid(node): continue

@@ -632,7 +632,7 @@ func die():
 			puff.queue_free()
 
 
-	var is_building = "Base" in parent_node.name or "Tower" in parent_node.name or "CommandBay" in parent_node.name or "ScorpionNest" in parent_node.name or "AntHill" in parent_node.name or parent_node.is_in_group("Structure")
+	var is_building = "Base" in parent_node.name or "Tower" in parent_node.name or "CommandBay" in parent_node.name or "ScorpionNest" in parent_node.name or "AntHill" in parent_node.name or "GorillaDen" in parent_node.name or "MonkeyBurrow" in parent_node.name or parent_node.is_in_group("Structure")
 	if is_building:
 		_apply_destroyed_building(parent_node)
 	else:
@@ -926,6 +926,51 @@ func _apply_destroyed_building(parent: Node3D):
 		crater.material_override = crater_mat
 		crater.position.y = 0.95
 		ruined_root.add_child(crater)
+
+	elif "GorillaDen" in p_name:
+		var log_arch = MeshInstance3D.new()
+		var lm = CylinderMesh.new()
+		lm.top_radius = 0.55
+		lm.bottom_radius = 0.65
+		lm.height = 3.6
+		log_arch.mesh = lm
+		log_arch.material_override = dark_mat
+		log_arch.position = Vector3(0, 0.35, 0)
+		log_arch.rotation_degrees = Vector3(8.0, 42.0, 85.0)
+		ruined_root.add_child(log_arch)
+		for i in range(6):
+			var rk = MeshInstance3D.new()
+			var bm = BoxMesh.new()
+			bm.size = Vector3(randf_range(0.9, 1.4), randf_range(0.4, 0.7), randf_range(0.9, 1.4))
+			rk.mesh = bm
+			rk.material_override = r_mat
+			var ang = randf() * TAU
+			var d = randf_range(1.2, 4.5)
+			rk.position = Vector3(cos(ang) * d, 0.25, sin(ang) * d)
+			rk.rotation = Vector3(randf() * 0.3, randf() * TAU, randf() * 0.3)
+			ruined_root.add_child(rk)
+
+	elif "MonkeyBurrow" in p_name:
+		var mound = MeshInstance3D.new()
+		var mm = CylinderMesh.new()
+		mm.top_radius = 0.8
+		mm.bottom_radius = 3.2
+		mm.height = 0.75
+		mound.mesh = mm
+		mound.material_override = dark_mat
+		mound.position.y = 0.35
+		ruined_root.add_child(mound)
+		for i in range(5):
+			var thatch = MeshInstance3D.new()
+			var tm = BoxMesh.new()
+			tm.size = Vector3(randf_range(0.6, 1.2), 0.12, randf_range(0.6, 1.2))
+			thatch.mesh = tm
+			thatch.material_override = r_mat
+			var ang = randf() * TAU
+			var d = randf_range(0.8, 3.2)
+			thatch.position = Vector3(cos(ang) * d, 0.38, sin(ang) * d)
+			thatch.rotation = Vector3(randf() * 0.2, randf() * TAU, randf() * 0.2)
+			ruined_root.add_child(thatch)
 
 	# Persistent smoldering smoke plume on ruined buildings
 	var ruin_smoke = CPUParticles3D.new()

@@ -254,7 +254,7 @@ func test_maps_and_biomes() -> bool:
 
 	dummy_arena.queue_free()
 
-	var biomes = ["SUNNY_PLAINS", "SCORCHING_DUNES", "REALM_OF_HARMONY", "FROZEN_TUNDRA", "VOLCANIC_BRIMSTONE", "SPACE_VACUUM"]
+	var biomes = ["SUNNY_PLAINS", "SCORCHING_DUNES", "REALM_OF_HARMONY", "FROZEN_TUNDRA", "VOLCANIC_BRIMSTONE", "SPACE_VACUUM", "DEEP_JUNGLE"]
 
 	# --- Test Deep Space Vacuum Biome Decompression Mechanics ---
 	var vac_arena = ArenaManager.new()
@@ -435,8 +435,94 @@ func test_maps_and_biomes() -> bool:
 	fs_ranged.queue_free()
 	gfm.queue_free()
 
+	# --- Test Deep Jungle Biome Mechanics: Quicksand Sinkholes, Gorilla Dens & Monkey Burrows ---
+	var qs_script = load("res://Scripts/QuicksandSinkhole.gd")
+	var sinkhole = qs_script.new()
+	add_child(sinkhole)
+
+	var test_ground_unit = CharacterBody3D.new()
+	test_ground_unit.name = "TestJungleInfantry"
+	var tg_hc = HealthComponent.new()
+	tg_hc.name = "HealthComponent"
+	tg_hc.max_health = 100.0
+	tg_hc.current_health = 100.0
+	test_ground_unit.add_child(tg_hc)
+	var tg_vp = Node3D.new()
+	tg_vp.name = "VisualPivot"
+	test_ground_unit.add_child(tg_vp)
+	add_child(test_ground_unit)
+
+	var test_flyer_unit = CharacterBody3D.new()
+	test_flyer_unit.name = "TestJunglePlane"
+	test_flyer_unit.set("is_flying", true)
+	add_child(test_flyer_unit)
+
+	if sinkhole._is_unit_flying(test_ground_unit):
+		printerr("QuicksandSinkhole incorrectly identified ground infantry as flying!")
+		return false
+	if not sinkhole._is_unit_flying(test_flyer_unit):
+		printerr("QuicksandSinkhole failed to recognize flying unit!")
+		return false
+
+	# Test quicksand slow and sink application
+	test_ground_unit.velocity = Vector3(10.0, 0.0, 10.0)
+	test_ground_unit.global_position = sinkhole.global_position
+	sinkhole._apply_unit_sink(test_ground_unit, -0.45, 1.0)
+	if tg_vp.position.y >= 0.0:
+		printerr("QuicksandSinkhole failed to visually sink ground unit!")
+		return false
+	sinkhole._restore_unit_sink(test_ground_unit)
+	if tg_vp.position.y != 0.0:
+		printerr("QuicksandSinkhole failed to restore ground unit visual height on exit!")
+		return false
+
+	# Test Territorial Gorilla and Monkey configurations
+	var tc_script = load("res://Scripts/TerritorialCreature.gd")
+	var t_gorilla = tc_script.new()
+	t_gorilla.configure_creature("Gorilla", Vector3(10, 0, 10))
+	add_child(t_gorilla)
+
+	var t_monkey = tc_script.new()
+	t_monkey.configure_creature("Monkey", Vector3(-10, 0, -10))
+	add_child(t_monkey)
+
+	if t_gorilla.max_health < 200.0 or t_gorilla.attack_damage < 20.0 or not t_gorilla.is_in_group("Gorilla"):
+		printerr("Territorial Gorilla stats or group configuration invalid!")
+		return false
+	if t_monkey.attack_range < 7.0 or not t_monkey.is_in_group("Monkey"):
+		printerr("Territorial Monkey ranged attack or group configuration invalid!")
+		return false
+
+	# Test jungle environment generation on an arena
+	var j_arena = ArenaManager.new()
+	j_arena.active_biome = "DEEP_JUNGLE"
+	add_child(j_arena)
+	var j_env = Node3D.new()
+	j_env.name = "EnvironmentFeatures"
+	j_arena.add_child(j_env)
+	j_arena._generate_jungle(j_env)
+
+	var found_den = false
+	var found_burrow = false
+	var found_sinkhole = false
+	for child in j_env.get_children():
+		if "GorillaDen" in child.name: found_den = true
+		elif "MonkeyBurrow" in child.name: found_burrow = true
+		elif child.is_in_group("Quicksand") or "Quicksand" in child.name or child.get_script() == qs_script: found_sinkhole = true
+
+	if not found_den or not found_burrow or not found_sinkhole:
+		printerr("Deep Jungle environment failed to spawn GorillaDen, MonkeyBurrow, or QuicksandSinkhole! Found: den=%s burrow=%s sinkhole=%s" % [str(found_den), str(found_burrow), str(found_sinkhole)])
+		return false
+
+	test_ground_unit.queue_free()
+	test_flyer_unit.queue_free()
+	t_gorilla.queue_free()
+	t_monkey.queue_free()
+	sinkhole.queue_free()
+	j_arena.queue_free()
+
 	print("  Verified %d map catalog layouts across %d total team comps and %d biomes." % [tested_count, tested_comps, biomes.size()])
-	print("  [PASS] Breakable ice patches, Sea Lion organic predation, Volcanic hazards & Fire reincarnation verified.")
+	print("  [PASS] Breakable ice patches, Sea Lion organic predation, Volcanic hazards, Space vacuum & Deep Jungle mechanics verified.")
 	return true
 
 func test_shield_and_armor() -> bool:

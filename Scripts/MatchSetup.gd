@@ -35,8 +35,9 @@ func _ready():
 	biome_option.add_item("Glacial Frozen Tundra")
 	biome_option.add_item("Volcanic Brimstone")
 	biome_option.add_item("Deep Space Vacuum")
+	biome_option.add_item("Verdant Deep Jungle")
 	biome_option.add_item("Random Biome")
-	biome_option.select(6) # Default to Random Biome
+	biome_option.select(7) # Default to Random Biome
 	
 	mode_option.add_item("Domination (Destroy Every Base)")
 	mode_option.add_item("King of the Hill")
@@ -285,6 +286,8 @@ func _on_start_pressed():
 		GameState.map_biome = "VOLCANIC_BRIMSTONE"
 	elif biome_option.selected == 5:
 		GameState.map_biome = "SPACE_VACUUM"
+	elif biome_option.selected == 6:
+		GameState.map_biome = "DEEP_JUNGLE"
 	else:
 		GameState.map_biome = "RANDOM"
 		
